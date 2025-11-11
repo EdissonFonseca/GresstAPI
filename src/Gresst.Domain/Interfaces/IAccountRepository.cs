@@ -1,4 +1,6 @@
-﻿namespace Gresstt.Domain.Interfaces
+﻿using Gresst.Domain.Entities;
+
+namespace Gresstt.Domain.Interfaces
 {
     public interface IAccountRepository
     {
