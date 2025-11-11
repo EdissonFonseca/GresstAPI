@@ -1,10 +1,13 @@
 ﻿using Gresst.Domain.Entities;
 
-namespace Gresstt.Domain.Interfaces
+namespace Gresst.Domain.Interfaces;
+
+/// <summary>
+/// Specific repository for Account with additional methods beyond IRepository
+/// </summary>
+public interface IAccountRepository : IRepository<Account>
 {
-    public interface IAccountRepository
-    {
-        IEnumerable<Account> GetAll();
-        Account Get(long id);
-    }
+    // Método específico adicional
+    Task<Account?> GetByUserIdAsync(Guid userId, CancellationToken cancellationToken = default);
+    Task<Account?> GetByCodeAsync(string code, CancellationToken cancellationToken = default);
 }

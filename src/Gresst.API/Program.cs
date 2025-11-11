@@ -37,12 +37,14 @@ builder.Services.AddDbContext<InfrastructureDbContext>(options =>
 });
 
 // Mappers - Register all mappers
+builder.Services.AddScoped<AccountMapper>();
 builder.Services.AddScoped<FacilityMapper>();
 builder.Services.AddScoped<WasteMapper>();
 builder.Services.AddScoped<ManagementMapper>();
 builder.Services.AddScoped<PersonMapper>();
 
 // Repositories - Register specific repositories with mappers
+builder.Services.AddScoped<IAccountRepository, AccountRepository>();
 builder.Services.AddScoped<IRepository<Facility>, FacilityRepository>();
 builder.Services.AddScoped<IRepository<Waste>, WasteRepository>();
 builder.Services.AddScoped<IRepository<Management>, ManagementRepository>();
