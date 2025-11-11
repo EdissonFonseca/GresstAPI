@@ -1,10 +1,8 @@
 using Gresst.Domain.Entities;
 using Gresst.Domain.Interfaces;
 using Gresst.Infrastructure.Data;
-using Gresst.Infrastructure.Data.Entities;
 using Gresst.Infrastructure.Mappers;
 using Microsoft.EntityFrameworkCore;
-using NetTopologySuite.Geometries;
 using System.Linq.Expressions;
 
 namespace Gresst.Infrastructure.Repositories;
