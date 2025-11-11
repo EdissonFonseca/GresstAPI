@@ -39,3 +39,10 @@ bld/
 # User-specific files
 appsettings.local.json
 
+# Publish folder (deployment artifacts)
+publish/
+[Pp]ublish/
+
+# Deployment scripts with sensitive data
+*.zip
+
