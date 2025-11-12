@@ -1,11 +1,13 @@
 using Gresst.Domain.Entities;
+using Gresst.Domain.Enums;
+using Gresst.Infrastructure.Common;
 using Gresst.Infrastructure.Data.Entities;
-using System.Text.Json;
 
 namespace Gresst.Infrastructure.Mappers;
 
 /// <summary>
 /// Mapper: Account (Domain/Inglés) ↔ Cuentum (BD/Español)
+/// Maps between clean domain entity and database entity
 /// </summary>
 public class AccountMapper : MapperBase<Account, Cuentum>
 {
@@ -20,33 +22,25 @@ public class AccountMapper : MapperBase<Account, Cuentum>
         return new Account
         {
             // IDs
-            Id = ConvertLongToGuid(dbEntity.IdCuenta),
-            AccountId = ConvertLongToGuid(dbEntity.IdCuenta), // La cuenta se referencia a sí misma
+            Id = GuidLongConverter.ToGuid(dbEntity.IdCuenta),
+            AccountId = GuidLongConverter.ToGuid(dbEntity.IdCuenta), // Self-reference
             
             // Basic Info
             Name = dbEntity.Nombre,
-            Role = dbEntity.IdRol,
-            Status = dbEntity.IdEstado,
+            Code = dbEntity.IdCuenta.ToString(), // Use DB ID as code
+            Role = MapRole(dbEntity.IdRol),
+            Status = MapStatus(dbEntity.IdEstado),
             
             // Relations
-            PersonId = ConvertStringToGuid(dbEntity.IdPersona),
-            AdministratorId = ConvertLongToGuid(dbEntity.IdUsuario),
-            
-            // Configuration
-            Settings = !string.IsNullOrEmpty(dbEntity.Ajustes) 
-                ? JsonSerializer.Deserialize<Dictionary<string, string>>(dbEntity.Ajustes) ?? new Dictionary<string, string>()
-                : new Dictionary<string, string>(),
-            Parameters = new Dictionary<string, string>(), // Se cargaría desde CuentaParametro si es necesario
-            
-            // Properties
-            PermissionsBySite = dbEntity.PermisosPorSede,
+            PersonId = GuidLongConverter.StringToGuid(dbEntity.IdPersona),
+            ParentAccountId = null, // Cuentum doesn't have parent relationship
             
             // Audit
             CreatedAt = dbEntity.FechaCreacion,
             UpdatedAt = dbEntity.FechaUltimaModificacion,
             CreatedBy = dbEntity.IdUsuarioCreacion.ToString(),
             UpdatedBy = dbEntity.IdUsuarioUltimaModificacion?.ToString(),
-            IsActive = dbEntity.IdEstado != "I" // "I" = Inactivo
+            IsActive = dbEntity.IdEstado == "A"
         };
     }
 
@@ -61,24 +55,20 @@ public class AccountMapper : MapperBase<Account, Cuentum>
         return new Cuentum
         {
             // IDs
-            IdCuenta = ConvertGuidToLong(domainEntity.Id),
+            IdCuenta = GuidLongConverter.ToLong(domainEntity.Id),
             
             // Basic Info
             Nombre = domainEntity.Name,
-            IdRol = domainEntity.Role,
-            IdEstado = domainEntity.Status ?? "A", // "A" = Activo
+            IdRol = MapRoleToDb(domainEntity.Role),
+            IdEstado = MapStatusToDb(domainEntity.Status),
             
             // Relations
-            IdPersona = ConvertGuidToString(domainEntity.PersonId),
-            IdUsuario = ConvertGuidToLong(domainEntity.AdministratorId),
+            IdPersona = GuidLongConverter.GuidToString(domainEntity.PersonId),
+            IdUsuario = 0, // Usuario is for authentication, not directly from domain
             
-            // Configuration
-            Ajustes = domainEntity.Settings.Any() 
-                ? JsonSerializer.Serialize(domainEntity.Settings)
-                : null,
-            
-            // Properties
-            PermisosPorSede = domainEntity.PermissionsBySite,
+            // Technical fields (in database but not in domain)
+            Ajustes = null,
+            PermisosPorSede = false,
             
             // Audit
             FechaCreacion = domainEntity.CreatedAt,
@@ -92,20 +82,18 @@ public class AccountMapper : MapperBase<Account, Cuentum>
         };
     }
 
+    /// <summary>
+    /// Update existing database entity with domain values
+    /// </summary>
     public override void UpdateDatabase(Account domainEntity, Cuentum dbEntity)
     {
         if (domainEntity == null || dbEntity == null) return;
 
-        // Update modifiable fields
+        // Update modifiable business fields
         dbEntity.Nombre = domainEntity.Name;
-        dbEntity.IdRol = domainEntity.Role;
-        dbEntity.IdEstado = domainEntity.Status ?? "A";
-        dbEntity.PermisosPorSede = domainEntity.PermissionsBySite;
-        
-        // Configuration
-        dbEntity.Ajustes = domainEntity.Settings.Any() 
-            ? JsonSerializer.Serialize(domainEntity.Settings)
-            : null;
+        dbEntity.IdRol = MapRoleToDb(domainEntity.Role);
+        dbEntity.IdEstado = MapStatusToDb(domainEntity.Status);
+        dbEntity.IdPersona = GuidLongConverter.GuidToString(domainEntity.PersonId);
         
         // Audit
         dbEntity.FechaUltimaModificacion = domainEntity.UpdatedAt;
@@ -114,42 +102,51 @@ public class AccountMapper : MapperBase<Account, Cuentum>
             : null;
     }
 
-    // Type conversion helpers
-    private Guid ConvertLongToGuid(long id)
+    // Role mapping
+    private AccountRole MapRole(string dbRole)
     {
-        if (id == 0) return Guid.Empty;
-        return new Guid(id.ToString().PadLeft(32, '0'));
+        return dbRole?.ToUpper() switch
+        {
+            "N" => AccountRole.Generator,      // "N" = Generador
+            "S" => AccountRole.Operator,       // "S" = Operador logístico (Servicio)
+            "B" => AccountRole.Both,           // "B" = Ambos
+            _ => AccountRole.Generator
+        };
     }
 
-    private Guid ConvertStringToGuid(string id)
+    private string MapRoleToDb(AccountRole role)
     {
-        if (string.IsNullOrEmpty(id)) return Guid.Empty;
-        
-        if (Guid.TryParse(id, out var guid))
-            return guid;
-        
-        var hexString = new string(id.Where(c => char.IsLetterOrDigit(c)).ToArray());
-        hexString = hexString.PadLeft(32, '0').Substring(0, 32);
-        
-        var formatted = $"{hexString.Substring(0, 8)}-{hexString.Substring(8, 4)}-{hexString.Substring(12, 4)}-{hexString.Substring(16, 4)}-{hexString.Substring(20, 12)}";
-        
-        return Guid.Parse(formatted);
+        return role switch
+        {
+            AccountRole.Generator => "N",
+            AccountRole.Operator => "S",
+            AccountRole.Both => "B",
+            _ => "N"
+        };
     }
 
-    private long ConvertGuidToLong(Guid guid)
+    // Status mapping
+    private AccountStatus MapStatus(string? dbStatus)
     {
-        if (guid == Guid.Empty) return 0;
-        
-        var guidString = guid.ToString().Replace("-", "");
-        var numericPart = new string(guidString.Where(char.IsDigit).Take(18).ToArray());
-        
-        return long.TryParse(numericPart, out var result) ? result : 0;
+        return dbStatus?.ToUpper() switch
+        {
+            "A" => AccountStatus.Active,
+            "I" => AccountStatus.Inactive,
+            "S" => AccountStatus.Suspended,
+            "B" => AccountStatus.Blocked,
+            _ => AccountStatus.Inactive
+        };
     }
 
-    private string ConvertGuidToString(Guid guid)
+    private string MapStatusToDb(AccountStatus status)
     {
-        if (guid == Guid.Empty) return string.Empty;
-        return guid.ToString().Replace("-", "").Substring(0, 40);
+        return status switch
+        {
+            AccountStatus.Active => "A",
+            AccountStatus.Inactive => "I",
+            AccountStatus.Suspended => "S",
+            AccountStatus.Blocked => "B",
+            _ => "I"
+        };
     }
 }
-

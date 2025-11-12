@@ -1,0 +1,406 @@
+using Gresst.Infrastructure.Authentication.Models;
+using Gresst.Infrastructure.Common;
+using Gresst.Infrastructure.Data;
+using Gresst.Infrastructure.Data.Entities;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
+using Microsoft.IdentityModel.Tokens;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using System.Security.Cryptography;
+using System.Text;
+
+namespace Gresst.Infrastructure.Authentication;
+
+/// <summary>
+/// Authentication using database (Usuario table) with RefreshToken support
+/// </summary>
+public class DatabaseAuthenticationService : IAuthenticationService
+{
+    private readonly InfrastructureDbContext _context;
+    private readonly IConfiguration _configuration;
+
+    public DatabaseAuthenticationService(InfrastructureDbContext context, IConfiguration configuration)
+    {
+        _context = context;
+        _configuration = configuration;
+    }
+
+    public async Task<AuthenticationResult> LoginAsync(LoginRequest request, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            // Buscar usuario en BD (por correo o por nombre)
+            var usuario = await _context.Usuarios
+                .Include(u => u.IdCuentaNavigation)
+                .FirstOrDefaultAsync(u => 
+                    (u.Correo == request.Username || u.Nombre == request.Username) && 
+                    u.IdEstado == "A", 
+                    cancellationToken);
+
+            if (usuario == null)
+            {
+                return new AuthenticationResult 
+                { 
+                    Success = false, 
+                    Error = "Usuario no encontrado o inactivo" 
+                };
+            }
+
+            // Verificar password
+            if (!VerifyPassword(request.Password, usuario.Clave))
+            {
+                return new AuthenticationResult 
+                { 
+                    Success = false, 
+                    Error = "Contraseña incorrecta" 
+                };
+            }
+
+            // Generar JWT Access Token y Refresh Token
+            var (accessToken, jwtId) = GenerateJwtToken(usuario);
+            var refreshToken = await GenerateRefreshTokenAsync(usuario.IdUsuario, jwtId, cancellationToken);
+            
+            var accessTokenExpiresAt = DateTime.UtcNow.AddMinutes(GetAccessTokenExpirationMinutes());
+            var refreshTokenExpiresAt = DateTime.UtcNow.AddDays(GetRefreshTokenExpirationDays());
+
+            return new AuthenticationResult
+            {
+                Success = true,
+                AccessToken = accessToken,
+                RefreshToken = refreshToken,
+                UserId = GuidLongConverter.ToGuid(usuario.IdUsuario),
+                AccountId = GuidLongConverter.ToGuid(usuario.IdCuenta),
+                Username = usuario.Nombre,
+                Email = usuario.Correo,
+                Roles = ParseRoles(usuario.DatosAdicionales),
+                AccessTokenExpiresAt = accessTokenExpiresAt,
+                RefreshTokenExpiresAt = refreshTokenExpiresAt
+            };
+        }
+        catch (Exception ex)
+        {
+            return new AuthenticationResult 
+            { 
+                Success = false, 
+                Error = $"Error de autenticación: {ex.Message}" 
+            };
+        }
+    }
+
+    public async Task<AuthenticationResult> ValidateTokenAsync(string token, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var tokenHandler = new JwtSecurityTokenHandler();
+            var key = Encoding.UTF8.GetBytes(GetJwtSecret());
+
+            var validationParameters = new TokenValidationParameters
+            {
+                ValidateIssuerSigningKey = true,
+                IssuerSigningKey = new SymmetricSecurityKey(key),
+                ValidateIssuer = false,
+                ValidateAudience = false,
+                ClockSkew = TimeSpan.Zero
+            };
+
+            var principal = tokenHandler.ValidateToken(token, validationParameters, out var validatedToken);
+            
+            var userId = principal.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            var accountId = principal.FindFirst("AccountId")?.Value;
+            var username = principal.FindFirst(ClaimTypes.Name)?.Value;
+
+            return new AuthenticationResult
+            {
+                Success = true,
+                AccessToken = token,
+                UserId = Guid.Parse(userId ?? Guid.Empty.ToString()),
+                AccountId = Guid.Parse(accountId ?? Guid.Empty.ToString()),
+                Username = username
+            };
+        }
+        catch
+        {
+            return new AuthenticationResult { Success = false, Error = "Token inválido o expirado" };
+        }
+    }
+
+    public async Task<AuthenticationResult> RefreshTokenAsync(RefreshTokenRequest request, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            // Validar el access token (aunque esté expirado, necesitamos sus claims)
+            var tokenHandler = new JwtSecurityTokenHandler();
+            var key = Encoding.UTF8.GetBytes(GetJwtSecret());
+
+            var validationParameters = new TokenValidationParameters
+            {
+                ValidateIssuerSigningKey = true,
+                IssuerSigningKey = new SymmetricSecurityKey(key),
+                ValidateIssuer = false,
+                ValidateAudience = false,
+                ValidateLifetime = false, // No validar expiración para refresh
+                ClockSkew = TimeSpan.Zero
+            };
+
+            var principal = tokenHandler.ValidateToken(request.AccessToken, validationParameters, out var validatedToken);
+            var jwtToken = validatedToken as JwtSecurityToken;
+            
+            if (jwtToken == null)
+            {
+                return new AuthenticationResult { Success = false, Error = "Token inválido" };
+            }
+
+            var jwtId = jwtToken.Id;
+            var userIdClaim = principal.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            
+            if (string.IsNullOrEmpty(userIdClaim) || !long.TryParse(userIdClaim, out var userIdLong))
+            {
+                return new AuthenticationResult { Success = false, Error = "Token inválido" };
+            }
+
+            // Buscar el refresh token en BD
+            var storedRefreshToken = await _context.RefreshTokens
+                .FirstOrDefaultAsync(rt => 
+                    rt.Token == request.RefreshToken && 
+                    rt.JwtId == jwtId &&
+                    rt.IdUsuario == userIdLong,
+                    cancellationToken);
+
+            if (storedRefreshToken == null)
+            {
+                return new AuthenticationResult { Success = false, Error = "Refresh token inválido" };
+            }
+
+            // Validar refresh token
+            if (storedRefreshToken.IsUsed)
+            {
+                return new AuthenticationResult { Success = false, Error = "Refresh token ya fue usado" };
+            }
+
+            if (storedRefreshToken.IsRevoked)
+            {
+                return new AuthenticationResult { Success = false, Error = "Refresh token fue revocado" };
+            }
+
+            if (storedRefreshToken.ExpiryDate < DateTime.UtcNow)
+            {
+                return new AuthenticationResult { Success = false, Error = "Refresh token expirado" };
+            }
+
+            // Marcar el refresh token como usado
+            storedRefreshToken.IsUsed = true;
+            await _context.SaveChangesAsync(cancellationToken);
+
+            // Obtener usuario actualizado
+            var usuario = await _context.Usuarios
+                .Include(u => u.IdCuentaNavigation)
+                .FirstOrDefaultAsync(u => u.IdUsuario == userIdLong, cancellationToken);
+
+            if (usuario == null || usuario.IdEstado != "A")
+            {
+                return new AuthenticationResult { Success = false, Error = "Usuario no encontrado o inactivo" };
+            }
+
+            // Generar nuevos tokens
+            var (newAccessToken, newJwtId) = GenerateJwtToken(usuario);
+            var newRefreshToken = await GenerateRefreshTokenAsync(usuario.IdUsuario, newJwtId, cancellationToken);
+            
+            var accessTokenExpiresAt = DateTime.UtcNow.AddMinutes(GetAccessTokenExpirationMinutes());
+            var refreshTokenExpiresAt = DateTime.UtcNow.AddDays(GetRefreshTokenExpirationDays());
+
+            return new AuthenticationResult
+            {
+                Success = true,
+                AccessToken = newAccessToken,
+                RefreshToken = newRefreshToken,
+                UserId = GuidLongConverter.ToGuid(usuario.IdUsuario),
+                AccountId = GuidLongConverter.ToGuid(usuario.IdCuenta),
+                Username = usuario.Nombre,
+                Email = usuario.Correo,
+                Roles = ParseRoles(usuario.DatosAdicionales),
+                AccessTokenExpiresAt = accessTokenExpiresAt,
+                RefreshTokenExpiresAt = refreshTokenExpiresAt
+            };
+        }
+        catch (Exception ex)
+        {
+            return new AuthenticationResult { Success = false, Error = $"Error al refrescar token: {ex.Message}" };
+        }
+    }
+
+    public async Task<bool> LogoutAsync(Guid userId, string? refreshToken = null, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var userIdLong = GuidLongConverter.ToLong(userId);
+
+            if (!string.IsNullOrEmpty(refreshToken))
+            {
+                // Revocar el refresh token específico
+                var token = await _context.RefreshTokens
+                    .FirstOrDefaultAsync(rt => rt.Token == refreshToken && rt.IdUsuario == userIdLong, cancellationToken);
+
+                if (token != null)
+                {
+                    token.IsRevoked = true;
+                    await _context.SaveChangesAsync(cancellationToken);
+                }
+            }
+            else
+            {
+                // Revocar todos los refresh tokens del usuario
+                var tokens = await _context.RefreshTokens
+                    .Where(rt => rt.IdUsuario == userIdLong && !rt.IsRevoked)
+                    .ToListAsync(cancellationToken);
+
+                foreach (var token in tokens)
+                {
+                    token.IsRevoked = true;
+                }
+
+                if (tokens.Any())
+                {
+                    await _context.SaveChangesAsync(cancellationToken);
+                }
+            }
+
+            return true;
+        }
+        catch
+        {
+            return false;
+        }
+    }
+
+    public async Task<Guid> GetAccountIdForUserAsync(Guid userId, CancellationToken cancellationToken = default)
+    {
+        var userIdLong = GuidLongConverter.ToLong(userId);
+        var usuario = await _context.Usuarios.FindAsync(new object[] { userIdLong }, cancellationToken);
+        
+        return usuario != null 
+            ? GuidLongConverter.ToGuid(usuario.IdCuenta) 
+            : Guid.Empty;
+    }
+
+    // Helper methods
+    private (string token, string jwtId) GenerateJwtToken(Usuario usuario)
+    {
+        var tokenHandler = new JwtSecurityTokenHandler();
+        var key = Encoding.UTF8.GetBytes(GetJwtSecret());
+        
+        var jwtId = Guid.NewGuid().ToString();
+        
+        var claims = new List<Claim>
+        {
+            new Claim(JwtRegisteredClaimNames.Jti, jwtId),
+            new Claim(ClaimTypes.NameIdentifier, usuario.IdUsuario.ToString()),
+            new Claim(ClaimTypes.Name, usuario.Nombre),
+            new Claim("AccountId", usuario.IdCuenta.ToString()),
+            new Claim(ClaimTypes.Email, usuario.Correo)
+        };
+
+        // Agregar roles
+        var roles = ParseRoles(usuario.DatosAdicionales);
+        foreach (var role in roles)
+        {
+            claims.Add(new Claim(ClaimTypes.Role, role));
+        }
+
+        var tokenDescriptor = new SecurityTokenDescriptor
+        {
+            Subject = new ClaimsIdentity(claims),
+            Expires = DateTime.UtcNow.AddMinutes(GetAccessTokenExpirationMinutes()),
+            SigningCredentials = new SigningCredentials(
+                new SymmetricSecurityKey(key),
+                SecurityAlgorithms.HmacSha256Signature)
+        };
+
+        var token = tokenHandler.CreateToken(tokenDescriptor);
+        return (tokenHandler.WriteToken(token), jwtId);
+    }
+
+    private async Task<string> GenerateRefreshTokenAsync(long userId, string jwtId, CancellationToken cancellationToken)
+    {
+        var randomBytes = new byte[64];
+        using var rng = RandomNumberGenerator.Create();
+        rng.GetBytes(randomBytes);
+        var refreshToken = Convert.ToBase64String(randomBytes);
+
+        var refreshTokenEntity = new RefreshToken
+        {
+            Token = refreshToken,
+            JwtId = jwtId,
+            IdUsuario = userId,
+            IsUsed = false,
+            IsRevoked = false,
+            CreatedDate = DateTime.UtcNow,
+            ExpiryDate = DateTime.UtcNow.AddDays(GetRefreshTokenExpirationDays())
+        };
+
+        await _context.RefreshTokens.AddAsync(refreshTokenEntity, cancellationToken);
+        await _context.SaveChangesAsync(cancellationToken);
+
+        return refreshToken;
+    }
+
+    private bool VerifyPassword(string password, string? hashedPassword)
+    {
+        if (string.IsNullOrEmpty(hashedPassword))
+            return false;
+
+        // Si el hash está en formato BCrypt, Argon2, etc., usar la librería correspondiente
+        // Por ahora, comparación simple (CAMBIAR EN PRODUCCIÓN)
+        return hashedPassword == HashPassword(password);
+    }
+
+    private string HashPassword(string password)
+    {
+        // Usar BCrypt o Argon2 en producción
+        // Por ahora, SHA256 simple (NO usar en producción)
+        using var sha256 = SHA256.Create();
+        var hashedBytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(password));
+        return Convert.ToBase64String(hashedBytes);
+    }
+
+    private string[] ParseRoles(string? datosAdicionales)
+    {
+        if (string.IsNullOrEmpty(datosAdicionales))
+            return new[] { "User" };
+
+        try
+        {
+            var json = System.Text.Json.JsonDocument.Parse(datosAdicionales);
+            if (json.RootElement.TryGetProperty("roles", out var rolesElement))
+            {
+                var roles = System.Text.Json.JsonSerializer.Deserialize<string[]>(rolesElement.GetRawText());
+                return roles ?? new[] { "User" };
+            }
+            return new[] { "User" };
+        }
+        catch
+        {
+            return new[] { "User" };
+        }
+    }
+
+    private string GetJwtSecret()
+    {
+        return _configuration["Authentication:JwtSecret"] 
+            ?? "gresst-super-secret-key-change-in-production-min-32-chars";
+    }
+
+    private double GetAccessTokenExpirationMinutes()
+    {
+        return double.TryParse(_configuration["Authentication:AccessTokenExpirationMinutes"], out var minutes) 
+            ? minutes 
+            : 15; // 15 minutos por defecto
+    }
+
+    private double GetRefreshTokenExpirationDays()
+    {
+        return double.TryParse(_configuration["Authentication:RefreshTokenExpirationDays"], out var days) 
+            ? days 
+            : 7; // 7 días por defecto
+    }
+}

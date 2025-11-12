@@ -314,7 +314,8 @@ Para crear mappers de las otras 19 entidades, sigue este patrón:
 
 ```bash
 POST /api/facility
-Headers: X-Account-Id: 12345678-1234-1234-1234-123456789012
+Headers: Authorization: Bearer {jwt-token}
+(AccountId is extracted from the token automatically)
 
 {
   "code": "PLANTA-001",
@@ -348,7 +349,8 @@ Headers: X-Account-Id: 12345678-1234-1234-1234-123456789012
 
 ```bash
 GET /api/facility
-Headers: X-Account-Id: 12345678-1234-1234-1234-123456789012
+Headers: Authorization: Bearer {jwt-token}
+(UserId and AccountId are extracted from the token automatically)
 ```
 
 **Lo que pasa:**

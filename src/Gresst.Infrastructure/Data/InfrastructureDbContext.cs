@@ -13,6 +13,8 @@ public partial class InfrastructureDbContext : DbContext
     }
 
     public virtual DbSet<Ajuste> Ajustes { get; set; }
+    
+    public virtual DbSet<RefreshToken> RefreshTokens { get; set; }
 
     public virtual DbSet<Caracteristica> Caracteristicas { get; set; }
 

@@ -4,49 +4,88 @@ using Gresst.Domain.Interfaces;
 
 namespace Gresst.Application.Services;
 
+/// <summary>
+/// Facility service with user-level data segmentation
+/// Automatically filters facilities based on current user's assignments
+/// </summary>
 public class FacilityService : IFacilityService
 {
     private readonly IRepository<Facility> _facilityRepository;
+    private readonly IDataSegmentationService _segmentationService;
     private readonly IUnitOfWork _unitOfWork;
 
     public FacilityService(
         IRepository<Facility> facilityRepository,
+        IDataSegmentationService segmentationService,
         IUnitOfWork unitOfWork)
     {
         _facilityRepository = facilityRepository;
+        _segmentationService = segmentationService;
         _unitOfWork = unitOfWork;
     }
 
-    public async Task<FacilityDto> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
+    /// <summary>
+    /// Get all facilities - FILTERED by current user assignments
+    /// </summary>
+    public async Task<IEnumerable<FacilityDto>> GetAllAsync(CancellationToken cancellationToken = default)
     {
+        // Obtener IDs de facilities asignados al usuario actual
+        var userFacilityIds = await _segmentationService.GetUserFacilityIdsAsync(cancellationToken);
+        
+        // Si es admin, devolver todos
+        if (await _segmentationService.CurrentUserIsAdminAsync(cancellationToken))
+        {
+            var allFacilities = await _facilityRepository.GetAllAsync(cancellationToken);
+            return allFacilities.Select(MapToDto).ToList();
+        }
+
+        // Usuario normal: solo sus facilities asignados
+        var facilities = await _facilityRepository.FindAsync(
+            f => userFacilityIds.Contains(f.Id),
+            cancellationToken);
+
+        return facilities.Select(MapToDto).ToList();
+    }
+
+    /// <summary>
+    /// Get facility by ID - VERIFIES user has access
+    /// </summary>
+    public async Task<FacilityDto?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
+    {
+        // Verificar acceso del usuario
+        if (!await _segmentationService.UserHasAccessToFacilityAsync(id, cancellationToken))
+        {
+            return null; // Usuario no tiene acceso
+        }
+
         var facility = await _facilityRepository.GetByIdAsync(id, cancellationToken);
         if (facility == null)
-            throw new KeyNotFoundException($"Facility with ID {id} not found");
+            return null;
 
         return MapToDto(facility);
     }
 
-    public async Task<IEnumerable<FacilityDto>> GetAllAsync(CancellationToken cancellationToken = default)
+    /// <summary>
+    /// Get all facilities for admin (no user filtering)
+    /// </summary>
+    public async Task<IEnumerable<FacilityDto>> GetAllForAdminAsync(CancellationToken cancellationToken = default)
     {
         var facilities = await _facilityRepository.GetAllAsync(cancellationToken);
         return facilities.Select(MapToDto).ToList();
     }
 
-    public async Task<IEnumerable<FacilityDto>> GetByPersonAsync(Guid personId, CancellationToken cancellationToken = default)
+    /// <summary>
+    /// Get facilities by account - also filtered by user
+    /// </summary>
+    public async Task<IEnumerable<FacilityDto>> GetAllByAccountAsync(Guid accountId, CancellationToken cancellationToken = default)
     {
-        var facilities = await _facilityRepository.FindAsync(
-            f => f.PersonId == personId, 
-            cancellationToken);
-        
-        return facilities.Select(MapToDto).ToList();
-    }
+        // Obtener IDs de facilities asignados al usuario actual
+        var userFacilityIds = await _segmentationService.GetUserFacilityIdsAsync(cancellationToken);
 
-    public async Task<IEnumerable<FacilityDto>> GetByTypeAsync(string facilityType, CancellationToken cancellationToken = default)
-    {
         var facilities = await _facilityRepository.FindAsync(
-            f => f.FacilityType == facilityType, 
+            f => f.AccountId == accountId && userFacilityIds.Contains(f.Id),
             cancellationToken);
-        
+
         return facilities.Select(MapToDto).ToList();
     }
 
@@ -82,14 +121,38 @@ public class FacilityService : IFacilityService
         return MapToDto(facility);
     }
 
-    public async Task<FacilityDto> UpdateAsync(UpdateFacilityDto dto, CancellationToken cancellationToken = default)
+    public async Task<IEnumerable<FacilityDto>> GetByPersonAsync(Guid personId, CancellationToken cancellationToken = default)
     {
+        var facilities = await _facilityRepository.FindAsync(
+            f => f.PersonId == personId, 
+            cancellationToken);
+        
+        return facilities.Select(MapToDto).ToList();
+    }
+
+    public async Task<IEnumerable<FacilityDto>> GetByTypeAsync(string facilityType, CancellationToken cancellationToken = default)
+    {
+        var facilities = await _facilityRepository.FindAsync(
+            f => f.FacilityType == facilityType, 
+            cancellationToken);
+        
+        return facilities.Select(MapToDto).ToList();
+    }
+
+    public async Task<FacilityDto?> UpdateAsync(UpdateFacilityDto dto, CancellationToken cancellationToken = default)
+    {
+        // Verificar acceso del usuario
+        if (!await _segmentationService.UserHasAccessToFacilityAsync(dto.Id, cancellationToken))
+        {
+            return null; // Usuario no tiene acceso
+        }
+
         var facility = await _facilityRepository.GetByIdAsync(dto.Id, cancellationToken);
         if (facility == null)
-            throw new KeyNotFoundException($"Facility with ID {dto.Id} not found");
+            return null;
 
         // Update only provided fields
-        if (dto.Name != null)
+        if (!string.IsNullOrEmpty(dto.Name))
             facility.Name = dto.Name;
         if (dto.Description != null)
             facility.Description = dto.Description;
@@ -128,14 +191,22 @@ public class FacilityService : IFacilityService
         return MapToDto(facility);
     }
 
-    public async Task DeleteAsync(Guid id, CancellationToken cancellationToken = default)
+    public async Task<bool> DeleteAsync(Guid id, CancellationToken cancellationToken = default)
     {
+        // Verificar acceso del usuario
+        if (!await _segmentationService.UserHasAccessToFacilityAsync(id, cancellationToken))
+        {
+            return false; // Usuario no tiene acceso
+        }
+
         var facility = await _facilityRepository.GetByIdAsync(id, cancellationToken);
         if (facility == null)
-            throw new KeyNotFoundException($"Facility with ID {id} not found");
+            return false;
 
         await _facilityRepository.DeleteAsync(facility, cancellationToken);
         await _unitOfWork.SaveChangesAsync(cancellationToken);
+        
+        return true;
     }
 
     private FacilityDto MapToDto(Facility facility)
@@ -166,4 +237,3 @@ public class FacilityService : IFacilityService
         };
     }
 }
-

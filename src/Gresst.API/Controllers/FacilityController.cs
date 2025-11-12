@@ -38,15 +38,12 @@ public class FacilityController : ControllerBase
     [ProducesResponseType(404)]
     public async Task<ActionResult<FacilityDto>> GetById(Guid id, CancellationToken cancellationToken)
     {
-        try
-        {
-            var facility = await _facilityService.GetByIdAsync(id, cancellationToken);
-            return Ok(facility);
-        }
-        catch (KeyNotFoundException ex)
-        {
-            return NotFound(new { message = ex.Message });
-        }
+        var facility = await _facilityService.GetByIdAsync(id, cancellationToken);
+        
+        if (facility == null)
+            return NotFound(new { message = "Facility not found or you don't have access" });
+
+        return Ok(facility);
     }
 
     /// <summary>
@@ -135,15 +132,12 @@ public class FacilityController : ControllerBase
         if (!ModelState.IsValid)
             return BadRequest(ModelState);
 
-        try
-        {
-            var facility = await _facilityService.UpdateAsync(dto, cancellationToken);
-            return Ok(facility);
-        }
-        catch (KeyNotFoundException ex)
-        {
-            return NotFound(new { message = ex.Message });
-        }
+        var facility = await _facilityService.UpdateAsync(dto, cancellationToken);
+        
+        if (facility == null)
+            return NotFound(new { message = "Facility not found or you don't have access" });
+
+        return Ok(facility);
     }
 
     /// <summary>
@@ -154,15 +148,12 @@ public class FacilityController : ControllerBase
     [ProducesResponseType(404)]
     public async Task<ActionResult> Delete(Guid id, CancellationToken cancellationToken)
     {
-        try
-        {
-            await _facilityService.DeleteAsync(id, cancellationToken);
-            return NoContent();
-        }
-        catch (KeyNotFoundException ex)
-        {
-            return NotFound(new { message = ex.Message });
-        }
+        var success = await _facilityService.DeleteAsync(id, cancellationToken);
+        
+        if (!success)
+            return NotFound(new { message = "Facility not found or you don't have access" });
+
+        return NoContent();
     }
 }
 

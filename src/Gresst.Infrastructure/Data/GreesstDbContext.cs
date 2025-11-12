@@ -39,7 +39,7 @@ public class GreesstDbContext : DbContext
     public DbSet<Packaging> Packagings => Set<Packaging>();
     public DbSet<Route> Routes => Set<Route>();
     public DbSet<RouteStop> RouteStops => Set<RouteStop>();
-    public DbSet<User> Users => Set<User>();
+    // User removed - not a domain entity, only for authentication in Infrastructure
     public DbSet<Rate> Rates => Set<Rate>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)

@@ -1,6 +1,22 @@
 # Gresst - Waste Management API
 
-A comprehensive REST API for waste management built with .NET 8, C#, Entity Framework Core, and Clean Architecture.
+A comprehensive REST API for waste management built with .NET 9, C#, Entity Framework Core, and Clean Architecture.
+
+## 📚 Documentation
+
+All detailed documentation is in the [`docs/`](./docs) folder:
+
+- [**System Overview**](./docs/SISTEMA-COMPLETO.md) - Complete system architecture and flow
+- [**Authentication**](./docs/AUTENTICACION.md) - Login, JWT, RefreshToken
+- [**Authorization**](./docs/AUTORIZACION.md) - Permissions and CRUD access control
+- [**Data Segmentation**](./docs/SEGMENTACION-DATOS.md) - User-level resource filtering
+- [**RefreshToken**](./docs/REFRESH-TOKEN.md) - Token refresh implementation
+- [**Architecture**](./docs/ARCHITECTURE.md) - Clean Architecture details
+- [**CRUD Examples**](./docs/EJEMPLOS-CRUDS.md) - Complete API usage examples
+- [**Mapping Strategy**](./docs/MAPEO-COMPLETO.md) - Domain ↔ Database mapping
+- [**Deployment**](./docs/DEPLOYMENT-WINDOWS.md) - Windows Server deployment guide
+- [**Node.js Client Example**](./docs/CLIENT-EXAMPLE-NODEJS.js) - Complete client with auto-refresh
+- [**RefreshToken SQL Script**](./docs/CREATE_REFRESH_TOKEN_TABLE.sql) - Database setup script
 
 ## Features
 
@@ -144,9 +160,9 @@ Navigate to: `https://localhost:5001` or `http://localhost:5000`
 
 ## Multitenant Support
 
-The API supports multitenancy through the `AccountId` field. Pass the account ID via:
-- Header: `X-Account-Id: <guid>`
-- Claim: `AccountId` in JWT token
+The API supports multitenancy through the `AccountId` field in the JWT token.
+- The `AccountId` is automatically included in the JWT token during login
+- No need to send `X-Account-Id` header - it's extracted from the token claim
 
 All queries are automatically filtered by the current account.
 

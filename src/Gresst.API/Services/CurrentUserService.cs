@@ -20,15 +20,8 @@ public class CurrentUserService : ICurrentUserService
 
     public Guid GetCurrentAccountId()
     {
-        // For demo purposes, using a claim or header
+        // AccountId comes from JWT token claim (set during login)
         var accountId = _httpContextAccessor.HttpContext?.User?.FindFirstValue("AccountId");
-        
-        if (string.IsNullOrEmpty(accountId))
-        {
-            // Try from header
-            accountId = _httpContextAccessor.HttpContext?.Request.Headers["X-Account-Id"].FirstOrDefault();
-        }
-
         return Guid.TryParse(accountId, out var id) ? id : Guid.Empty;
     }
 

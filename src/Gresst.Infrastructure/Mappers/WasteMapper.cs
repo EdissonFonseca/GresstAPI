@@ -1,5 +1,6 @@
 using Gresst.Domain.Entities;
 using Gresst.Domain.Enums;
+using Gresst.Infrastructure.Common;
 using Gresst.Infrastructure.Data.Entities;
 
 namespace Gresst.Infrastructure.Mappers;
@@ -20,7 +21,7 @@ public class WasteMapper : MapperBase<Waste, Residuo>
         return new Waste
         {
             // IDs
-            Id = ConvertLongToGuid(dbEntity.IdResiduo),
+            Id = GuidLongConverter.ToGuid(dbEntity.IdResiduo),
             AccountId = Guid.NewGuid(), // Se obtiene del usuario actual
             
             // Basic Info
@@ -28,7 +29,7 @@ public class WasteMapper : MapperBase<Waste, Residuo>
             Description = dbEntity.Descripcion,
             
             // Waste Type - IdMaterial en BD es como WasteTypeId
-            WasteTypeId = ConvertLongToGuid(dbEntity.IdMaterial),
+            WasteTypeId = GuidLongConverter.ToGuid(dbEntity.IdMaterial),
             
             // Quantity - Asumiendo que Residuo no tiene cantidad directa, se obtiene de gestiones
             Quantity = 0, // Se calculará desde las gestiones
@@ -39,13 +40,13 @@ public class WasteMapper : MapperBase<Waste, Residuo>
             
             // Generator - Asumiendo que el propietario es el generador inicialmente
             GeneratorId = !string.IsNullOrEmpty(dbEntity.IdPropietario)
-                ? ConvertStringToGuid(dbEntity.IdPropietario)
+                ? GuidLongConverter.StringToGuid(dbEntity.IdPropietario)
                 : Guid.Empty,
             GeneratedAt = dbEntity.FechaIngreso ?? dbEntity.FechaCreacion,
             
             // Current Owner
             CurrentOwnerId = !string.IsNullOrEmpty(dbEntity.IdPropietario)
-                ? ConvertStringToGuid(dbEntity.IdPropietario)
+                ? GuidLongConverter.StringToGuid(dbEntity.IdPropietario)
                 : null,
             
             // Properties
@@ -72,12 +73,12 @@ public class WasteMapper : MapperBase<Waste, Residuo>
         return new Residuo
         {
             // IDs
-            IdResiduo = ConvertGuidToLong(domainEntity.Id),
-            IdMaterial = ConvertGuidToLong(domainEntity.WasteTypeId),
+            IdResiduo = GuidLongConverter.ToLong(domainEntity.Id),
+            IdMaterial = GuidLongConverter.ToLong(domainEntity.WasteTypeId),
             
             // Owner
             IdPropietario = domainEntity.CurrentOwnerId.HasValue 
-                ? ConvertGuidToString(domainEntity.CurrentOwnerId.Value)
+                ? GuidLongConverter.GuidToString(domainEntity.CurrentOwnerId.Value)
                 : null,
             
             // Info
@@ -114,7 +115,7 @@ public class WasteMapper : MapperBase<Waste, Residuo>
         dbEntity.Descripcion = domainEntity.Description;
         dbEntity.IdEstado = MapStatusToDb(domainEntity.Status);
         dbEntity.IdPropietario = domainEntity.CurrentOwnerId.HasValue
-            ? ConvertGuidToString(domainEntity.CurrentOwnerId.Value)
+            ? GuidLongConverter.GuidToString(domainEntity.CurrentOwnerId.Value)
             : null;
         
         // Audit
@@ -157,45 +158,5 @@ public class WasteMapper : MapperBase<Waste, Residuo>
         };
     }
 
-    // Type conversion helpers
-    private Guid ConvertLongToGuid(long id)
-    {
-        if (id == 0) return Guid.Empty;
-        return new Guid(id.ToString().PadLeft(32, '0'));
-    }
-
-    private Guid ConvertStringToGuid(string id)
-    {
-        if (string.IsNullOrEmpty(id)) return Guid.Empty;
-        
-        // Si ya es un GUID válido, usarlo
-        if (Guid.TryParse(id, out var guid))
-            return guid;
-        
-        // Si no, crear uno a partir del string (asegurar solo hex)
-        var hexString = new string(id.Where(c => char.IsLetterOrDigit(c)).ToArray());
-        hexString = hexString.PadLeft(32, '0').Substring(0, 32);
-        
-        // Formatear como GUID: xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
-        var formatted = $"{hexString.Substring(0, 8)}-{hexString.Substring(8, 4)}-{hexString.Substring(12, 4)}-{hexString.Substring(16, 4)}-{hexString.Substring(20, 12)}";
-        
-        return Guid.Parse(formatted);
-    }
-
-    private long ConvertGuidToLong(Guid guid)
-    {
-        if (guid == Guid.Empty) return 0;
-        
-        var guidString = guid.ToString().Replace("-", "");
-        var numericPart = new string(guidString.Where(char.IsDigit).Take(18).ToArray());
-        
-        return long.TryParse(numericPart, out var result) ? result : 0;
-    }
-
-    private string ConvertGuidToString(Guid guid)
-    {
-        if (guid == Guid.Empty) return string.Empty;
-        return guid.ToString().Replace("-", "").Substring(0, 40);
-    }
 }
 

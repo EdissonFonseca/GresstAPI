@@ -6,8 +6,8 @@
 
 ```bash
 curl -X POST http://localhost:5000/api/facility \
+  -H "Authorization: Bearer {your-access-token}" \
   -H "Content-Type: application/json" \
-  -H "X-Account-Id: 00000000-0000-0000-0001-000000000001" \
   -d '{
     "code": "PLANTA-NORTE-001",
     "name": "Planta de Tratamiento Norte",
@@ -55,7 +55,7 @@ INSERT INTO Deposito (
 
 ```bash
 curl -X GET http://localhost:5000/api/facility \
-  -H "X-Account-Id: 00000000-0000-0000-0001-000000000001"
+  -H "Authorization: Bearer {your-access-token}"
 ```
 
 **Respuesta:**
@@ -89,14 +89,14 @@ curl -X GET http://localhost:5000/api/facility \
 
 ```bash
 curl -X GET http://localhost:5000/api/facility/00000000-0000-0000-0000-000000000123 \
-  -H "X-Account-Id: 00000000-0000-0000-0001-000000000001"
+  -H "Authorization: Bearer {your-access-token}"
 ```
 
 #### **c) Obtener por persona (dueño)**
 
 ```bash
 curl -X GET http://localhost:5000/api/facility/person/00000000-0000-0000-0002-000000000001 \
-  -H "X-Account-Id: 00000000-0000-0000-0001-000000000001"
+  -H "Authorization: Bearer {your-access-token}"
 ```
 
 #### **d) Obtener por tipo**
@@ -104,7 +104,7 @@ curl -X GET http://localhost:5000/api/facility/person/00000000-0000-0000-0002-00
 ```bash
 # Tipos: TreatmentPlant, DisposalSite, StorageFacility, TransferStation
 curl -X GET http://localhost:5000/api/facility/type/TreatmentPlant \
-  -H "X-Account-Id: 00000000-0000-0000-0001-000000000001"
+  -H "Authorization: Bearer {your-access-token}"
 ```
 
 ---
@@ -114,7 +114,7 @@ curl -X GET http://localhost:5000/api/facility/type/TreatmentPlant \
 ```bash
 curl -X PUT http://localhost:5000/api/facility/00000000-0000-0000-0000-000000000123 \
   -H "Content-Type: application/json" \
-  -H "X-Account-Id: 00000000-0000-0000-0001-000000000001" \
+  -H "Authorization: Bearer {your-access-token}" \
   -d '{
     "id": "00000000-0000-0000-0000-000000000123",
     "name": "Planta de Tratamiento Norte - Ampliada",
@@ -143,7 +143,7 @@ WHERE IdDeposito = 123
 
 ```bash
 curl -X DELETE http://localhost:5000/api/facility/00000000-0000-0000-0000-000000000123 \
-  -H "X-Account-Id: 00000000-0000-0000-0001-000000000001"
+  -H "Authorization: Bearer {your-access-token}"
 ```
 
 **Lo que pasa en BD:**
@@ -164,7 +164,7 @@ WHERE IdDeposito = 123
 ```bash
 curl -X POST http://localhost:5000/api/waste \
   -H "Content-Type: application/json" \
-  -H "X-Account-Id: 00000000-0000-0000-0001-000000000001" \
+  -H "Authorization: Bearer {your-access-token}" \
   -d '{
     "code": "WASTE-2025-001",
     "description": "Residuos plásticos industriales",
@@ -496,7 +496,7 @@ Response JSON:
 3. Expande `/api/Facility`
 4. Click en `POST /api/facility` → Try it out
 5. Pega el JSON de ejemplo
-6. Agrega header: `X-Account-Id: 00000000-0000-0000-0001-000000000001`
+6. Agrega header: `Authorization: Bearer {your-access-token}` (AccountId viene en el token)
 7. Execute
 
 ---
