@@ -1,3 +1,4 @@
+using Gresst.API.Configuration;
 using Gresst.API.Services;
 using Gresst.Application.Services;
 using Gresst.Domain.Entities;
@@ -8,6 +9,8 @@ using Gresst.Infrastructure.Mappers;
 using Gresst.Infrastructure.Repositories;
 using Gresst.Infrastructure.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.ApiExplorer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
@@ -16,40 +19,23 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container
 builder.Services.AddControllers();
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen(c =>
+
+builder.Services.AddApiVersioning(options =>
 {
-    c.SwaggerDoc("v1", new() { 
-        Title = "Gresst Waste Management API", 
-        Version = "v1",
-        Description = "Complete waste management system with traceability, inventory, and certificates"
-    });
-    
-    // Add JWT authentication to Swagger
-    c.AddSecurityDefinition("Bearer", new Microsoft.OpenApi.Models.OpenApiSecurityScheme
-    {
-        Description = "JWT Authorization header using Bearer scheme. Example: \"Bearer {token}\"",
-        Name = "Authorization",
-        In = Microsoft.OpenApi.Models.ParameterLocation.Header,
-        Type = Microsoft.OpenApi.Models.SecuritySchemeType.ApiKey,
-        Scheme = "Bearer"
-    });
-    
-    c.AddSecurityRequirement(new Microsoft.OpenApi.Models.OpenApiSecurityRequirement
-    {
-        {
-            new Microsoft.OpenApi.Models.OpenApiSecurityScheme
-            {
-                Reference = new Microsoft.OpenApi.Models.OpenApiReference
-                {
-                    Type = Microsoft.OpenApi.Models.ReferenceType.SecurityScheme,
-                    Id = "Bearer"
-                }
-            },
-            Array.Empty<string>()
-        }
-    });
+    options.DefaultApiVersion = new ApiVersion(1, 0);
+    options.AssumeDefaultVersionWhenUnspecified = true;
+    options.ReportApiVersions = true;
 });
+
+builder.Services.AddVersionedApiExplorer(options =>
+{
+    options.GroupNameFormat = "'v'VVV";
+    options.SubstituteApiVersionInUrl = true;
+});
+
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen();
+builder.Services.ConfigureOptions<ConfigureSwaggerOptions>();
 
 // HttpContext for multitenancy
 builder.Services.AddHttpContextAccessor();
@@ -152,10 +138,17 @@ var app = builder.Build();
 // Configure the HTTP request pipeline
 // Always enable Swagger for easy API testing
 app.UseSwagger();
-app.UseSwaggerUI(c =>
+
+var apiVersionDescriptionProvider = app.Services.GetRequiredService<IApiVersionDescriptionProvider>();
+
+app.UseSwaggerUI(options =>
 {
-    c.SwaggerEndpoint("/swagger/v1/swagger.json", "Gresst API v1");
-    c.RoutePrefix = string.Empty; // Swagger at root
+    foreach (var description in apiVersionDescriptionProvider.ApiVersionDescriptions)
+    {
+        options.SwaggerEndpoint($"/swagger/{description.GroupName}/swagger.json", $"Gresst API {description.GroupName.ToUpperInvariant()}");
+    }
+
+    options.RoutePrefix = string.Empty; // Swagger at root
 });
 
 app.UseHttpsRedirection();

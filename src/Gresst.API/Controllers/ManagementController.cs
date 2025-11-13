@@ -5,7 +5,9 @@ using Microsoft.AspNetCore.Mvc;
 namespace Gresst.API.Controllers;
 
 [ApiController]
+[ApiVersion("1.0")]
 [Route("api/[controller]")]
+[Route("api/v{version:apiVersion}/[controller]")]
 public class ManagementController : ControllerBase
 {
     private readonly IManagementService _managementService;

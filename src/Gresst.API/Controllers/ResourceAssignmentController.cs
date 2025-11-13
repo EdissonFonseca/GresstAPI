@@ -9,7 +9,9 @@ namespace Gresst.API.Controllers;
 /// Manages data segmentation (UsuarioDeposito, UsuarioVehiculo, etc.)
 /// </summary>
 [ApiController]
+[ApiVersion("1.0")]
 [Route("api/[controller]")]
+[Route("api/v{version:apiVersion}/[controller]")]
 [Authorize(Roles = "Admin")]
 public class ResourceAssignmentController : ControllerBase
 {
