@@ -6,7 +6,7 @@ namespace Gresst.Application.Services;
 /// Service for managing user permissions and authorization
 /// Renamed to IPermissionService to avoid conflict with Microsoft.AspNetCore.Authorization.IAuthorizationService
 /// </summary>
-public interface IPermissionService
+public interface IAuthorizationService
 {
     // Options management
     Task<IEnumerable<OptionDto>> GetAllOptionsAsync(CancellationToken cancellationToken = default);

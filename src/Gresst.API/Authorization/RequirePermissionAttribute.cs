@@ -32,7 +32,7 @@ public class RequirePermissionAttribute : Attribute, IAsyncAuthorizationFilter
 
         // Get permission service
         var authService = context.HttpContext.RequestServices
-            .GetService<IPermissionService>();
+            .GetService<IAuthorizationService>();
 
         if (authService == null)
         {

@@ -129,7 +129,7 @@ builder.Services.AddScoped<IWasteService, WasteService>();
 builder.Services.AddScoped<IManagementService, ManagementService>();
 builder.Services.AddScoped<IBalanceService, BalanceService>();
 builder.Services.AddScoped<IUserService, UserService>();
-builder.Services.AddScoped<IPermissionService, PermissionService>();
+builder.Services.AddScoped<IAuthorizationService, AuthorizationService>();
 
 // Planning Services (To be implemented)
 // builder.Services.AddScoped<IRequestService, RequestService>();

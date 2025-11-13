@@ -11,12 +11,12 @@ namespace Gresst.Infrastructure.Services;
 /// <summary>
 /// Implementation of permission service
 /// </summary>
-public class PermissionService : IPermissionService
+public class AuthorizationService : IAuthorizationService
 {
     private readonly InfrastructureDbContext _context;
     private readonly ICurrentUserService _currentUserService;
 
-    public PermissionService(InfrastructureDbContext context, ICurrentUserService currentUserService)
+    public AuthorizationService(InfrastructureDbContext context, ICurrentUserService currentUserService)
     {
         _context = context;
         _currentUserService = currentUserService;

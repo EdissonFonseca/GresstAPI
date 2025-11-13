@@ -8,11 +8,11 @@ namespace Gresst.API.Controllers;
 [ApiController]
 [Route("api/[controller]")]
 [AllowAnonymous]
-public class AuthController : ControllerBase
+public class AuthenticationController : ControllerBase
 {
     private readonly AuthenticationServiceFactory _authFactory;
 
-    public AuthController(AuthenticationServiceFactory authFactory)
+    public AuthenticationController(AuthenticationServiceFactory authFactory)
     {
         _authFactory = authFactory;
     }

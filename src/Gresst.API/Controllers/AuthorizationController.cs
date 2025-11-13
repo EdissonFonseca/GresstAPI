@@ -8,13 +8,13 @@ namespace Gresst.API.Controllers;
 [ApiController]
 [Route("api/[controller]")]
 [Authorize]
-public class PermissionController : ControllerBase
+public class AuthorizationController : ControllerBase
 {
-    private readonly IPermissionService _permissionService;
+    private readonly Application.Services.IAuthorizationService _authorizationService;
 
-    public PermissionController(IPermissionService permissionService)
+    public AuthorizationController(Application.Services.IAuthorizationService authorizationService)
     {
-        _permissionService = permissionService;
+        _authorizationService = authorizationService;
     }
 
     /// <summary>
@@ -24,7 +24,7 @@ public class PermissionController : ControllerBase
     [ProducesResponseType(typeof(IEnumerable<OptionDto>), 200)]
     public async Task<ActionResult<IEnumerable<OptionDto>>> GetAllOptions(CancellationToken cancellationToken)
     {
-        var options = await _permissionService.GetAllOptionsAsync(cancellationToken);
+        var options = await _authorizationService.GetAllOptionsAsync(cancellationToken);
         return Ok(options);
     }
 
@@ -36,7 +36,7 @@ public class PermissionController : ControllerBase
     [ProducesResponseType(404)]
     public async Task<ActionResult<OptionDto>> GetOption(string optionId, CancellationToken cancellationToken)
     {
-        var option = await _permissionService.GetOptionByIdAsync(optionId, cancellationToken);
+        var option = await _authorizationService.GetOptionByIdAsync(optionId, cancellationToken);
         
         if (option == null)
             return NotFound(new { error = "Option not found" });
@@ -51,7 +51,7 @@ public class PermissionController : ControllerBase
     [ProducesResponseType(typeof(IEnumerable<OptionDto>), 200)]
     public async Task<ActionResult<IEnumerable<OptionDto>>> GetChildOptions(string parentId, CancellationToken cancellationToken)
     {
-        var options = await _permissionService.GetOptionsByParentAsync(parentId, cancellationToken);
+        var options = await _authorizationService.GetOptionsByParentAsync(parentId, cancellationToken);
         return Ok(options);
     }
 
@@ -63,7 +63,7 @@ public class PermissionController : ControllerBase
     [ProducesResponseType(typeof(IEnumerable<UserPermissionDto>), 200)]
     public async Task<ActionResult<IEnumerable<UserPermissionDto>>> GetUserPermissions(Guid userId, CancellationToken cancellationToken)
     {
-        var permissions = await _permissionService.GetUserPermissionsAsync(userId, cancellationToken);
+        var permissions = await _authorizationService.GetUserPermissionsAsync(userId, cancellationToken);
         return Ok(permissions);
     }
 
@@ -78,7 +78,7 @@ public class PermissionController : ControllerBase
         if (!Guid.TryParse(userIdClaim, out var userId))
             return Unauthorized();
 
-        var permissions = await _permissionService.GetUserPermissionsAsync(userId, cancellationToken);
+        var permissions = await _authorizationService.GetUserPermissionsAsync(userId, cancellationToken);
         return Ok(permissions);
     }
 
@@ -91,7 +91,7 @@ public class PermissionController : ControllerBase
     [ProducesResponseType(404)]
     public async Task<ActionResult<UserPermissionDto>> GetUserPermission(Guid userId, string optionId, CancellationToken cancellationToken)
     {
-        var permission = await _permissionService.GetUserPermissionAsync(userId, optionId, cancellationToken);
+        var permission = await _authorizationService.GetUserPermissionAsync(userId, optionId, cancellationToken);
         
         if (permission == null)
             return NotFound(new { error = "Permission not found" });
@@ -122,7 +122,7 @@ public class PermissionController : ControllerBase
         if (!ModelState.IsValid)
             return BadRequest(ModelState);
 
-        var success = await _permissionService.AssignPermissionAsync(dto, cancellationToken);
+        var success = await _authorizationService.AssignPermissionAsync(dto, cancellationToken);
         
         if (!success)
             return BadRequest(new { error = "Failed to assign permission" });
@@ -139,7 +139,7 @@ public class PermissionController : ControllerBase
     [ProducesResponseType(404)]
     public async Task<ActionResult> UpdatePermission(Guid userId, string optionId, [FromBody] AssignPermissionDto dto, CancellationToken cancellationToken)
     {
-        var success = await _permissionService.UpdatePermissionAsync(userId, optionId, dto, cancellationToken);
+        var success = await _authorizationService.UpdatePermissionAsync(userId, optionId, dto, cancellationToken);
         
         if (!success)
             return NotFound(new { error = "Permission not found" });
@@ -156,7 +156,7 @@ public class PermissionController : ControllerBase
     [ProducesResponseType(404)]
     public async Task<ActionResult> RevokePermission(Guid userId, string optionId, CancellationToken cancellationToken)
     {
-        var success = await _permissionService.RevokePermissionAsync(userId, optionId, cancellationToken);
+        var success = await _authorizationService.RevokePermissionAsync(userId, optionId, cancellationToken);
         
         if (!success)
             return NotFound(new { error = "Permission not found" });
@@ -174,7 +174,7 @@ public class PermissionController : ControllerBase
         [FromQuery] PermissionFlags permission,
         CancellationToken cancellationToken)
     {
-        var hasPermission = await _permissionService.CurrentUserHasPermissionAsync(optionId, permission, cancellationToken);
+        var hasPermission = await _authorizationService.CurrentUserHasPermissionAsync(optionId, permission, cancellationToken);
         return Ok(new { hasPermission });
     }
 }
