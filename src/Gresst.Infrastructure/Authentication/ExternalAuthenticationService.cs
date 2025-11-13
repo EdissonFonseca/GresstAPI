@@ -1,8 +1,11 @@
+using Gresst.Application.DTOs;
 using Gresst.Infrastructure.Authentication.Models;
 using Gresst.Infrastructure.Common;
 using Gresst.Infrastructure.Data;
+using Gresst.Infrastructure.Data.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 using System.Net.Http.Json;
 using System.Text.Json;
 
@@ -94,7 +97,17 @@ public class ExternalAuthenticationService : IAuthenticationService
             };
         }
     }
-
+    
+    public async Task<(bool, string)> IsUserAuthorizedForInterfaceAsync(string interfaz, string email, string token, CancellationToken cancellationToken = default)
+    {
+        return (false, String.Empty);
+    }
+    
+    public async Task<(bool, string)> IsGuestAuthorizedForInterfaceAsync(string interfaz, string token, CancellationToken cancellationToken = default)
+    {
+        return (false, String.Empty);
+    }
+    
     public async Task<AuthenticationResult> ValidateTokenAsync(string token, CancellationToken cancellationToken = default)
     {
         try
@@ -147,12 +160,17 @@ public class ExternalAuthenticationService : IAuthenticationService
             };
         }
     }
-
+    
     public Task<AuthenticationResult> RefreshTokenAsync(RefreshTokenRequest request, CancellationToken cancellationToken = default)
     {
         // Implementar con el proveedor externo si es necesario
         // Por ahora, external provider no soporta refresh token
         throw new NotImplementedException("Refresh token debe implementarse según el proveedor externo");
+    }
+
+    public async Task<bool> IsValidRefreshTokenAsync(string email, string token, CancellationToken cancellationToken = default)
+    {
+        return false;
     }
 
     public Task<bool> LogoutAsync(Guid userId, string? refreshToken = null, CancellationToken cancellationToken = default)
@@ -217,6 +235,26 @@ public class ExternalAuthenticationService : IAuthenticationService
         await _context.SaveChangesAsync(cancellationToken);
 
         return newUser;
+    }
+
+    public async Task<UserDto?> GetUserByEmailAsync(string email, CancellationToken cancellationToken = default)
+    {
+        return null;
+    }
+    
+    public async Task<UserDto?> GetUserByIdAsync(Guid userId, CancellationToken cancellationToken = default)
+    {
+        return null;
+    }
+
+    public async Task<bool> ChangeNameAsync(Guid userId, string name, CancellationToken cancellationToken = default)
+    {
+        return false;
+    }
+
+    public async Task<bool> ChangePasswordAsync(Guid userId, string password, CancellationToken cancellationToken = default)
+    {
+        return false;
     }
 }
 

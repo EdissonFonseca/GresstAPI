@@ -1,3 +1,5 @@
+using Gresst.Application.DTOs;
+using Gresst.Domain.Entities;
 using Gresst.Infrastructure.Authentication.Models;
 using Gresst.Infrastructure.Common;
 using Gresst.Infrastructure.Data;
@@ -6,6 +8,8 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
+using System.Linq;
+using System.Linq.Expressions;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
@@ -86,6 +90,45 @@ public class DatabaseAuthenticationService : IAuthenticationService
                 Error = $"Error de autenticación: {ex.Message}" 
             };
         }
+    }
+
+    public async Task<(bool,string)> IsUserAuthorizedForInterfaceAsync(string interfaz, string email, string token, CancellationToken cancellationToken = default)
+    {
+        var usuario = await
+            (from u in _context.Usuarios
+            where u.Correo == email
+            select u).FirstOrDefaultAsync(cancellationToken);
+        if (usuario != null)
+        {
+            var cuenta = await (
+                from c in _context.CuentaInterfazs
+                where c.IdCuenta == usuario.IdCuenta && c.Interfaz == interfaz && c.Token == token
+                select c).FirstOrDefaultAsync(cancellationToken);
+            if (cuenta != null)
+            {
+                var (accessToken, jwtId) = GenerateJwtToken(usuario);
+                return (true, accessToken);
+            }
+        }
+
+        return (false, String.Empty);
+    }
+
+    public async Task<(bool, string)> IsGuestAuthorizedForInterfaceAsync(string interfaz, string token, CancellationToken cancellationToken = default)
+    {
+        var user = await (
+            from ci in _context.CuentaInterfazs
+            join c in _context.Cuenta on ci.IdCuenta equals c.IdCuenta
+            join u in _context.Usuarios on c.IdCuenta equals u.IdCuenta
+            where ci.Interfaz == interfaz && ci.Token == token && u.Nombre == ci.Llave
+            select u).FirstOrDefaultAsync(cancellationToken);
+        if (user != null)
+        {
+            var (accessToken, jwtId) = GenerateJwtToken(user);
+            return (true, accessToken);
+        }
+
+        return (false, String.Empty);
     }
 
     public async Task<AuthenticationResult> ValidateTokenAsync(string token, CancellationToken cancellationToken = default)
@@ -229,6 +272,36 @@ public class DatabaseAuthenticationService : IAuthenticationService
         }
     }
 
+    public async Task<bool> IsValidRefreshTokenAsync(string email, string token, CancellationToken cancellationToken = default)
+    {
+        var user = await (from u in _context.Usuarios
+                    where u.Correo == email
+                    select u).FirstOrDefaultAsync(cancellationToken);
+
+        if (user == null)
+            return false;
+
+        Dictionary<string, object> settings = new Dictionary<string, object>();
+        if (user.DatosAdicionales != null)
+        {
+            //settings = JsonConvert.DeserializeObject<Dictionary<string, object>>(user.DatosAdicionales);
+            if (settings.ContainsKey("token") && settings["token"].ToString() == token)
+            {
+                if (settings.ContainsKey("expiresAt"))
+                {
+                    var date = settings["expiresAt"]?.ToString();
+                    if (date == null)
+                        return true;
+
+                    DateTime expiresAt = DateTime.Parse(date);
+                    return DateTime.UtcNow < expiresAt;
+                }
+            }
+        }
+
+        return false;
+    }
+
     public async Task<bool> LogoutAsync(Guid userId, string? refreshToken = null, CancellationToken cancellationToken = default)
     {
         try
@@ -281,6 +354,69 @@ public class DatabaseAuthenticationService : IAuthenticationService
         return usuario != null 
             ? GuidLongConverter.ToGuid(usuario.IdCuenta) 
             : Guid.Empty;
+    }
+
+    public async Task<UserDto?> GetUserByEmailAsync(string email, CancellationToken cancellationToken = default)
+    {
+        var user = await _context.Usuarios.FirstOrDefaultAsync(u => u.Correo == email, cancellationToken);
+
+        if (user == null)
+            return null;
+
+        return new UserDto
+        {
+            Id = GuidLongConverter.ToGuid(user.IdUsuario),
+            AccountId = GuidLongConverter.ToGuid(user.IdCuenta),
+            Name = user.Nombre,
+            Email = user.Correo,
+            Status = user.IdEstado,
+        };
+    }
+
+    public async Task<UserDto?> GetUserByIdAsync(Guid userId, CancellationToken cancellationToken = default)
+    {
+        var userIdLong = GuidLongConverter.ToLong(userId);
+        var user = await _context.Usuarios.FirstOrDefaultAsync(u => u.IdUsuario == userIdLong, cancellationToken);
+
+        if (user == null)
+            return null;
+
+        return new UserDto
+        {
+            Id = GuidLongConverter.ToGuid(user.IdUsuario),
+            AccountId = GuidLongConverter.ToGuid(user.IdCuenta),
+            Name = user.Nombre,
+            Email = user.Correo,
+            Status = user.IdEstado,
+        };
+    }
+
+    public async Task<bool> ChangeNameAsync(Guid userId, string name, CancellationToken cancellationToken = default)
+    {
+        var userIdLong = GuidLongConverter.ToLong(userId);
+        var user = await _context.Usuarios.FirstOrDefaultAsync(u => u.IdUsuario == userIdLong, cancellationToken);
+
+        if (user == null)
+            return false;
+
+        user.Nombre = name;
+        _context.SaveChanges();
+
+        return true;
+    }
+
+    public async Task<bool> ChangePasswordAsync(Guid userId, string password, CancellationToken cancellationToken = default)
+    {
+        var userIdLong = GuidLongConverter.ToLong(userId);
+        var user = await _context.Usuarios.FirstOrDefaultAsync(u => u.IdUsuario == userIdLong, cancellationToken);
+
+        if (user == null)
+            return false;
+
+        user.Clave = HashPassword(password);
+        _context.SaveChanges();
+
+        return true;
     }
 
     // Helper methods
