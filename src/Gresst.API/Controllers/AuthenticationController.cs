@@ -9,7 +9,6 @@ namespace Gresst.API.Controllers;
 [ApiVersion("1.0")]
 [Route("api/[controller]")]
 [Route("api/v{version:apiVersion}/[controller]")]
-[AllowAnonymous]
 public class AuthenticationController : ControllerBase
 {
     private readonly AuthenticationServiceFactory _authFactory;

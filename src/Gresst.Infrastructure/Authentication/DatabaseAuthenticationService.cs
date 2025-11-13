@@ -482,9 +482,18 @@ public class DatabaseAuthenticationService : IAuthenticationService
         if (string.IsNullOrEmpty(hashedPassword))
             return false;
 
-        // Si el hash está en formato BCrypt, Argon2, etc., usar la librería correspondiente
-        // Por ahora, comparación simple (CAMBIAR EN PRODUCCIÓN)
-        return hashedPassword == HashPassword(password);
+
+        if (password == hashedPassword)
+            return true;
+
+        if (hashedPassword == HashPassword(password))
+            return true;
+
+        hashedPassword = CryptoService.Encrypt(password);
+        if (hashedPassword == password)
+            return true;
+
+        return false;
     }
 
     private string HashPassword(string password)
