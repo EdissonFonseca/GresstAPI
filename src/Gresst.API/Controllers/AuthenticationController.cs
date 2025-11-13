@@ -3,6 +3,7 @@ using Gresst.Infrastructure.Authentication;
 using Gresst.Infrastructure.Authentication.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
 
 namespace Gresst.API.Controllers;
 
@@ -13,10 +14,12 @@ namespace Gresst.API.Controllers;
 public class AuthenticationController : ControllerBase
 {
     private readonly AuthenticationServiceFactory _authFactory;
+    private readonly ILogger<AuthenticationController> _logger;
 
-    public AuthenticationController(AuthenticationServiceFactory authFactory)
+    public AuthenticationController(AuthenticationServiceFactory authFactory, ILogger<AuthenticationController> logger)
     {
         _authFactory = authFactory;
+        _logger = logger;
     }
 
     /// <summary>
@@ -54,7 +57,19 @@ public class AuthenticationController : ControllerBase
     [HttpGet("isauthenticated")]
     public async Task<ActionResult> IsAuthenticated()
     {
+        if (!(User.Identity?.IsAuthenticated ?? false))
+        {
+            _logger.LogWarning("IsAuthenticated called without an authenticated principal.");
+            return Unauthorized(new { error = "Debe iniciar sesión antes de consultar este recurso." });
+        }
+
         var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+        if (string.IsNullOrWhiteSpace(userId))
+        {
+            _logger.LogWarning("IsAuthenticated called but the token does not contain a user identifier.");
+            return BadRequest(new { error = "El token no contiene el identificador del usuario (NameIdentifier)." });
+        }
+
         var username = User.FindFirst(System.Security.Claims.ClaimTypes.Name)?.Value;
         var accountId = User.FindFirst("AccountId")?.Value;
         var email = User.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value;

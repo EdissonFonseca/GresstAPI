@@ -11,11 +11,23 @@ using Gresst.Infrastructure.Mappers;
 using Gresst.Infrastructure.Repositories;
 using Gresst.Infrastructure.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Diagnostics;
+using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.Extensions.Logging;
+using Serilog;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Host.UseSerilog((context, services, loggerConfiguration) =>
+{
+    loggerConfiguration
+        .MinimumLevel.Information()
+        .Enrich.FromLogContext()
+        .WriteTo.Console();
+});
 
 // Add services to the container
 builder.Services.AddControllers();
@@ -149,6 +161,29 @@ app.UseSwaggerUI(options =>
     }
 
     options.RoutePrefix = string.Empty; // Swagger at root
+});
+
+app.UseSerilogRequestLogging();
+
+app.UseExceptionHandler(errorApp =>
+{
+    errorApp.Run(async context =>
+    {
+        var exceptionHandlerPathFeature = context.Features.Get<IExceptionHandlerPathFeature>();
+        if (exceptionHandlerPathFeature is not null)
+        {
+            var logger = context.RequestServices.GetRequiredService<ILoggerFactory>()
+                .CreateLogger("GlobalException");
+
+            logger.LogError(exceptionHandlerPathFeature.Error,
+                "Unhandled exception while processing {Path}",
+                context.Request.Path);
+        }
+
+        context.Response.StatusCode = StatusCodes.Status500InternalServerError;
+        context.Response.ContentType = "application/json";
+        await context.Response.WriteAsJsonAsync(new { error = "An unexpected error occurred." });
+    });
 });
 
 app.UseHttpsRedirection();
