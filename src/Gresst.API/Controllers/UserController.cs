@@ -1,3 +1,4 @@
+using Asp.Versioning;
 using Gresst.Application.DTOs;
 using Gresst.Application.Services;
 using Microsoft.AspNetCore.Authorization;

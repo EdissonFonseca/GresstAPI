@@ -1,3 +1,5 @@
+using Asp.Versioning;
+using Asp.Versioning.ApiExplorer;
 using Gresst.API.Configuration;
 using Gresst.API.Services;
 using Gresst.Application.Services;
@@ -9,8 +11,6 @@ using Gresst.Infrastructure.Mappers;
 using Gresst.Infrastructure.Repositories;
 using Gresst.Infrastructure.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.ApiExplorer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;

@@ -1,3 +1,4 @@
+using Asp.Versioning;
 using Gresst.Infrastructure.Authentication;
 using Gresst.Infrastructure.Authentication.Models;
 using Microsoft.AspNetCore.Authorization;
