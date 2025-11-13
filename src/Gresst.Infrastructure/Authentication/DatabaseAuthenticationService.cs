@@ -1,5 +1,4 @@
 using Gresst.Application.DTOs;
-using Gresst.Domain.Entities;
 using Gresst.Infrastructure.Authentication.Models;
 using Gresst.Infrastructure.Common;
 using Gresst.Infrastructure.Data;
@@ -8,8 +7,6 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
-using System.Linq;
-using System.Linq.Expressions;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;

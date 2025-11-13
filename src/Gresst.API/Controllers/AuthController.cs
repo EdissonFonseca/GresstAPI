@@ -1,20 +1,13 @@
-using Gresst.Application.DTOs;
 using Gresst.Infrastructure.Authentication;
 using Gresst.Infrastructure.Authentication.Models;
-using Gresst.Infrastructure.Data.Entities;
-using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Build.Framework;
-using Microsoft.Extensions.Logging;
-using System.Net;
-using System.Threading;
 
 namespace Gresst.API.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
+[AllowAnonymous]
 public class AuthController : ControllerBase
 {
     private readonly AuthenticationServiceFactory _authFactory;

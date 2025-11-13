@@ -2,10 +2,8 @@ using Gresst.Application.DTOs;
 using Gresst.Infrastructure.Authentication.Models;
 using Gresst.Infrastructure.Common;
 using Gresst.Infrastructure.Data;
-using Gresst.Infrastructure.Data.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Logging;
 using System.Net.Http.Json;
 using System.Text.Json;
 
