@@ -244,6 +244,7 @@ public class WasteClassService : IWasteClassService
             Name = wasteClass.Name,
             Description = wasteClass.Description,
             ClassificationId = wasteClass.ClassificationId,
+            ClassificationName = wasteClass.Classification?.Name,
             IsHazardous = wasteClass.IsHazardous,
             RequiresSpecialHandling = wasteClass.RequiresSpecialHandling,
             PhysicalState = wasteClass.PhysicalState,

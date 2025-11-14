@@ -7,6 +7,7 @@ public class WasteClassDto
     public string Name { get; set; } = string.Empty;
     public string? Description { get; set; }
     public Guid? ClassificationId { get; set; }
+    public string? ClassificationName { get; set; }
     public bool IsHazardous { get; set; }
     public bool RequiresSpecialHandling { get; set; }
     public string? PhysicalState { get; set; }
