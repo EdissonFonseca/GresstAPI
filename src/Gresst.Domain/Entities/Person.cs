@@ -26,5 +26,6 @@ public class Person : BaseEntity
     public virtual ICollection<Request> RequestsAsRequester { get; set; } = new List<Request>();
     public virtual ICollection<Request> RequestsAsProvider { get; set; } = new List<Request>();
     public virtual ICollection<Balance> Balances { get; set; } = new List<Balance>();
+    public virtual ICollection<PersonMaterial> Materials { get; set; } = new List<PersonMaterial>();
 }
 

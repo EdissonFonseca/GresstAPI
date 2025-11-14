@@ -113,7 +113,8 @@ builder.Services.AddScoped<IAccountRepository, AccountRepository>();
 builder.Services.AddScoped<IRepository<Facility>, FacilityRepository>();
 builder.Services.AddScoped<IRepository<Waste>, WasteRepository>();
 builder.Services.AddScoped<IRepository<Management>, ManagementRepository>();
-builder.Services.AddScoped<IRepository<Person>, PersonRepository>();
+builder.Services.AddScoped<IPersonRepository, PersonRepository>();
+builder.Services.AddScoped<IRepository<Person>>(sp => sp.GetRequiredService<IPersonRepository>());
 builder.Services.AddScoped<IRepository<Material>, MaterialRepository>();
 
 // Generic repository for entities without specific mappers yet
@@ -128,6 +129,8 @@ builder.Services.AddScoped<IWasteService, WasteService>();
 builder.Services.AddScoped<IManagementService, ManagementService>();
 builder.Services.AddScoped<IBalanceService, BalanceService>();
 builder.Services.AddScoped<IMaterialService, MaterialService>();
+builder.Services.AddScoped<IClientService, ClientService>();
+builder.Services.AddScoped<IProviderService, ProviderService>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IAuthorizationService, AuthorizationService>();
 

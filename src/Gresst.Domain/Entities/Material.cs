@@ -22,5 +22,6 @@ public class Material : BaseEntity
     
     // Navigation properties
     public virtual ICollection<Balance> Balances { get; set; } = new List<Balance>();
+    public virtual ICollection<PersonMaterial> Persons { get; set; } = new List<PersonMaterial>();
 }
 

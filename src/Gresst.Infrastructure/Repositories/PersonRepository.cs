@@ -7,7 +7,7 @@ using System.Linq.Expressions;
 
 namespace Gresst.Infrastructure.Repositories;
 
-public class PersonRepository : IRepository<Person>
+public class PersonRepository : IPersonRepository
 {
     private readonly InfrastructureDbContext _context;
     private readonly PersonMapper _mapper;
@@ -157,6 +157,46 @@ public class PersonRepository : IRepository<Person>
     {
         var userId = _currentUserService.GetCurrentUserId();
         return ConvertGuidToLong(userId);
+    }
+
+    // IPersonRepository methods
+    public async Task<IEnumerable<Person>> GetByRoleAsync(string roleCode, CancellationToken cancellationToken = default)
+    {
+        var accountId = _currentUserService.GetCurrentAccountId();
+        var accountIdLong = ConvertGuidToLong(accountId);
+        
+        var dbEntities = await _context.Personas
+            .Where(p => p.Activo && 
+                       p.IdCuenta == accountIdLong && 
+                       p.IdRol == roleCode)
+            .ToListAsync(cancellationToken);
+
+        return dbEntities.Select(_mapper.ToDomain).ToList();
+    }
+
+    public async Task<Person?> GetByIdAndRoleAsync(Guid id, string roleCode, CancellationToken cancellationToken = default)
+    {
+        var idString = ConvertGuidToString(id);
+        var dbEntity = await _context.Personas.FindAsync(new object[] { idString }, cancellationToken);
+        
+        if (dbEntity == null || dbEntity.IdRol != roleCode)
+            return null;
+        
+        return _mapper.ToDomain(dbEntity);
+    }
+
+    public async Task SetPersonRoleAsync(Guid personId, string roleCode, CancellationToken cancellationToken = default)
+    {
+        var idString = ConvertGuidToString(personId);
+        var dbEntity = await _context.Personas.FindAsync(new object[] { idString }, cancellationToken);
+        
+        if (dbEntity != null)
+        {
+            dbEntity.IdRol = roleCode;
+            dbEntity.FechaUltimaModificacion = DateTime.UtcNow;
+            dbEntity.IdUsuarioUltimaModificacion = GetCurrentUserIdAsLong();
+            _context.Personas.Update(dbEntity);
+        }
     }
 }
 

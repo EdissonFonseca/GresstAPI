@@ -27,5 +27,6 @@ public class Packaging : BaseEntity
     
     // Navigation properties
     public virtual ICollection<Waste> Wastes { get; set; } = new List<Waste>();
+    public virtual ICollection<PersonMaterial> PersonMaterials { get; set; } = new List<PersonMaterial>();
 }
 
