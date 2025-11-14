@@ -40,7 +40,10 @@ public class CreateFacilityDto
     public string? Address { get; set; }
     public decimal? Latitude { get; set; }
     public decimal? Longitude { get; set; }
-    public Guid PersonId { get; set; }
+    /// <summary>
+    /// PersonId is optional. If not provided, uses the Account Person (persona de la cuenta).
+    /// </summary>
+    public Guid? PersonId { get; set; }
     
     // Capabilities
     public bool CanCollect { get; set; }

@@ -19,17 +19,50 @@ public class FacilityController : ControllerBase
     }
 
     /// <summary>
-    /// GET: Obtener todas las facilities (depósitos)
+    /// GET: Obtener todas las facilities (depósitos) - Por defecto para la persona de la cuenta
     /// </summary>
     /// <remarks>
-    /// Devuelve todas las facilities activas de la cuenta actual.
+    /// Devuelve todas las facilities activas de la persona de la cuenta (por defecto).
     /// Las facilities son depósitos, plantas, sitios de disposición, etc.
     /// </remarks>
     [HttpGet]
     [ProducesResponseType(typeof(IEnumerable<FacilityDto>), 200)]
     public async Task<ActionResult<IEnumerable<FacilityDto>>> GetAll(CancellationToken cancellationToken)
     {
-        var facilities = await _facilityService.GetAllAsync(cancellationToken);
+        var facilities = await _facilityService.GetAccountPersonFacilitiesAsync(cancellationToken);
+        return Ok(facilities);
+    }
+
+    /// <summary>
+    /// GET: Obtener facilities de la persona de la cuenta (explícito)
+    /// </summary>
+    [HttpGet("account")]
+    [ProducesResponseType(typeof(IEnumerable<FacilityDto>), 200)]
+    public async Task<ActionResult<IEnumerable<FacilityDto>>> GetAccountPersonFacilities(CancellationToken cancellationToken)
+    {
+        var facilities = await _facilityService.GetAccountPersonFacilitiesAsync(cancellationToken);
+        return Ok(facilities);
+    }
+
+    /// <summary>
+    /// GET: Obtener facilities de un proveedor
+    /// </summary>
+    [HttpGet("provider/{providerId}")]
+    [ProducesResponseType(typeof(IEnumerable<FacilityDto>), 200)]
+    public async Task<ActionResult<IEnumerable<FacilityDto>>> GetProviderFacilities(Guid providerId, CancellationToken cancellationToken)
+    {
+        var facilities = await _facilityService.GetProviderFacilitiesAsync(providerId, cancellationToken);
+        return Ok(facilities);
+    }
+
+    /// <summary>
+    /// GET: Obtener facilities de un cliente
+    /// </summary>
+    [HttpGet("client/{clientId}")]
+    [ProducesResponseType(typeof(IEnumerable<FacilityDto>), 200)]
+    public async Task<ActionResult<IEnumerable<FacilityDto>>> GetClientFacilities(Guid clientId, CancellationToken cancellationToken)
+    {
+        var facilities = await _facilityService.GetClientFacilitiesAsync(clientId, cancellationToken);
         return Ok(facilities);
     }
 
@@ -73,9 +106,11 @@ public class FacilityController : ControllerBase
     }
 
     /// <summary>
-    /// POST: Crear nueva facility (depósito)
+    /// POST: Crear nueva facility (depósito) - Por defecto para la persona de la cuenta
     /// </summary>
     /// <remarks>
+    /// Si no se especifica PersonId, se usa la persona de la cuenta.
+    /// 
     /// Ejemplo de request:
     /// 
     ///     POST /api/facility
@@ -87,7 +122,6 @@ public class FacilityController : ControllerBase
     ///         "address": "Calle 100 #50-20",
     ///         "latitude": 4.701594,
     ///         "longitude": -74.035126,
-    ///         "personId": "guid-persona",
     ///         "canCollect": true,
     ///         "canStore": true,
     ///         "canTreat": true,
@@ -103,7 +137,52 @@ public class FacilityController : ControllerBase
         if (!ModelState.IsValid)
             return BadRequest(ModelState);
 
-        var facility = await _facilityService.CreateAsync(dto, cancellationToken);
+        var facility = await _facilityService.CreateAccountPersonFacilityAsync(dto, cancellationToken);
+        return CreatedAtAction(nameof(GetById), new { id = facility.Id }, facility);
+    }
+
+    /// <summary>
+    /// POST: Crear facility para la persona de la cuenta (explícito)
+    /// </summary>
+    [HttpPost("account")]
+    [ProducesResponseType(typeof(FacilityDto), 201)]
+    [ProducesResponseType(400)]
+    public async Task<ActionResult<FacilityDto>> CreateAccountPersonFacility([FromBody] CreateFacilityDto dto, CancellationToken cancellationToken)
+    {
+        if (!ModelState.IsValid)
+            return BadRequest(ModelState);
+
+        var facility = await _facilityService.CreateAccountPersonFacilityAsync(dto, cancellationToken);
+        return CreatedAtAction(nameof(GetById), new { id = facility.Id }, facility);
+    }
+
+    /// <summary>
+    /// POST: Crear facility para un proveedor
+    /// </summary>
+    [HttpPost("provider/{providerId}")]
+    [ProducesResponseType(typeof(FacilityDto), 201)]
+    [ProducesResponseType(400)]
+    public async Task<ActionResult<FacilityDto>> CreateProviderFacility(Guid providerId, [FromBody] CreateFacilityDto dto, CancellationToken cancellationToken)
+    {
+        if (!ModelState.IsValid)
+            return BadRequest(ModelState);
+
+        var facility = await _facilityService.CreateProviderFacilityAsync(providerId, dto, cancellationToken);
+        return CreatedAtAction(nameof(GetById), new { id = facility.Id }, facility);
+    }
+
+    /// <summary>
+    /// POST: Crear facility para un cliente
+    /// </summary>
+    [HttpPost("client/{clientId}")]
+    [ProducesResponseType(typeof(FacilityDto), 201)]
+    [ProducesResponseType(400)]
+    public async Task<ActionResult<FacilityDto>> CreateClientFacility(Guid clientId, [FromBody] CreateFacilityDto dto, CancellationToken cancellationToken)
+    {
+        if (!ModelState.IsValid)
+            return BadRequest(ModelState);
+
+        var facility = await _facilityService.CreateClientFacilityAsync(clientId, dto, cancellationToken);
         return CreatedAtAction(nameof(GetById), new { id = facility.Id }, facility);
     }
 

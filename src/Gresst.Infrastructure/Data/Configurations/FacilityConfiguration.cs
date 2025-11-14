@@ -54,10 +54,18 @@ public class FacilityConfiguration : IEntityTypeConfiguration<Facility>
             .HasForeignKey(l => l.FacilityId)
             .OnDelete(DeleteBehavior.Restrict);
 
+        // Self-referencing relationship for parent facility
+        builder.HasOne(f => f.ParentFacility)
+            .WithMany(f => f.ChildFacilities)
+            .HasForeignKey(f => f.ParentFacilityId)
+            .OnDelete(DeleteBehavior.Restrict);
+
         // Indexes
         builder.HasIndex(f => f.AccountId);
         builder.HasIndex(f => f.Code);
         builder.HasIndex(f => f.PersonId);
+        builder.HasIndex(f => f.ParentFacilityId);
+        builder.HasIndex(f => f.IsVirtual);
     }
 }
 

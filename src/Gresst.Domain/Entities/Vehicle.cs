@@ -22,6 +22,13 @@ public class Vehicle : BaseEntity
     public bool IsAvailable { get; set; } = true;
     public string? SpecialEquipment { get; set; }
     
+    /// <summary>
+    /// Virtual facility associated with this vehicle
+    /// Allows inventory movements to/from vehicles as if they were facilities
+    /// </summary>
+    public Guid? VirtualFacilityId { get; set; }
+    public virtual Facility? VirtualFacility { get; set; }
+    
     // Navigation properties
     public virtual ICollection<Management> Managements { get; set; } = new List<Management>();
     public virtual ICollection<Order> Orders { get; set; } = new List<Order>();

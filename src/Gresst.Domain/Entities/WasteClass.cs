@@ -20,5 +20,6 @@ public class WasteClass : BaseEntity
     // Navigation properties
     public virtual ICollection<Waste> Wastes { get; set; } = new List<Waste>();
     public virtual ICollection<Material> Materials { get; set; } = new List<Material>();
+    public virtual ICollection<FacilityWasteClass> Facilities { get; set; } = new List<FacilityWasteClass>();
 }
 

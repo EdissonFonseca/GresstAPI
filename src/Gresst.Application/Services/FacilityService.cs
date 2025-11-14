@@ -12,16 +12,26 @@ public class FacilityService : IFacilityService
 {
     private readonly IRepository<Facility> _facilityRepository;
     private readonly IDataSegmentationService _segmentationService;
+    private readonly IAccountRepository _accountRepository;
     private readonly IUnitOfWork _unitOfWork;
+    private readonly ICurrentUserService _currentUserService;
+
+    // Role codes
+    private const string CLIENT_ROLE_CODE = "CL";
+    private const string PROVIDER_ROLE_CODE = "PR";
 
     public FacilityService(
         IRepository<Facility> facilityRepository,
         IDataSegmentationService segmentationService,
-        IUnitOfWork unitOfWork)
+        IAccountRepository accountRepository,
+        IUnitOfWork unitOfWork,
+        ICurrentUserService currentUserService)
     {
         _facilityRepository = facilityRepository;
         _segmentationService = segmentationService;
+        _accountRepository = accountRepository;
         _unitOfWork = unitOfWork;
+        _currentUserService = currentUserService;
     }
 
     /// <summary>
@@ -89,8 +99,78 @@ public class FacilityService : IFacilityService
         return facilities.Select(MapToDto).ToList();
     }
 
+    /// <summary>
+    /// Get Account Person ID (persona de la cuenta)
+    /// </summary>
+    private async Task<Guid> GetAccountPersonIdAsync(CancellationToken cancellationToken)
+    {
+        var accountId = _currentUserService.GetCurrentAccountId();
+        var account = await _accountRepository.GetByIdAsync(accountId, cancellationToken);
+        if (account == null || account.PersonId == Guid.Empty)
+            throw new InvalidOperationException("Account or Account Person not found");
+        return account.PersonId;
+    }
+
+    /// <summary>
+    /// Get facilities for Account Person (persona de la cuenta)
+    /// </summary>
+    public async Task<IEnumerable<FacilityDto>> GetAccountPersonFacilitiesAsync(CancellationToken cancellationToken = default)
+    {
+        var accountPersonId = await GetAccountPersonIdAsync(cancellationToken);
+        return await GetByPersonAsync(accountPersonId, cancellationToken);
+    }
+
+    /// <summary>
+    /// Create facility for Account Person (persona de la cuenta)
+    /// </summary>
+    public async Task<FacilityDto> CreateAccountPersonFacilityAsync(CreateFacilityDto dto, CancellationToken cancellationToken = default)
+    {
+        var accountPersonId = await GetAccountPersonIdAsync(cancellationToken);
+        dto.PersonId = accountPersonId;
+        return await CreateAsync(dto, cancellationToken);
+    }
+
+    /// <summary>
+    /// Get facilities for a Provider
+    /// </summary>
+    public async Task<IEnumerable<FacilityDto>> GetProviderFacilitiesAsync(Guid providerId, CancellationToken cancellationToken = default)
+    {
+        // Verify it's a provider (could add validation here)
+        return await GetByPersonAsync(providerId, cancellationToken);
+    }
+
+    /// <summary>
+    /// Create facility for a Provider
+    /// </summary>
+    public async Task<FacilityDto> CreateProviderFacilityAsync(Guid providerId, CreateFacilityDto dto, CancellationToken cancellationToken = default)
+    {
+        dto.PersonId = providerId;
+        return await CreateAsync(dto, cancellationToken);
+    }
+
+    /// <summary>
+    /// Get facilities for a Client
+    /// </summary>
+    public async Task<IEnumerable<FacilityDto>> GetClientFacilitiesAsync(Guid clientId, CancellationToken cancellationToken = default)
+    {
+        // Verify it's a client (could add validation here)
+        return await GetByPersonAsync(clientId, cancellationToken);
+    }
+
+    /// <summary>
+    /// Create facility for a Client
+    /// </summary>
+    public async Task<FacilityDto> CreateClientFacilityAsync(Guid clientId, CreateFacilityDto dto, CancellationToken cancellationToken = default)
+    {
+        dto.PersonId = clientId;
+        return await CreateAsync(dto, cancellationToken);
+    }
+
     public async Task<FacilityDto> CreateAsync(CreateFacilityDto dto, CancellationToken cancellationToken = default)
     {
+        // If PersonId is not provided, use Account Person (persona de la cuenta)
+        var personId = dto.PersonId ?? await GetAccountPersonIdAsync(cancellationToken);
+
         var facility = new Facility
         {
             Id = Guid.NewGuid(),
@@ -101,7 +181,7 @@ public class FacilityService : IFacilityService
             Address = dto.Address,
             Latitude = dto.Latitude,
             Longitude = dto.Longitude,
-            PersonId = dto.PersonId,
+            PersonId = personId,
             CanCollect = dto.CanCollect,
             CanStore = dto.CanStore,
             CanDispose = dto.CanDispose,

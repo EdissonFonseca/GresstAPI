@@ -52,6 +52,12 @@ public class FacilityMapper : MapperBase<Facility, Deposito>
             CapacityUnit = "kg",
             CurrentCapacity = dbEntity.Cantidad,
             
+            // Virtual and Parent
+            IsVirtual = false, // Deposito doesn't have IsVirtual field, default to false
+            ParentFacilityId = dbEntity.IdSuperior.HasValue 
+                ? new Guid(dbEntity.IdSuperior.Value.ToString().PadLeft(32, '0')) 
+                : null,
+            
             // Audit fields
             CreatedAt = dbEntity.FechaCreacion,
             UpdatedAt = dbEntity.FechaUltimaModificacion,
@@ -101,6 +107,11 @@ public class FacilityMapper : MapperBase<Facility, Deposito>
             Peso = domainEntity.MaxCapacity,
             Cantidad = domainEntity.CurrentCapacity,
             
+            // Parent Facility
+            IdSuperior = domainEntity.ParentFacilityId.HasValue 
+                ? long.Parse(domainEntity.ParentFacilityId.Value.ToString().Replace("-", "").Substring(0, 18)) 
+                : null,
+            
             // Audit
             FechaCreacion = domainEntity.CreatedAt,
             FechaUltimaModificacion = domainEntity.UpdatedAt,
@@ -138,6 +149,14 @@ public class FacilityMapper : MapperBase<Facility, Deposito>
         // Capacity
         dbEntity.Peso = domainEntity.MaxCapacity;
         dbEntity.Cantidad = domainEntity.CurrentCapacity;
+        
+        // Parent Facility
+        dbEntity.IdSuperior = domainEntity.ParentFacilityId.HasValue 
+            ? long.Parse(domainEntity.ParentFacilityId.Value.ToString().Replace("-", "").Substring(0, 18)) 
+            : null;
+        
+        // Note: IsVirtual is not stored in Deposito table, it's a domain concept
+        // Virtual facilities should be identified by a specific FacilityType or naming convention
         
         // Audit
         dbEntity.FechaUltimaModificacion = domainEntity.UpdatedAt;

@@ -33,5 +33,6 @@ public class Treatment : BaseEntity
     public virtual ICollection<Management> Managements { get; set; } = new List<Management>();
     public virtual ICollection<WasteTransformation> Transformations { get; set; } = new List<WasteTransformation>();
     public virtual ICollection<PersonTreatment> Persons { get; set; } = new List<PersonTreatment>();
+    public virtual ICollection<FacilityTreatment> Facilities { get; set; } = new List<FacilityTreatment>();
 }
 

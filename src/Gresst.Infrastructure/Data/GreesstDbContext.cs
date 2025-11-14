@@ -41,6 +41,9 @@ public class GreesstDbContext : DbContext
     public DbSet<RouteStop> RouteStops => Set<RouteStop>();
     // User removed - not a domain entity, only for authentication in Infrastructure
     public DbSet<Rate> Rates => Set<Rate>();
+    public DbSet<FacilityTreatment> FacilityTreatments => Set<FacilityTreatment>();
+    public DbSet<FacilityContact> FacilityContacts => Set<FacilityContact>();
+    public DbSet<FacilityWasteClass> FacilityWasteClasses => Set<FacilityWasteClass>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
