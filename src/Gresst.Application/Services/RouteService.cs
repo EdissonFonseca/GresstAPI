@@ -1,6 +1,8 @@
 using Gresst.Application.DTOs;
 using Gresst.Domain.Entities;
 using Gresst.Domain.Interfaces;
+using DomainRoute = Gresst.Domain.Entities.Route;
+using DomainRouteStop = Gresst.Domain.Entities.RouteStop;
 
 namespace Gresst.Application.Services;
 
@@ -9,15 +11,15 @@ namespace Gresst.Application.Services;
 /// </summary>
 public class RouteService : IRouteService
 {
-    private readonly IRepository<Route> _routeRepository;
-    private readonly IRepository<RouteStop> _routeStopRepository;
+    private readonly IRepository<DomainRoute> _routeRepository;
+    private readonly IRepository<DomainRouteStop> _routeStopRepository;
     private readonly IRepository<Vehicle>? _vehicleRepository;
     private readonly IUnitOfWork _unitOfWork;
     private readonly ICurrentUserService _currentUserService;
 
     public RouteService(
-        IRepository<Route> routeRepository,
-        IRepository<RouteStop> routeStopRepository,
+        IRepository<DomainRoute> routeRepository,
+        IRepository<DomainRouteStop> routeStopRepository,
         IRepository<Vehicle>? vehicleRepository,
         IUnitOfWork unitOfWork,
         ICurrentUserService currentUserService)
@@ -98,7 +100,7 @@ public class RouteService : IRouteService
 
     public async Task<RouteDto> CreateAsync(CreateRouteDto dto, CancellationToken cancellationToken = default)
     {
-        var route = new Route
+        var route = new DomainRoute
         {
             Id = Guid.NewGuid(),
             Code = dto.Code,
@@ -134,7 +136,7 @@ public class RouteService : IRouteService
             {
                 if (stopDto.FacilityId.HasValue)
                 {
-                    var stop = new RouteStop
+                    var stop = new DomainRouteStop
                     {
                         Id = Guid.NewGuid(),
                         RouteId = route.Id,
@@ -214,7 +216,7 @@ public class RouteService : IRouteService
         if (route == null)
             throw new KeyNotFoundException($"Route with ID {routeId} not found");
 
-        var stop = new RouteStop
+        var stop = new DomainRouteStop
         {
             Id = Guid.NewGuid(),
             RouteId = routeId,
@@ -308,7 +310,7 @@ public class RouteService : IRouteService
         return await MapToDtoAsync(route, cancellationToken);
     }
 
-    private async Task<RouteDto> MapToDtoAsync(Route route, CancellationToken cancellationToken)
+    private async Task<RouteDto> MapToDtoAsync(DomainRoute route, CancellationToken cancellationToken)
     {
         // Load stops for this route
         var stops = await _routeStopRepository.FindAsync(
@@ -334,7 +336,7 @@ public class RouteService : IRouteService
         };
     }
 
-    private RouteStopDto MapStopToDto(RouteStop stop)
+    private RouteStopDto MapStopToDto(DomainRouteStop stop)
     {
         return new RouteStopDto
         {
