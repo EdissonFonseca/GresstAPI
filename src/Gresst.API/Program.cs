@@ -114,6 +114,11 @@ builder.Services.AddScoped<PersonMaterialTreatmentMapper>();
 builder.Services.AddScoped<SupplyMapper>();
 builder.Services.AddScoped<PersonSupplyMapper>();
 builder.Services.AddScoped<PersonWasteClassMapper>();
+builder.Services.AddScoped<PackagingMapper>();
+builder.Services.AddScoped<ServiceMapper>();
+builder.Services.AddScoped<PersonServiceMapper>();
+builder.Services.AddScoped<WasteClassMapper>();
+builder.Services.AddScoped<TreatmentMapper>();
 
 // Repositories - Register specific repositories with mappers
 builder.Services.AddScoped<IAccountRepository, AccountRepository>();
@@ -127,6 +132,14 @@ builder.Services.AddScoped<IRepository<PersonMaterial>, PersonMaterialRepository
 builder.Services.AddScoped<IRepository<FacilityMaterial>, FacilityMaterialRepository>();
 builder.Services.AddScoped<IPersonContactRepository, PersonContactRepository>();
 builder.Services.AddScoped<IRepository<PersonContact>>(sp => sp.GetRequiredService<IPersonContactRepository>());
+builder.Services.AddScoped<IRepository<Packaging>, PackagingRepository>();
+builder.Services.AddScoped<IRepository<Supply>, SupplyRepository>();
+builder.Services.AddScoped<IRepository<Service>, ServiceRepository>();
+builder.Services.AddScoped<IRepository<PersonService>, PersonServiceRepository>();
+builder.Services.AddScoped<IRepository<WasteClass>, WasteClassRepository>();
+builder.Services.AddScoped<IRepository<PersonWasteClass>, PersonWasteClassRepository>();
+builder.Services.AddScoped<IRepository<Treatment>, TreatmentRepository>();
+builder.Services.AddScoped<IRepository<PersonTreatment>, PersonTreatmentRepository>();
 
 // Generic repository for entities without specific mappers yet
 builder.Services.AddScoped(typeof(IRepository<>), typeof(GenericInfraRepository<>));
@@ -144,6 +157,11 @@ builder.Services.AddScoped<IClientService, ClientService>();
 builder.Services.AddScoped<IProviderService, ProviderService>();
 builder.Services.AddScoped<IPersonContactService, PersonContactService>();
 builder.Services.AddScoped<IVehicleService, VehicleService>();
+builder.Services.AddScoped<IPackagingService, PackagingService>();
+builder.Services.AddScoped<ISupplyService, SupplyService>();
+builder.Services.AddScoped<IServiceService, ServiceService>();
+builder.Services.AddScoped<IWasteClassService, WasteClassService>();
+builder.Services.AddScoped<ITreatmentService, TreatmentService>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IAuthorizationService, AuthorizationService>();
 
