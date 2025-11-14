@@ -119,6 +119,7 @@ builder.Services.AddScoped<ServiceMapper>();
 builder.Services.AddScoped<PersonServiceMapper>();
 builder.Services.AddScoped<WasteClassMapper>();
 builder.Services.AddScoped<TreatmentMapper>();
+builder.Services.AddScoped<PersonTreatmentMapper>();
 builder.Services.AddScoped<RouteMapper>();
 builder.Services.AddScoped<RouteStopMapper>();
 
