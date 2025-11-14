@@ -17,9 +17,9 @@ public class Rate : BaseEntity
     public Guid ProviderId { get; set; }
     public virtual Person Provider { get; set; } = null!;
     
-    // Waste Type
-    public Guid? WasteTypeId { get; set; }
-    public virtual WasteType? WasteType { get; set; }
+    // Waste Class
+    public Guid? WasteClassId { get; set; }
+    public virtual WasteClass? WasteClass { get; set; }
     
     // Pricing
     public decimal BasePrice { get; set; }

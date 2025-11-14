@@ -11,9 +11,9 @@ public class Waste : BaseEntity
     public string Code { get; set; } = string.Empty;
     public string? Description { get; set; }
     
-    // Waste Type and Classification
-    public Guid WasteTypeId { get; set; }
-    public virtual WasteType WasteType { get; set; } = null!;
+    // Waste Class and Classification
+    public Guid WasteClassId { get; set; }
+    public virtual WasteClass WasteClass { get; set; } = null!;
     
     // Quantity
     public decimal Quantity { get; set; }

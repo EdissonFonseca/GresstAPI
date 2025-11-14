@@ -38,7 +38,7 @@ public class MaterialMapper : MapperBase<DomainMaterial, DbMaterial>
             Category = null, // No está en BD directamente
             
             // Waste Type relationship
-            WasteTypeId = dbEntity.IdTipoResiduo.HasValue 
+            WasteClassId = dbEntity.IdTipoResiduo.HasValue 
                 ? GuidLongConverter.ToGuid(dbEntity.IdTipoResiduo.Value) 
                 : null,
             
@@ -72,8 +72,8 @@ public class MaterialMapper : MapperBase<DomainMaterial, DbMaterial>
             Referencia = domainEntity.Code,
             
             // Waste Type relationship
-            IdTipoResiduo = domainEntity.WasteTypeId.HasValue 
-                ? (int?)GuidLongConverter.ToLong(domainEntity.WasteTypeId.Value) 
+            IdTipoResiduo = domainEntity.WasteClassId.HasValue 
+                ? (int?)GuidLongConverter.ToLong(domainEntity.WasteClassId.Value) 
                 : null,
             
             // Properties - Mapeo a campos de BD
@@ -109,8 +109,8 @@ public class MaterialMapper : MapperBase<DomainMaterial, DbMaterial>
         dbEntity.Referencia = domainEntity.Code;
         
         // Waste Type
-        dbEntity.IdTipoResiduo = domainEntity.WasteTypeId.HasValue 
-            ? (int?)GuidLongConverter.ToLong(domainEntity.WasteTypeId.Value) 
+        dbEntity.IdTipoResiduo = domainEntity.WasteClassId.HasValue 
+            ? (int?)GuidLongConverter.ToLong(domainEntity.WasteClassId.Value) 
             : null;
         
         // Properties

@@ -200,7 +200,7 @@ public class ManagementService : IManagementService
         {
             Code = $"TRF-{DateTime.UtcNow:yyyyMMddHHmmss}",
             Description = $"Transformed from {sourceWaste.Code}",
-            WasteTypeId = dto.ResultWasteTypeId,
+            WasteClassId = dto.ResultWasteClassId,
             Quantity = dto.ResultQuantity,
             Unit = UnitOfMeasure.Kilogram,
             GeneratorId = dto.PerformedById,
@@ -251,7 +251,7 @@ public class ManagementService : IManagementService
         if (waste == null)
             throw new KeyNotFoundException($"Waste with ID {wasteId} not found");
 
-        waste.WasteTypeId = wasteTypeId;
+        waste.WasteClassId = wasteTypeId;
         await _wasteRepository.UpdateAsync(waste, cancellationToken);
 
         var managementDto = new CreateManagementDto

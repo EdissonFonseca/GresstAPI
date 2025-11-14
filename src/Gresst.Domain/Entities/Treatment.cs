@@ -19,11 +19,11 @@ public class Treatment : BaseEntity
     public decimal? EstimatedDuration { get; set; } // in hours
     
     // Applicable waste types
-    public string? ApplicableWasteTypes { get; set; } // JSON array of waste type IDs
+    public string? ApplicableWasteClasses { get; set; } // JSON array of waste class IDs
     
     // Results
     public bool ProducesNewWaste { get; set; }
-    public string? ResultingWasteTypes { get; set; } // JSON array
+    public string? ResultingWasteClasses { get; set; } // JSON array
     
     // Navigation properties
     public virtual ICollection<Management> Managements { get; set; } = new List<Management>();

@@ -74,12 +74,12 @@ public class MaterialService : IMaterialService
         return materials.Select(MapToDto).ToList();
     }
 
-    public async Task<IEnumerable<MaterialDto>> GetByWasteTypeAsync(Guid wasteTypeId, CancellationToken cancellationToken = default)
+    public async Task<IEnumerable<MaterialDto>> GetByWasteClassAsync(Guid wasteTypeId, CancellationToken cancellationToken = default)
     {
         var userMaterialIds = await _segmentationService.GetUserMaterialIdsAsync(cancellationToken);
         
         var materials = await _materialRepository.FindAsync(
-            m => m.WasteTypeId == wasteTypeId && userMaterialIds.Contains(m.Id), 
+            m => m.WasteClassId == wasteTypeId && userMaterialIds.Contains(m.Id), 
             cancellationToken);
         
         return materials.Select(MapToDto).ToList();
@@ -104,7 +104,7 @@ public class MaterialService : IMaterialService
             Code = dto.Code,
             Name = dto.Name,
             Description = dto.Description,
-            WasteTypeId = dto.WasteTypeId,
+            WasteClassId = dto.WasteClassId,
             IsRecyclable = dto.IsRecyclable,
             IsHazardous = dto.IsHazardous,
             Category = dto.Category,
@@ -135,8 +135,8 @@ public class MaterialService : IMaterialService
             material.Name = dto.Name;
         if (dto.Description != null)
             material.Description = dto.Description;
-        if (dto.WasteTypeId.HasValue)
-            material.WasteTypeId = dto.WasteTypeId;
+        if (dto.WasteClassId.HasValue)
+            material.WasteClassId = dto.WasteClassId;
         if (dto.IsRecyclable.HasValue)
             material.IsRecyclable = dto.IsRecyclable.Value;
         if (dto.IsHazardous.HasValue)
@@ -183,8 +183,8 @@ public class MaterialService : IMaterialService
             Code = material.Code,
             Name = material.Name,
             Description = material.Description,
-            WasteTypeId = material.WasteTypeId,
-            WasteTypeName = material.WasteType?.Name,
+            WasteClassId = material.WasteClassId,
+            WasteClassName = material.WasteClass?.Name,
             IsRecyclable = material.IsRecyclable,
             IsHazardous = material.IsHazardous,
             Category = material.Category,

@@ -10,7 +10,7 @@ public interface IMaterialService
     // GetById verifica que el usuario tenga acceso
     Task<MaterialDto?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default);
     
-    Task<IEnumerable<MaterialDto>> GetByWasteTypeAsync(Guid wasteTypeId, CancellationToken cancellationToken = default);
+    Task<IEnumerable<MaterialDto>> GetByWasteClassAsync(Guid wasteTypeId, CancellationToken cancellationToken = default);
     Task<IEnumerable<MaterialDto>> GetByCategoryAsync(string category, CancellationToken cancellationToken = default);
     
     Task<MaterialDto> CreateAsync(CreateMaterialDto dto, CancellationToken cancellationToken = default);

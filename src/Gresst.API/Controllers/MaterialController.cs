@@ -54,9 +54,9 @@ public class MaterialController : ControllerBase
     /// </summary>
     [HttpGet("wastetype/{wasteTypeId}")]
     [ProducesResponseType(typeof(IEnumerable<MaterialDto>), 200)]
-    public async Task<ActionResult<IEnumerable<MaterialDto>>> GetByWasteType(Guid wasteTypeId, CancellationToken cancellationToken)
+    public async Task<ActionResult<IEnumerable<MaterialDto>>> GetByWasteClass(Guid wasteTypeId, CancellationToken cancellationToken)
     {
-        var materials = await _materialService.GetByWasteTypeAsync(wasteTypeId, cancellationToken);
+        var materials = await _materialService.GetByWasteClassAsync(wasteTypeId, cancellationToken);
         return Ok(materials);
     }
 

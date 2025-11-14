@@ -7,8 +7,8 @@ public class WasteDto
     public Guid Id { get; set; }
     public string Code { get; set; } = string.Empty;
     public string? Description { get; set; }
-    public Guid WasteTypeId { get; set; }
-    public string WasteTypeName { get; set; } = string.Empty;
+    public Guid WasteClassId { get; set; }
+    public string WasteClassName { get; set; } = string.Empty;
     public decimal Quantity { get; set; }
     public string Unit { get; set; } = string.Empty;
     public string Status { get; set; } = string.Empty;
@@ -28,7 +28,7 @@ public class CreateWasteDto
 {
     public string Code { get; set; } = string.Empty;
     public string? Description { get; set; }
-    public Guid WasteTypeId { get; set; }
+    public Guid WasteClassId { get; set; }
     public decimal Quantity { get; set; }
     public UnitOfMeasure Unit { get; set; }
     public Guid GeneratorId { get; set; }

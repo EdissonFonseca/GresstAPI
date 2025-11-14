@@ -23,7 +23,7 @@ public class WasteMapperExample // : MapperBase<Waste, Residuo>
             AccountId = dbEntity.IdCuenta, // Mapeo de nombres
             Code = dbEntity.Codigo,
             Description = dbEntity.Descripcion,
-            WasteTypeId = dbEntity.IdTipoResiduo,
+            WasteClassId = dbEntity.IdTipoResiduo,
             Quantity = dbEntity.Cantidad,
             Unit = (UnitOfMeasure)dbEntity.IdUnidad, // Conversión de enum
             Status = MapStatus(dbEntity.Estado),
@@ -54,7 +54,7 @@ public class WasteMapperExample // : MapperBase<Waste, Residuo>
             IdCuenta = domainEntity.AccountId,
             Codigo = domainEntity.Code,
             Descripcion = domainEntity.Description,
-            IdTipoResiduo = domainEntity.WasteTypeId,
+            IdTipoResiduo = domainEntity.WasteClassId,
             Cantidad = domainEntity.Quantity,
             IdUnidad = (int)domainEntity.Unit,
             Estado = MapStatusToDb(domainEntity.Status),

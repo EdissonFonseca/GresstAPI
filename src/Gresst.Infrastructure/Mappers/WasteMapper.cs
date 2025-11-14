@@ -28,8 +28,8 @@ public class WasteMapper : MapperBase<Waste, Residuo>
             Code = dbEntity.Referencia ?? dbEntity.IdResiduo.ToString(),
             Description = dbEntity.Descripcion,
             
-            // Waste Type - IdMaterial en BD es como WasteTypeId
-            WasteTypeId = GuidLongConverter.ToGuid(dbEntity.IdMaterial),
+            // Waste Type - IdMaterial en BD es como WasteClassId
+            WasteClassId = GuidLongConverter.ToGuid(dbEntity.IdMaterial),
             
             // Quantity - Asumiendo que Residuo no tiene cantidad directa, se obtiene de gestiones
             Quantity = 0, // Se calculará desde las gestiones
@@ -74,7 +74,7 @@ public class WasteMapper : MapperBase<Waste, Residuo>
         {
             // IDs
             IdResiduo = GuidLongConverter.ToLong(domainEntity.Id),
-            IdMaterial = GuidLongConverter.ToLong(domainEntity.WasteTypeId),
+            IdMaterial = GuidLongConverter.ToLong(domainEntity.WasteClassId),
             
             // Owner
             IdPropietario = domainEntity.CurrentOwnerId.HasValue 

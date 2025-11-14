@@ -24,8 +24,8 @@ public class OrderItemDto
 {
     public Guid Id { get; set; }
     public Guid? WasteId { get; set; }
-    public Guid? WasteTypeId { get; set; }
-    public string WasteTypeName { get; set; } = string.Empty;
+    public Guid? WasteClassId { get; set; }
+    public string WasteClassName { get; set; } = string.Empty;
     public decimal Quantity { get; set; }
     public string Unit { get; set; } = string.Empty;
 }
@@ -48,7 +48,7 @@ public class CreateOrderDto
 public class CreateOrderItemDto
 {
     public Guid? WasteId { get; set; }
-    public Guid? WasteTypeId { get; set; }
+    public Guid? WasteClassId { get; set; }
     public decimal Quantity { get; set; }
     public UnitOfMeasure Unit { get; set; }
     public string? Notes { get; set; }

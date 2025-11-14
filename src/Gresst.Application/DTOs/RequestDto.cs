@@ -24,8 +24,8 @@ public class RequestDto
 public class RequestItemDto
 {
     public Guid Id { get; set; }
-    public Guid WasteTypeId { get; set; }
-    public string WasteTypeName { get; set; } = string.Empty;
+    public Guid WasteClassId { get; set; }
+    public string WasteClassName { get; set; } = string.Empty;
     public decimal EstimatedQuantity { get; set; }
     public string Unit { get; set; } = string.Empty;
     public string? Description { get; set; }
@@ -46,7 +46,7 @@ public class CreateRequestDto
 
 public class CreateRequestItemDto
 {
-    public Guid WasteTypeId { get; set; }
+    public Guid WasteClassId { get; set; }
     public decimal EstimatedQuantity { get; set; }
     public UnitOfMeasure Unit { get; set; }
     public string? Description { get; set; }

@@ -13,8 +13,8 @@ public class Adjustment : BaseEntity
     public DateTime AdjustmentDate { get; set; }
     
     // Waste Type
-    public Guid WasteTypeId { get; set; }
-    public virtual WasteType WasteType { get; set; } = null!;
+    public Guid WasteClassId { get; set; }
+    public virtual WasteClass WasteClass { get; set; } = null!;
     
     // Quantity
     public decimal Quantity { get; set; }

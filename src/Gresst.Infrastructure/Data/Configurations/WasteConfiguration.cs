@@ -30,9 +30,9 @@ public class WasteConfiguration : IEntityTypeConfiguration<Waste>
             .HasMaxLength(50);
 
         // Relationships
-        builder.HasOne(w => w.WasteType)
+        builder.HasOne(w => w.WasteClass)
             .WithMany(wt => wt.Wastes)
-            .HasForeignKey(w => w.WasteTypeId)
+            .HasForeignKey(w => w.WasteClassId)
             .OnDelete(DeleteBehavior.Restrict);
 
         builder.HasOne(w => w.Generator)
@@ -71,7 +71,7 @@ public class WasteConfiguration : IEntityTypeConfiguration<Waste>
         builder.HasIndex(w => w.Status);
         builder.HasIndex(w => w.IsAvailableInBank);
         builder.HasIndex(w => w.GeneratorId);
-        builder.HasIndex(w => w.WasteTypeId);
+        builder.HasIndex(w => w.WasteClassId);
     }
 }
 

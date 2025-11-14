@@ -24,6 +24,6 @@ public class Classification : BaseEntity
     public string? RegulationReference { get; set; }
     
     // Navigation properties
-    public virtual ICollection<WasteType> WasteTypes { get; set; } = new List<WasteType>();
+    public virtual ICollection<WasteClass> WasteClasses { get; set; } = new List<WasteClass>();
 }
 

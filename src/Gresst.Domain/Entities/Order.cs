@@ -62,8 +62,8 @@ public class OrderItem : BaseEntity
     public Guid? WasteId { get; set; }
     public virtual Waste? Waste { get; set; }
     
-    public Guid? WasteTypeId { get; set; }
-    public virtual WasteType? WasteType { get; set; }
+    public Guid? WasteClassId { get; set; }
+    public virtual WasteClass? WasteClass { get; set; }
     
     public decimal Quantity { get; set; }
     public UnitOfMeasure Unit { get; set; }

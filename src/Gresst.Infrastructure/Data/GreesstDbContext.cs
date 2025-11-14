@@ -21,7 +21,7 @@ public class GreesstDbContext : DbContext
     public DbSet<Facility> Facilities => Set<Facility>();
     public DbSet<Location> Locations => Set<Location>();
     public DbSet<Waste> Wastes => Set<Waste>();
-    public DbSet<WasteType> WasteTypes => Set<WasteType>();
+    public DbSet<WasteClass> WasteClasses => Set<WasteClass>();
     public DbSet<Classification> Classifications => Set<Classification>();
     public DbSet<Management> Managements => Set<Management>();
     public DbSet<Order> Orders => Set<Order>();

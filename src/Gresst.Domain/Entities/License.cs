@@ -26,7 +26,7 @@ public class License : BaseEntity
     public new bool IsActive { get; set; } = true;
     
     // Scope
-    public string? AuthorizedWasteTypes { get; set; } // JSON array of waste type IDs
+    public string? AuthorizedWasteClasses { get; set; } // JSON array of waste class IDs
     public string? Restrictions { get; set; }
     
     // Documentation

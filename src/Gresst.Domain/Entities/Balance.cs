@@ -19,9 +19,9 @@ public class Balance : BaseEntity
     public Guid? LocationId { get; set; }
     public virtual Location? Location { get; set; }
     
-    // Waste Type
-    public Guid WasteTypeId { get; set; }
-    public virtual WasteType WasteType { get; set; } = null!;
+    // Waste Class
+    public Guid WasteClassId { get; set; }
+    public virtual WasteClass WasteClass { get; set; } = null!;
     
     // Material (optional, for more detail)
     public Guid? MaterialId { get; set; }

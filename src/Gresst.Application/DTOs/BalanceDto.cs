@@ -9,8 +9,8 @@ public class BalanceDto
     public string? FacilityName { get; set; }
     public Guid? LocationId { get; set; }
     public string? LocationName { get; set; }
-    public Guid WasteTypeId { get; set; }
-    public string WasteTypeName { get; set; } = string.Empty;
+    public Guid WasteClassId { get; set; }
+    public string WasteClassName { get; set; } = string.Empty;
     public decimal Quantity { get; set; }
     public string Unit { get; set; } = string.Empty;
     public decimal QuantityGenerated { get; set; }
@@ -26,6 +26,6 @@ public class InventoryQueryDto
     public Guid? PersonId { get; set; }
     public Guid? FacilityId { get; set; }
     public Guid? LocationId { get; set; }
-    public Guid? WasteTypeId { get; set; }
+    public Guid? WasteClassId { get; set; }
 }
 

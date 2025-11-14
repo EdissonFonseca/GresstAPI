@@ -8,13 +8,13 @@ namespace Gresst.Application.Services;
 public class WasteService : IWasteService
 {
     private readonly IRepository<Waste> _wasteRepository;
-    private readonly IRepository<WasteType> _wasteTypeRepository;
+    private readonly IRepository<WasteClass> _wasteTypeRepository;
     private readonly IRepository<Person> _personRepository;
     private readonly IUnitOfWork _unitOfWork;
 
     public WasteService(
         IRepository<Waste> wasteRepository,
-        IRepository<WasteType> wasteTypeRepository,
+        IRepository<WasteClass> wasteTypeRepository,
         IRepository<Person> personRepository,
         IUnitOfWork unitOfWork)
     {
@@ -94,7 +94,7 @@ public class WasteService : IWasteService
         {
             Code = dto.Code,
             Description = dto.Description,
-            WasteTypeId = dto.WasteTypeId,
+            WasteClassId = dto.WasteClassId,
             Quantity = dto.Quantity,
             Unit = dto.Unit,
             Status = WasteStatus.Generated,
@@ -183,12 +183,12 @@ public class WasteService : IWasteService
     private async Task<WasteDto> MapToDto(Waste waste)
     {
         // Temporary: Get related entities with null safety
-        WasteType? wasteType = null;
+        WasteClass? wasteType = null;
         Person? generator = null;
         
         try
         {
-            wasteType = await _wasteTypeRepository.GetByIdAsync(waste.WasteTypeId);
+            wasteType = await _wasteTypeRepository.GetByIdAsync(waste.WasteClassId);
             generator = await _personRepository.GetByIdAsync(waste.GeneratorId);
         }
         catch
@@ -201,8 +201,8 @@ public class WasteService : IWasteService
             Id = waste.Id,
             Code = waste.Code,
             Description = waste.Description,
-            WasteTypeId = waste.WasteTypeId,
-            WasteTypeName = wasteType?.Name ?? $"Type-{waste.WasteTypeId}",
+            WasteClassId = waste.WasteClassId,
+            WasteClassName = wasteType?.Name ?? $"Type-{waste.WasteClassId}",
             Quantity = waste.Quantity,
             Unit = waste.Unit.ToString(),
             Status = waste.Status.ToString(),

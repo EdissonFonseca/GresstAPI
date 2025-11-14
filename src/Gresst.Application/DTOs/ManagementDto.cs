@@ -70,7 +70,7 @@ public class TransformWasteDto
 {
     public Guid SourceWasteId { get; set; }
     public decimal SourceQuantity { get; set; }
-    public Guid ResultWasteTypeId { get; set; }
+    public Guid ResultWasteClassId { get; set; }
     public decimal ResultQuantity { get; set; }
     public TransformationType Type { get; set; }
     public Guid? TreatmentId { get; set; }

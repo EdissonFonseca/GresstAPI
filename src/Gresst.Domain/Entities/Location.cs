@@ -35,5 +35,6 @@ public class Location : BaseEntity
     
     // Navigation properties
     public virtual ICollection<Balance> Balances { get; set; } = new List<Balance>();
+    public virtual ICollection<PersonContact> PersonContacts { get; set; } = new List<PersonContact>();
 }
 

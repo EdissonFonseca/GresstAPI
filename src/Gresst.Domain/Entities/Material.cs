@@ -16,9 +16,9 @@ public class Material : BaseEntity
     public bool IsHazardous { get; set; }
     public string? Category { get; set; } // Metal, Plastic, Glass, Organic, etc.
     
-    // Waste Type relationship
-    public Guid? WasteTypeId { get; set; }
-    public virtual WasteType? WasteType { get; set; }
+    // Waste Class relationship
+    public Guid? WasteClassId { get; set; }
+    public virtual WasteClass? WasteClass { get; set; }
     
     // Navigation properties
     public virtual ICollection<Balance> Balances { get; set; } = new List<Balance>();

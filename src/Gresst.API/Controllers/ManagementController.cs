@@ -196,7 +196,7 @@ public class ManagementController : ControllerBase
         try
         {
             var management = await _managementService.ClassifyWasteAsync(
-                dto.WasteId, dto.WasteTypeId, dto.ClassifiedById, cancellationToken);
+                dto.WasteId, dto.WasteClassId, dto.ClassifiedById, cancellationToken);
             return Ok(management);
         }
         catch (KeyNotFoundException ex)
@@ -231,7 +231,7 @@ public class DeliverWasteDto
 public class ClassifyWasteDto
 {
     public Guid WasteId { get; set; }
-    public Guid WasteTypeId { get; set; }
+    public Guid WasteClassId { get; set; }
     public Guid ClassifiedById { get; set; }
 }
 

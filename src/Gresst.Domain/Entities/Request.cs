@@ -52,8 +52,8 @@ public class RequestItem : BaseEntity
     public Guid RequestId { get; set; }
     public virtual Request Request { get; set; } = null!;
     
-    public Guid WasteTypeId { get; set; }
-    public virtual WasteType WasteType { get; set; } = null!;
+    public Guid WasteClassId { get; set; }
+    public virtual WasteClass WasteClass { get; set; } = null!;
     
     public decimal EstimatedQuantity { get; set; }
     public UnitOfMeasure Unit { get; set; }

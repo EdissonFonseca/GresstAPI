@@ -34,7 +34,7 @@ public class InventoryController : ControllerBase
             PersonId = personId,
             FacilityId = facilityId,
             LocationId = locationId,
-            WasteTypeId = wasteTypeId
+            WasteClassId = wasteTypeId
         };
 
         var inventory = await _balanceService.GetInventoryAsync(query, cancellationToken);
