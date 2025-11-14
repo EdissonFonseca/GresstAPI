@@ -20,6 +20,10 @@ public class Order : BaseEntity
     public Guid? RequestId { get; set; }
     public virtual Request? Request { get; set; }
     
+    // Service to be performed
+    public Guid ServiceId { get; set; }
+    public virtual Service Service { get; set; } = null!;
+    
     // Service Provider
     public Guid ProviderId { get; set; }
     public virtual Person Provider { get; set; } = null!;

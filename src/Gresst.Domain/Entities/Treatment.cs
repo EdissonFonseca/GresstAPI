@@ -14,6 +14,10 @@ public class Treatment : BaseEntity
     // Treatment Category
     public string Category { get; set; } = string.Empty; // Physical, Chemical, Biological, Thermal
     
+    // Service associated with this treatment
+    public Guid ServiceId { get; set; }
+    public virtual Service Service { get; set; } = null!;
+    
     // Process details
     public string? ProcessDescription { get; set; }
     public decimal? EstimatedDuration { get; set; } // in hours
@@ -28,5 +32,6 @@ public class Treatment : BaseEntity
     // Navigation properties
     public virtual ICollection<Management> Managements { get; set; } = new List<Management>();
     public virtual ICollection<WasteTransformation> Transformations { get; set; } = new List<WasteTransformation>();
+    public virtual ICollection<PersonTreatment> Persons { get; set; } = new List<PersonTreatment>();
 }
 

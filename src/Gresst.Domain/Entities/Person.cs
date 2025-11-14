@@ -33,5 +33,17 @@ public class Person : BaseEntity
     
     // ContactOf - Persons where this person is a contact
     public virtual ICollection<PersonContact> ContactOf { get; set; } = new List<PersonContact>();
+    
+    // Services - Services that this person can provide (transport, disposal, storage, etc.)
+    public virtual ICollection<PersonService> Services { get; set; } = new List<PersonService>();
+    
+    // Facility Materials - Materials that facilities owned by this person can handle
+    public virtual ICollection<FacilityMaterial> FacilityMaterials { get; set; } = new List<FacilityMaterial>();
+    
+    // Packaging - Packaging types that this person manages
+    public virtual ICollection<PersonPackaging> Packagings { get; set; } = new List<PersonPackaging>();
+    
+    // Treatments - Treatments that this person can perform/manage
+    public virtual ICollection<PersonTreatment> Treatments { get; set; } = new List<PersonTreatment>();
 }
 

@@ -38,5 +38,6 @@ public class Facility : BaseEntity
     public virtual ICollection<License> Licenses { get; set; } = new List<License>();
     public virtual ICollection<Location> Locations { get; set; } = new List<Location>();
     public virtual ICollection<Balance> Balances { get; set; } = new List<Balance>();
+    public virtual ICollection<FacilityMaterial> Materials { get; set; } = new List<FacilityMaterial>();
 }
 

@@ -19,6 +19,10 @@ public class Request : BaseEntity
     public Guid? ProviderId { get; set; }
     public virtual Person? Provider { get; set; }
     
+    // Service requested
+    public Guid ServiceId { get; set; }
+    public virtual Service Service { get; set; } = null!;
+    
     // Service Details
     public string Title { get; set; } = string.Empty;
     public string? Description { get; set; }

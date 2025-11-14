@@ -48,6 +48,10 @@ public class Management : BaseEntity
     public Guid? TreatmentId { get; set; }
     public virtual Treatment? Treatment { get; set; }
     
+    // Service performed
+    public Guid ServiceId { get; set; }
+    public virtual Service Service { get; set; } = null!;
+    
     // Documentation
     public string? Notes { get; set; }
     public string? AttachmentUrls { get; set; } // JSON array of file URLs
