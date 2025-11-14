@@ -18,6 +18,12 @@ public interface IDataSegmentationService
     Task<bool> AssignVehicleToUserAsync(Guid userId, Guid vehicleId, CancellationToken cancellationToken = default);
     Task<bool> RevokeVehicleFromUserAsync(Guid userId, Guid vehicleId, CancellationToken cancellationToken = default);
     
+    // Materials
+    Task<bool> UserHasAccessToMaterialAsync(Guid materialId, CancellationToken cancellationToken = default);
+    Task<IEnumerable<Guid>> GetUserMaterialIdsAsync(CancellationToken cancellationToken = default);
+    Task<bool> AssignMaterialToUserAsync(Guid userId, Guid materialId, CancellationToken cancellationToken = default);
+    Task<bool> RevokeMaterialFromUserAsync(Guid userId, Guid materialId, CancellationToken cancellationToken = default);
+    
     // Generic check
     Task<bool> CurrentUserIsAdminAsync(CancellationToken cancellationToken = default);
 }

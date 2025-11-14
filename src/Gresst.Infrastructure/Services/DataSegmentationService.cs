@@ -194,6 +194,92 @@ public class DataSegmentationService : IDataSegmentationService
         return true;
     }
 
+    // Materials
+    public async Task<bool> UserHasAccessToMaterialAsync(Guid materialId, CancellationToken cancellationToken = default)
+    {
+        var userId = _currentUserService.GetCurrentUserId();
+        var userIdLong = GuidLongConverter.ToLong(userId);
+        var materialIdLong = GuidLongConverter.ToLong(materialId);
+
+        // Admin tiene acceso a todo
+        if (await CurrentUserIsAdminAsync(cancellationToken))
+            return true;
+
+        // Buscar el material
+        var material = await _context.Materials.FindAsync(new object[] { materialIdLong }, cancellationToken);
+        if (material == null)
+            return false;
+
+        // Si es público, todos pueden verlo
+        if (material.Publico)
+            return true;
+
+        // Si es privado, solo el creador puede verlo
+        return material.IdUsuarioCreacion == userIdLong;
+    }
+
+    public async Task<IEnumerable<Guid>> GetUserMaterialIdsAsync(CancellationToken cancellationToken = default)
+    {
+        var userId = _currentUserService.GetCurrentUserId();
+        var userIdLong = GuidLongConverter.ToLong(userId);
+
+        // Admin puede ver todo
+        if (await CurrentUserIsAdminAsync(cancellationToken))
+        {
+            var allMaterials = await _context.Materials
+                .Where(m => m.Activo)
+                .Select(m => m.IdMaterial)
+                .ToListAsync(cancellationToken);
+            
+            return allMaterials.Select(GuidLongConverter.ToGuid);
+        }
+
+        // Usuario normal: materiales públicos + materiales que creó
+        var materialIds = await _context.Materials
+            .Where(m => m.Activo && (m.Publico || m.IdUsuarioCreacion == userIdLong))
+            .Select(m => m.IdMaterial)
+            .ToListAsync(cancellationToken);
+
+        return materialIds.Select(GuidLongConverter.ToGuid);
+    }
+
+    public async Task<bool> AssignMaterialToUserAsync(Guid userId, Guid materialId, CancellationToken cancellationToken = default)
+    {
+        // Por ahora, la asignación se hace cambiando el material a público
+        // O se puede crear una tabla UsuarioMaterial en el futuro
+        var materialIdLong = GuidLongConverter.ToLong(materialId);
+        var material = await _context.Materials.FindAsync(new object[] { materialIdLong }, cancellationToken);
+        
+        if (material == null)
+            return false;
+
+        // Hacer el material público para que todos puedan verlo
+        material.Publico = true;
+        material.FechaUltimaModificacion = DateTime.UtcNow;
+        material.IdUsuarioUltimaModificacion = GuidLongConverter.ToLong(_currentUserService.GetCurrentUserId());
+        
+        await _context.SaveChangesAsync(cancellationToken);
+        return true;
+    }
+
+    public async Task<bool> RevokeMaterialFromUserAsync(Guid userId, Guid materialId, CancellationToken cancellationToken = default)
+    {
+        // Por ahora, la revocación se hace cambiando el material a privado
+        var materialIdLong = GuidLongConverter.ToLong(materialId);
+        var material = await _context.Materials.FindAsync(new object[] { materialIdLong }, cancellationToken);
+        
+        if (material == null)
+            return false;
+
+        // Hacer el material privado (solo el creador puede verlo)
+        material.Publico = false;
+        material.FechaUltimaModificacion = DateTime.UtcNow;
+        material.IdUsuarioUltimaModificacion = GuidLongConverter.ToLong(_currentUserService.GetCurrentUserId());
+        
+        await _context.SaveChangesAsync(cancellationToken);
+        return true;
+    }
+
     // Generic
     public async Task<bool> CurrentUserIsAdminAsync(CancellationToken cancellationToken = default)
     {
