@@ -6,10 +6,12 @@ using Gresst.Infrastructure.Data.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
+using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
+using System.Text.Json;
 
 namespace Gresst.Infrastructure.Authentication;
 
@@ -453,26 +455,27 @@ public class DatabaseAuthenticationService : IAuthenticationService
         return (tokenHandler.WriteToken(token), jwtId);
     }
 
-    private async Task<string> GenerateRefreshTokenAsync(long userId, string jwtId, CancellationToken cancellationToken)
+    private async Task<string?> GenerateRefreshTokenAsync(long userId, string jwtId, CancellationToken cancellationToken)
     {
         var randomBytes = new byte[64];
         using var rng = RandomNumberGenerator.Create();
         rng.GetBytes(randomBytes);
         var refreshToken = Convert.ToBase64String(randomBytes);
 
-        var refreshTokenEntity = new RefreshToken
-        {
-            Token = refreshToken,
-            JwtId = jwtId,
-            IdUsuario = userId,
-            IsUsed = false,
-            IsRevoked = false,
-            CreatedDate = DateTime.UtcNow,
-            ExpiryDate = DateTime.UtcNow.AddDays(GetRefreshTokenExpirationDays())
-        };
+        var user = await _context.Usuarios.FirstOrDefaultAsync(u => u.IdUsuario == userId, cancellationToken);
+        if (user == null) return null;
 
-        await _context.RefreshTokens.AddAsync(refreshTokenEntity, cancellationToken);
-        await _context.SaveChangesAsync(cancellationToken);
+        Dictionary<string, string>? settings = new Dictionary<string, string>();
+        if (user.DatosAdicionales != null)
+            settings = JsonSerializer.Deserialize<Dictionary<string, string>>(user.DatosAdicionales);
+
+        if (settings == null)
+            settings = new Dictionary<string, string>();
+        settings["token"] = refreshToken;
+        settings["createdAt"] = DateTime.UtcNow.ToString();
+        settings["expiresAt"] = DateTime.UtcNow.AddDays(7).ToString();
+        user.DatosAdicionales = JsonSerializer.Serialize(settings);
+        _context.SaveChanges();
 
         return refreshToken;
     }
@@ -486,11 +489,15 @@ public class DatabaseAuthenticationService : IAuthenticationService
         if (password == hashedPassword)
             return true;
 
-        if (hashedPassword == HashPassword(password))
+        if (HashPassword(password) == hashedPassword)
             return true;
 
-        hashedPassword = CryptoService.Encrypt(password);
-        if (hashedPassword == password)
+        var cryptoPassword = CryptoService.Encrypt(password);
+        if (cryptoPassword == hashedPassword)
+            return true;
+
+        var cryptoPasswordOld = CryptoService.EncryptOld(password);
+        if (cryptoPasswordOld == hashedPassword)
             return true;
 
         return false;
