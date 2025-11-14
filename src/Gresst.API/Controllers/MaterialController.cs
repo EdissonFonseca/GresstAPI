@@ -19,17 +19,60 @@ public class MaterialController : ControllerBase
     }
 
     /// <summary>
-    /// GET: Obtener todos los materiales
+    /// GET: Obtener todos los materiales - Por defecto para la persona de la cuenta
     /// </summary>
     /// <remarks>
-    /// Devuelve todos los materiales activos a los que el usuario actual tiene acceso.
-    /// Los materiales públicos son visibles para todos, los privados solo para su creador.
+    /// Devuelve todos los materiales activos de la persona de la cuenta (por defecto).
     /// </remarks>
     [HttpGet]
     [ProducesResponseType(typeof(IEnumerable<MaterialDto>), 200)]
     public async Task<ActionResult<IEnumerable<MaterialDto>>> GetAll(CancellationToken cancellationToken)
     {
-        var materials = await _materialService.GetAllAsync(cancellationToken);
+        var materials = await _materialService.GetAccountPersonMaterialsAsync(cancellationToken);
+        return Ok(materials);
+    }
+
+    /// <summary>
+    /// GET: Obtener materiales de la persona de la cuenta (explícito)
+    /// </summary>
+    [HttpGet("account")]
+    [ProducesResponseType(typeof(IEnumerable<MaterialDto>), 200)]
+    public async Task<ActionResult<IEnumerable<MaterialDto>>> GetAccountPersonMaterials(CancellationToken cancellationToken)
+    {
+        var materials = await _materialService.GetAccountPersonMaterialsAsync(cancellationToken);
+        return Ok(materials);
+    }
+
+    /// <summary>
+    /// GET: Obtener materiales de un proveedor
+    /// </summary>
+    [HttpGet("provider/{providerId}")]
+    [ProducesResponseType(typeof(IEnumerable<MaterialDto>), 200)]
+    public async Task<ActionResult<IEnumerable<MaterialDto>>> GetProviderMaterials(Guid providerId, CancellationToken cancellationToken)
+    {
+        var materials = await _materialService.GetProviderMaterialsAsync(providerId, cancellationToken);
+        return Ok(materials);
+    }
+
+    /// <summary>
+    /// GET: Obtener materiales de un cliente
+    /// </summary>
+    [HttpGet("client/{clientId}")]
+    [ProducesResponseType(typeof(IEnumerable<MaterialDto>), 200)]
+    public async Task<ActionResult<IEnumerable<MaterialDto>>> GetClientMaterials(Guid clientId, CancellationToken cancellationToken)
+    {
+        var materials = await _materialService.GetClientMaterialsAsync(clientId, cancellationToken);
+        return Ok(materials);
+    }
+
+    /// <summary>
+    /// GET: Obtener materiales de un facility
+    /// </summary>
+    [HttpGet("facility/{facilityId}")]
+    [ProducesResponseType(typeof(IEnumerable<MaterialDto>), 200)]
+    public async Task<ActionResult<IEnumerable<MaterialDto>>> GetFacilityMaterials(Guid facilityId, CancellationToken cancellationToken)
+    {
+        var materials = await _materialService.GetFacilityMaterialsAsync(facilityId, cancellationToken);
         return Ok(materials);
     }
 
@@ -73,9 +116,11 @@ public class MaterialController : ControllerBase
     }
 
     /// <summary>
-    /// POST: Crear nuevo material
+    /// POST: Crear nuevo material - Por defecto para la persona de la cuenta
     /// </summary>
     /// <remarks>
+    /// Si no se especifica, se crea para la persona de la cuenta.
+    /// 
     /// Ejemplo de request:
     /// 
     ///     POST /api/material
@@ -83,7 +128,7 @@ public class MaterialController : ControllerBase
     ///         "code": "MAT-001",
     ///         "name": "Plástico PET",
     ///         "description": "Polietileno tereftalato reciclable",
-    ///         "wasteTypeId": "guid-tipo-residuo",
+    ///         "wasteClassId": "guid-tipo-residuo",
     ///         "isRecyclable": true,
     ///         "isHazardous": false,
     ///         "category": "Plastic"
@@ -97,7 +142,67 @@ public class MaterialController : ControllerBase
         if (!ModelState.IsValid)
             return BadRequest(ModelState);
 
-        var material = await _materialService.CreateAsync(dto, cancellationToken);
+        var material = await _materialService.CreateAccountPersonMaterialAsync(dto, cancellationToken);
+        return CreatedAtAction(nameof(GetById), new { id = material.Id }, material);
+    }
+
+    /// <summary>
+    /// POST: Crear material para la persona de la cuenta (explícito)
+    /// </summary>
+    [HttpPost("account")]
+    [ProducesResponseType(typeof(MaterialDto), 201)]
+    [ProducesResponseType(400)]
+    public async Task<ActionResult<MaterialDto>> CreateAccountPersonMaterial([FromBody] CreateMaterialDto dto, CancellationToken cancellationToken)
+    {
+        if (!ModelState.IsValid)
+            return BadRequest(ModelState);
+
+        var material = await _materialService.CreateAccountPersonMaterialAsync(dto, cancellationToken);
+        return CreatedAtAction(nameof(GetById), new { id = material.Id }, material);
+    }
+
+    /// <summary>
+    /// POST: Crear material para un proveedor
+    /// </summary>
+    [HttpPost("provider/{providerId}")]
+    [ProducesResponseType(typeof(MaterialDto), 201)]
+    [ProducesResponseType(400)]
+    public async Task<ActionResult<MaterialDto>> CreateProviderMaterial(Guid providerId, [FromBody] CreateMaterialDto dto, CancellationToken cancellationToken)
+    {
+        if (!ModelState.IsValid)
+            return BadRequest(ModelState);
+
+        var material = await _materialService.CreateProviderMaterialAsync(providerId, dto, cancellationToken);
+        return CreatedAtAction(nameof(GetById), new { id = material.Id }, material);
+    }
+
+    /// <summary>
+    /// POST: Crear material para un cliente
+    /// </summary>
+    [HttpPost("client/{clientId}")]
+    [ProducesResponseType(typeof(MaterialDto), 201)]
+    [ProducesResponseType(400)]
+    public async Task<ActionResult<MaterialDto>> CreateClientMaterial(Guid clientId, [FromBody] CreateMaterialDto dto, CancellationToken cancellationToken)
+    {
+        if (!ModelState.IsValid)
+            return BadRequest(ModelState);
+
+        var material = await _materialService.CreateClientMaterialAsync(clientId, dto, cancellationToken);
+        return CreatedAtAction(nameof(GetById), new { id = material.Id }, material);
+    }
+
+    /// <summary>
+    /// POST: Crear material para un facility
+    /// </summary>
+    [HttpPost("facility/{facilityId}")]
+    [ProducesResponseType(typeof(MaterialDto), 201)]
+    [ProducesResponseType(400)]
+    public async Task<ActionResult<MaterialDto>> CreateFacilityMaterial(Guid facilityId, [FromBody] CreateMaterialDto dto, CancellationToken cancellationToken)
+    {
+        if (!ModelState.IsValid)
+            return BadRequest(ModelState);
+
+        var material = await _materialService.CreateFacilityMaterialAsync(facilityId, dto, cancellationToken);
         return CreatedAtAction(nameof(GetById), new { id = material.Id }, material);
     }
 

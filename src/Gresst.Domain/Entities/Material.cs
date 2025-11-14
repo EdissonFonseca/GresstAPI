@@ -24,5 +24,14 @@ public class Material : BaseEntity
     public virtual ICollection<Balance> Balances { get; set; } = new List<Balance>();
     public virtual ICollection<PersonMaterial> Persons { get; set; } = new List<PersonMaterial>();
     public virtual ICollection<FacilityMaterial> Facilities { get; set; } = new List<FacilityMaterial>();
+    
+    // Transformations - Materials that this material can be decomposed/transformed into
+    public virtual ICollection<MaterialTransformation> ResultTransformations { get; set; } = new List<MaterialTransformation>();
+    
+    // Source Transformations - Materials that can be decomposed/transformed into this material
+    public virtual ICollection<MaterialTransformation> SourceTransformations { get; set; } = new List<MaterialTransformation>();
+    
+    // Person Material Treatments - Treatments that persons apply to this material
+    public virtual ICollection<PersonMaterialTreatment> PersonTreatments { get; set; } = new List<PersonMaterialTreatment>();
 }
 

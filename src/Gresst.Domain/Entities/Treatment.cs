@@ -29,10 +29,16 @@ public class Treatment : BaseEntity
     public bool ProducesNewWaste { get; set; }
     public string? ResultingWasteClasses { get; set; } // JSON array
     
+    // WasteClass - One-to-one optional relationship (inverse)
+    public virtual WasteClass? WasteClass { get; set; }
+    
     // Navigation properties
     public virtual ICollection<Management> Managements { get; set; } = new List<Management>();
     public virtual ICollection<WasteTransformation> Transformations { get; set; } = new List<WasteTransformation>();
     public virtual ICollection<PersonTreatment> Persons { get; set; } = new List<PersonTreatment>();
     public virtual ICollection<FacilityTreatment> Facilities { get; set; } = new List<FacilityTreatment>();
+    
+    // Person Material Treatments - Materials that persons apply this treatment to
+    public virtual ICollection<PersonMaterialTreatment> PersonMaterialTreatments { get; set; } = new List<PersonMaterialTreatment>();
 }
 

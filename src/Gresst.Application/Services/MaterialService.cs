@@ -11,17 +11,36 @@ namespace Gresst.Application.Services;
 public class MaterialService : IMaterialService
 {
     private readonly IRepository<Material> _materialRepository;
+    private readonly IRepository<PersonMaterial> _personMaterialRepository;
+    private readonly IRepository<FacilityMaterial> _facilityMaterialRepository;
+    private readonly IRepository<Facility> _facilityRepository;
+    private readonly IAccountRepository _accountRepository;
     private readonly IDataSegmentationService _segmentationService;
     private readonly IUnitOfWork _unitOfWork;
+    private readonly ICurrentUserService _currentUserService;
+
+    // Role codes
+    private const string CLIENT_ROLE_CODE = "CL";
+    private const string PROVIDER_ROLE_CODE = "PR";
 
     public MaterialService(
         IRepository<Material> materialRepository,
+        IRepository<PersonMaterial> personMaterialRepository,
+        IRepository<FacilityMaterial> facilityMaterialRepository,
+        IRepository<Facility> facilityRepository,
+        IAccountRepository accountRepository,
         IDataSegmentationService segmentationService,
-        IUnitOfWork unitOfWork)
+        IUnitOfWork unitOfWork,
+        ICurrentUserService currentUserService)
     {
         _materialRepository = materialRepository;
+        _personMaterialRepository = personMaterialRepository;
+        _facilityMaterialRepository = facilityMaterialRepository;
+        _facilityRepository = facilityRepository;
+        _accountRepository = accountRepository;
         _segmentationService = segmentationService;
         _unitOfWork = unitOfWork;
+        _currentUserService = currentUserService;
     }
 
     /// <summary>
@@ -96,8 +115,123 @@ public class MaterialService : IMaterialService
         return materials.Select(MapToDto).ToList();
     }
 
-    public async Task<MaterialDto> CreateAsync(CreateMaterialDto dto, CancellationToken cancellationToken = default)
+    /// <summary>
+    /// Get Account Person ID (persona de la cuenta)
+    /// </summary>
+    private async Task<Guid> GetAccountPersonIdAsync(CancellationToken cancellationToken)
     {
+        var accountId = _currentUserService.GetCurrentAccountId();
+        var account = await _accountRepository.GetByIdAsync(accountId, cancellationToken);
+        if (account == null || account.PersonId == Guid.Empty)
+            throw new InvalidOperationException("Account or Account Person not found");
+        return account.PersonId;
+    }
+
+    /// <summary>
+    /// Get materials for Account Person (persona de la cuenta)
+    /// </summary>
+    public async Task<IEnumerable<MaterialDto>> GetAccountPersonMaterialsAsync(CancellationToken cancellationToken = default)
+    {
+        var accountPersonId = await GetAccountPersonIdAsync(cancellationToken);
+        var personMaterials = await _personMaterialRepository.FindAsync(
+            pm => pm.PersonId == accountPersonId && pm.IsActive,
+            cancellationToken);
+        
+        var materialIds = personMaterials.Select(pm => pm.MaterialId).Distinct().ToList();
+        var materials = await _materialRepository.FindAsync(
+            m => materialIds.Contains(m.Id),
+            cancellationToken);
+        
+        return materials.Select(MapToDto).ToList();
+    }
+
+    /// <summary>
+    /// Create material for Account Person (persona de la cuenta)
+    /// </summary>
+    public async Task<MaterialDto> CreateAccountPersonMaterialAsync(CreateMaterialDto dto, CancellationToken cancellationToken = default)
+    {
+        var accountPersonId = await GetAccountPersonIdAsync(cancellationToken);
+        return await CreateMaterialForPersonAsync(accountPersonId, dto, cancellationToken);
+    }
+
+    /// <summary>
+    /// Get materials for a Provider
+    /// </summary>
+    public async Task<IEnumerable<MaterialDto>> GetProviderMaterialsAsync(Guid providerId, CancellationToken cancellationToken = default)
+    {
+        var personMaterials = await _personMaterialRepository.FindAsync(
+            pm => pm.PersonId == providerId && pm.IsActive,
+            cancellationToken);
+        
+        var materialIds = personMaterials.Select(pm => pm.MaterialId).Distinct().ToList();
+        var materials = await _materialRepository.FindAsync(
+            m => materialIds.Contains(m.Id),
+            cancellationToken);
+        
+        return materials.Select(MapToDto).ToList();
+    }
+
+    /// <summary>
+    /// Create material for a Provider
+    /// </summary>
+    public async Task<MaterialDto> CreateProviderMaterialAsync(Guid providerId, CreateMaterialDto dto, CancellationToken cancellationToken = default)
+    {
+        return await CreateMaterialForPersonAsync(providerId, dto, cancellationToken);
+    }
+
+    /// <summary>
+    /// Get materials for a Client
+    /// </summary>
+    public async Task<IEnumerable<MaterialDto>> GetClientMaterialsAsync(Guid clientId, CancellationToken cancellationToken = default)
+    {
+        var personMaterials = await _personMaterialRepository.FindAsync(
+            pm => pm.PersonId == clientId && pm.IsActive,
+            cancellationToken);
+        
+        var materialIds = personMaterials.Select(pm => pm.MaterialId).Distinct().ToList();
+        var materials = await _materialRepository.FindAsync(
+            m => materialIds.Contains(m.Id),
+            cancellationToken);
+        
+        return materials.Select(MapToDto).ToList();
+    }
+
+    /// <summary>
+    /// Create material for a Client
+    /// </summary>
+    public async Task<MaterialDto> CreateClientMaterialAsync(Guid clientId, CreateMaterialDto dto, CancellationToken cancellationToken = default)
+    {
+        return await CreateMaterialForPersonAsync(clientId, dto, cancellationToken);
+    }
+
+    /// <summary>
+    /// Get materials for a Facility
+    /// </summary>
+    public async Task<IEnumerable<MaterialDto>> GetFacilityMaterialsAsync(Guid facilityId, CancellationToken cancellationToken = default)
+    {
+        var facilityMaterials = await _facilityMaterialRepository.FindAsync(
+            fm => fm.FacilityId == facilityId && fm.IsActive,
+            cancellationToken);
+        
+        var materialIds = facilityMaterials.Select(fm => fm.MaterialId).Distinct().ToList();
+        var materials = await _materialRepository.FindAsync(
+            m => materialIds.Contains(m.Id),
+            cancellationToken);
+        
+        return materials.Select(MapToDto).ToList();
+    }
+
+    /// <summary>
+    /// Create material for a Facility
+    /// </summary>
+    public async Task<MaterialDto> CreateFacilityMaterialAsync(Guid facilityId, CreateMaterialDto dto, CancellationToken cancellationToken = default)
+    {
+        // Verify facility exists and get its owner
+        var facility = await _facilityRepository.GetByIdAsync(facilityId, cancellationToken);
+        if (facility == null)
+            throw new InvalidOperationException("Facility not found");
+
+        // Create the material
         var material = new Material
         {
             Id = Guid.NewGuid(),
@@ -113,9 +247,80 @@ public class MaterialService : IMaterialService
         };
 
         await _materialRepository.AddAsync(material, cancellationToken);
+
+        // Create FacilityMaterial relationship
+        var facilityMaterial = new FacilityMaterial
+        {
+            Id = Guid.NewGuid(),
+            PersonId = facility.PersonId,
+            FacilityId = facilityId,
+            MaterialId = material.Id,
+            ServicePrice = dto.ServicePrice,
+            PurchasePrice = dto.PurchasePrice,
+            Weight = dto.Weight,
+            Volume = dto.Volume,
+            EmissionCompensationFactor = dto.EmissionCompensationFactor,
+            IsHandled = true,
+            CreatedAt = DateTime.UtcNow,
+            IsActive = true
+        };
+
+        await _facilityMaterialRepository.AddAsync(facilityMaterial, cancellationToken);
         await _unitOfWork.SaveChangesAsync(cancellationToken);
 
         return MapToDto(material);
+    }
+
+    /// <summary>
+    /// Helper method to create material for a person
+    /// </summary>
+    private async Task<MaterialDto> CreateMaterialForPersonAsync(Guid personId, CreateMaterialDto dto, CancellationToken cancellationToken)
+    {
+        // Create the material
+        var material = new Material
+        {
+            Id = Guid.NewGuid(),
+            Code = dto.Code,
+            Name = dto.Name,
+            Description = dto.Description,
+            WasteClassId = dto.WasteClassId,
+            IsRecyclable = dto.IsRecyclable,
+            IsHazardous = dto.IsHazardous,
+            Category = dto.Category,
+            CreatedAt = DateTime.UtcNow,
+            IsActive = true
+        };
+
+        await _materialRepository.AddAsync(material, cancellationToken);
+
+        // Create PersonMaterial relationship
+        var personMaterial = new PersonMaterial
+        {
+            Id = Guid.NewGuid(),
+            PersonId = personId,
+            MaterialId = material.Id,
+            Name = dto.Name,
+            ServicePrice = dto.ServicePrice,
+            PurchasePrice = dto.PurchasePrice,
+            Weight = dto.Weight,
+            Volume = dto.Volume,
+            EmissionCompensationFactor = dto.EmissionCompensationFactor,
+            Reference = dto.Reference,
+            CreatedAt = DateTime.UtcNow,
+            IsActive = true
+        };
+
+        await _personMaterialRepository.AddAsync(personMaterial, cancellationToken);
+        await _unitOfWork.SaveChangesAsync(cancellationToken);
+
+        return MapToDto(material);
+    }
+
+    public async Task<MaterialDto> CreateAsync(CreateMaterialDto dto, CancellationToken cancellationToken = default)
+    {
+        // By default, create for Account Person
+        var accountPersonId = await GetAccountPersonIdAsync(cancellationToken);
+        return await CreateMaterialForPersonAsync(accountPersonId, dto, cancellationToken);
     }
 
     public async Task<MaterialDto?> UpdateAsync(UpdateMaterialDto dto, CancellationToken cancellationToken = default)

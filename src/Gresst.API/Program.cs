@@ -108,7 +108,12 @@ builder.Services.AddScoped<ManagementMapper>();
 builder.Services.AddScoped<PersonMapper>();
 builder.Services.AddScoped<MaterialMapper>();
 builder.Services.AddScoped<PersonMaterialMapper>();
+builder.Services.AddScoped<FacilityMaterialMapper>();
 builder.Services.AddScoped<PersonContactMapper>();
+builder.Services.AddScoped<PersonMaterialTreatmentMapper>();
+builder.Services.AddScoped<SupplyMapper>();
+builder.Services.AddScoped<PersonSupplyMapper>();
+builder.Services.AddScoped<PersonWasteClassMapper>();
 
 // Repositories - Register specific repositories with mappers
 builder.Services.AddScoped<IAccountRepository, AccountRepository>();
@@ -118,6 +123,8 @@ builder.Services.AddScoped<IRepository<Management>, ManagementRepository>();
 builder.Services.AddScoped<IPersonRepository, PersonRepository>();
 builder.Services.AddScoped<IRepository<Person>>(sp => sp.GetRequiredService<IPersonRepository>());
 builder.Services.AddScoped<IRepository<Material>, MaterialRepository>();
+builder.Services.AddScoped<IRepository<PersonMaterial>, PersonMaterialRepository>();
+builder.Services.AddScoped<IRepository<FacilityMaterial>, FacilityMaterialRepository>();
 builder.Services.AddScoped<IPersonContactRepository, PersonContactRepository>();
 builder.Services.AddScoped<IRepository<PersonContact>>(sp => sp.GetRequiredService<IPersonContactRepository>());
 

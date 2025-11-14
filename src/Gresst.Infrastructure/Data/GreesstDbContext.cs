@@ -44,6 +44,11 @@ public class GreesstDbContext : DbContext
     public DbSet<FacilityTreatment> FacilityTreatments => Set<FacilityTreatment>();
     public DbSet<FacilityContact> FacilityContacts => Set<FacilityContact>();
     public DbSet<FacilityWasteClass> FacilityWasteClasses => Set<FacilityWasteClass>();
+    public DbSet<MaterialTransformation> MaterialTransformations => Set<MaterialTransformation>();
+    public DbSet<PersonMaterialTreatment> PersonMaterialTreatments => Set<PersonMaterialTreatment>();
+    public DbSet<Supply> Supplies => Set<Supply>();
+    public DbSet<PersonSupply> PersonSupplies => Set<PersonSupply>();
+    public DbSet<PersonWasteClass> PersonWasteClasses => Set<PersonWasteClass>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

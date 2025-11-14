@@ -51,5 +51,14 @@ public class Person : BaseEntity
     
     // Treatments - Treatments that this person can perform/manage
     public virtual ICollection<PersonTreatment> Treatments { get; set; } = new List<PersonTreatment>();
+    
+    // Material Treatments - Treatments that this person applies to specific materials
+    public virtual ICollection<PersonMaterialTreatment> MaterialTreatments { get; set; } = new List<PersonMaterialTreatment>();
+    
+    // Supplies - Supplies that this person uses in logistics operations
+    public virtual ICollection<PersonSupply> Supplies { get; set; } = new List<PersonSupply>();
+    
+    // Waste Classes - Waste classes that this person is associated with
+    public virtual ICollection<PersonWasteClass> WasteClasses { get; set; } = new List<PersonWasteClass>();
 }
 

@@ -17,9 +17,16 @@ public class WasteClass : BaseEntity
     public bool RequiresSpecialHandling { get; set; }
     public string? PhysicalState { get; set; } // Solid, Liquid, Gas, Sludge
     
+    // Treatment - One-to-one optional relationship
+    public Guid? TreatmentId { get; set; }
+    public virtual Treatment? Treatment { get; set; }
+    
     // Navigation properties
     public virtual ICollection<Waste> Wastes { get; set; } = new List<Waste>();
     public virtual ICollection<Material> Materials { get; set; } = new List<Material>();
     public virtual ICollection<FacilityWasteClass> Facilities { get; set; } = new List<FacilityWasteClass>();
+    
+    // Persons - Persons (account, provider, client) associated with this waste class
+    public virtual ICollection<PersonWasteClass> Persons { get; set; } = new List<PersonWasteClass>();
 }
 
