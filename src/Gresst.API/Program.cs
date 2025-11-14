@@ -119,6 +119,8 @@ builder.Services.AddScoped<ServiceMapper>();
 builder.Services.AddScoped<PersonServiceMapper>();
 builder.Services.AddScoped<WasteClassMapper>();
 builder.Services.AddScoped<TreatmentMapper>();
+builder.Services.AddScoped<RouteMapper>();
+builder.Services.AddScoped<RouteStopMapper>();
 
 // Repositories - Register specific repositories with mappers
 builder.Services.AddScoped<IAccountRepository, AccountRepository>();
@@ -140,6 +142,8 @@ builder.Services.AddScoped<IRepository<WasteClass>, WasteClassRepository>();
 builder.Services.AddScoped<IRepository<PersonWasteClass>, PersonWasteClassRepository>();
 builder.Services.AddScoped<IRepository<Treatment>, TreatmentRepository>();
 builder.Services.AddScoped<IRepository<PersonTreatment>, PersonTreatmentRepository>();
+builder.Services.AddScoped<IRepository<Gresst.Domain.Entities.Route>, RouteRepository>();
+builder.Services.AddScoped<IRepository<Gresst.Domain.Entities.RouteStop>, RouteStopRepository>();
 
 // Generic repository for entities without specific mappers yet
 builder.Services.AddScoped(typeof(IRepository<>), typeof(GenericInfraRepository<>));
@@ -162,6 +166,7 @@ builder.Services.AddScoped<ISupplyService, SupplyService>();
 builder.Services.AddScoped<IServiceService, ServiceService>();
 builder.Services.AddScoped<IWasteClassService, WasteClassService>();
 builder.Services.AddScoped<ITreatmentService, TreatmentService>();
+builder.Services.AddScoped<IRouteService, RouteService>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IAuthorizationService, AuthorizationService>();
 
