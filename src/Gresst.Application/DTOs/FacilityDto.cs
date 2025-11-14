@@ -26,6 +26,11 @@ public class FacilityDto
     public string? CapacityUnit { get; set; }
     public decimal? CurrentCapacity { get; set; }
     
+    // Hierarchical structure
+    public Guid? ParentFacilityId { get; set; }
+    public string? ParentFacilityName { get; set; }
+    public bool IsVirtual { get; set; }
+    
     public DateTime CreatedAt { get; set; }
     public DateTime? UpdatedAt { get; set; }
     public bool IsActive { get; set; }
@@ -56,6 +61,17 @@ public class CreateFacilityDto
     // Capacity
     public decimal? MaxCapacity { get; set; }
     public string? CapacityUnit { get; set; }
+    
+    // Hierarchical structure
+    /// <summary>
+    /// Parent facility ID (for hierarchical structures). Optional.
+    /// </summary>
+    public Guid? ParentFacilityId { get; set; }
+    
+    /// <summary>
+    /// Whether this facility is virtual (e.g., for vehicles)
+    /// </summary>
+    public bool IsVirtual { get; set; } = false;
 }
 
 public class UpdateFacilityDto
@@ -78,5 +94,16 @@ public class UpdateFacilityDto
     // Capacity
     public decimal? MaxCapacity { get; set; }
     public decimal? CurrentCapacity { get; set; }
+    
+    // Hierarchical structure
+    /// <summary>
+    /// Parent facility ID (for hierarchical structures). Optional.
+    /// </summary>
+    public Guid? ParentFacilityId { get; set; }
+    
+    /// <summary>
+    /// Whether this facility is virtual (e.g., for vehicles)
+    /// </summary>
+    public bool? IsVirtual { get; set; }
 }
 

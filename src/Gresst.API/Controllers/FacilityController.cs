@@ -110,6 +110,7 @@ public class FacilityController : ControllerBase
     /// </summary>
     /// <remarks>
     /// Si no se especifica PersonId, se usa la persona de la cuenta.
+    /// Las facilities pueden tener una estructura jerárquica usando ParentFacilityId.
     /// 
     /// Ejemplo de request:
     /// 
@@ -126,7 +127,9 @@ public class FacilityController : ControllerBase
     ///         "canStore": true,
     ///         "canTreat": true,
     ///         "maxCapacity": 10000,
-    ///         "capacityUnit": "kg"
+    ///         "capacityUnit": "kg",
+    ///         "parentFacilityId": "guid-facility-padre", // Opcional: para estructuras jerárquicas
+    ///         "isVirtual": false // Opcional: para facilities virtuales (p. ej., vehículos)
     ///     }
     /// </remarks>
     [HttpPost]
@@ -191,6 +194,7 @@ public class FacilityController : ControllerBase
     /// </summary>
     /// <remarks>
     /// Solo se actualizan los campos proporcionados (PATCH-like).
+    /// Para limpiar el parent facility, enviar parentFacilityId como Guid.Empty.
     /// 
     /// Ejemplo:
     /// 
@@ -199,7 +203,9 @@ public class FacilityController : ControllerBase
     ///         "id": "guid-facility",
     ///         "name": "Planta Actualizada",
     ///         "canDispose": true,
-    ///         "maxCapacity": 15000
+    ///         "maxCapacity": 15000,
+    ///         "parentFacilityId": "guid-nuevo-parent", // Opcional: actualizar parent
+    ///         "isVirtual": false // Opcional: actualizar si es virtual
     ///     }
     /// </remarks>
     [HttpPut("{id}")]

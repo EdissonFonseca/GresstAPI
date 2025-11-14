@@ -29,7 +29,10 @@ public class FacilityRepository : IRepository<Facility>
     public async Task<Facility?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
     {
         var idLong = ConvertGuidToLong(id);
-        var dbEntity = await _context.Depositos.FindAsync(new object[] { idLong }, cancellationToken);
+        var dbEntity = await _context.Depositos
+            .Include(d => d.IdPersonaNavigation)
+            .Include(d => d.IdSuperiorNavigation) // Parent facility
+            .FirstOrDefaultAsync(d => d.IdDeposito == idLong, cancellationToken);
         
         return dbEntity != null ? _mapper.ToDomain(dbEntity) : null;
     }
@@ -41,6 +44,8 @@ public class FacilityRepository : IRepository<Facility>
         
         var dbEntities = await _context.Depositos
             .Where(d => d.Activo && d.IdCuenta == accountIdLong)
+            .Include(d => d.IdPersonaNavigation)
+            .Include(d => d.IdSuperiorNavigation) // Parent facility
             .ToListAsync(cancellationToken);
 
         return dbEntities.Select(_mapper.ToDomain).ToList();

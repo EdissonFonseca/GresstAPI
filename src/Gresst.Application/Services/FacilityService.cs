@@ -191,6 +191,8 @@ public class FacilityService : IFacilityService
             MaxCapacity = dto.MaxCapacity,
             CapacityUnit = dto.CapacityUnit,
             CurrentCapacity = 0,
+            ParentFacilityId = dto.ParentFacilityId,
+            IsVirtual = dto.IsVirtual,
             CreatedAt = DateTime.UtcNow,
             IsActive = true
         };
@@ -262,6 +264,19 @@ public class FacilityService : IFacilityService
             facility.MaxCapacity = dto.MaxCapacity;
         if (dto.CurrentCapacity.HasValue)
             facility.CurrentCapacity = dto.CurrentCapacity;
+        
+        // Hierarchical structure
+        if (dto.ParentFacilityId.HasValue)
+        {
+            // If Guid.Empty is provided, clear the parent (set to null)
+            if (dto.ParentFacilityId.Value == Guid.Empty)
+                facility.ParentFacilityId = null;
+            else
+                facility.ParentFacilityId = dto.ParentFacilityId.Value;
+        }
+        
+        if (dto.IsVirtual.HasValue)
+            facility.IsVirtual = dto.IsVirtual.Value;
 
         facility.UpdatedAt = DateTime.UtcNow;
 
@@ -302,6 +317,7 @@ public class FacilityService : IFacilityService
             Latitude = facility.Latitude,
             Longitude = facility.Longitude,
             PersonId = facility.PersonId,
+            PersonName = facility.Person?.Name,
             CanCollect = facility.CanCollect,
             CanStore = facility.CanStore,
             CanDispose = facility.CanDispose,
@@ -311,6 +327,9 @@ public class FacilityService : IFacilityService
             MaxCapacity = facility.MaxCapacity,
             CapacityUnit = facility.CapacityUnit,
             CurrentCapacity = facility.CurrentCapacity,
+            ParentFacilityId = facility.ParentFacilityId,
+            ParentFacilityName = facility.ParentFacility?.Name,
+            IsVirtual = facility.IsVirtual,
             CreatedAt = facility.CreatedAt,
             UpdatedAt = facility.UpdatedAt,
             IsActive = facility.IsActive

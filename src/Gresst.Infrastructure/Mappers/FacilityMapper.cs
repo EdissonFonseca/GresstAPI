@@ -57,6 +57,10 @@ public class FacilityMapper : MapperBase<Facility, Deposito>
             ParentFacilityId = dbEntity.IdSuperior.HasValue 
                 ? new Guid(dbEntity.IdSuperior.Value.ToString().PadLeft(32, '0')) 
                 : null,
+            // Map ParentFacility navigation if loaded (for eager loading)
+            ParentFacility = dbEntity.IdSuperiorNavigation != null 
+                ? MapParentFacility(dbEntity.IdSuperiorNavigation) 
+                : null,
             
             // Audit fields
             CreatedAt = dbEntity.FechaCreacion,
@@ -64,6 +68,25 @@ public class FacilityMapper : MapperBase<Facility, Deposito>
             CreatedBy = dbEntity.IdUsuarioCreacion.ToString(),
             UpdatedBy = dbEntity.IdUsuarioUltimaModificacion?.ToString(),
             IsActive = dbEntity.Activo
+        };
+    }
+
+    /// <summary>
+    /// Helper method to map parent facility (lightweight mapping, no recursive navigation)
+    /// </summary>
+    private Facility? MapParentFacility(Deposito parentDbEntity)
+    {
+        if (parentDbEntity == null) return null;
+        
+        return new Facility
+        {
+            Id = parentDbEntity.IdDeposito != 0 
+                ? new Guid(parentDbEntity.IdDeposito.ToString().PadLeft(32, '0')) 
+                : Guid.NewGuid(),
+            Name = parentDbEntity.Nombre ?? string.Empty,
+            Code = parentDbEntity.IdDeposito.ToString(),
+            // Only map essential fields to avoid deep recursion
+            // Other fields will be null/default
         };
     }
 
