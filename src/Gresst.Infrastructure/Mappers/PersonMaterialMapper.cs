@@ -25,7 +25,7 @@ public class PersonMaterialMapper : MapperBase<PersonMaterial, PersonaMaterial>
             AccountId = GuidLongConverter.ToGuid(dbEntity.IdCuenta),
             
             // Relations
-            PersonId = GuidLongConverter.StringToGuid(dbEntity.IdPersona),
+            PersonId = GuidStringConverter.ToGuid(dbEntity.IdPersona),
             MaterialId = GuidLongConverter.ToGuid(dbEntity.IdMaterial),
             PackagingId = dbEntity.IdEmbalaje.HasValue 
                 ? GuidLongConverter.ToGuid(dbEntity.IdEmbalaje.Value) 
@@ -61,7 +61,7 @@ public class PersonMaterialMapper : MapperBase<PersonMaterial, PersonaMaterial>
         return new PersonaMaterial
         {
             // IDs (composite key)
-            IdPersona = GuidLongConverter.GuidToString(domainEntity.PersonId),
+            IdPersona = GuidStringConverter.ToString(domainEntity.PersonId),
             IdMaterial = GuidLongConverter.ToLong(domainEntity.MaterialId),
             IdCuenta = GuidLongConverter.ToLong(domainEntity.AccountId),
             

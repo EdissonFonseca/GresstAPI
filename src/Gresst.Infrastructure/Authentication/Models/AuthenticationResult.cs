@@ -20,6 +20,8 @@ public class AuthenticationResult
     
     public Guid UserId { get; set; }
     public Guid AccountId { get; set; }
+    public Guid AccountPersonId { get; set; }
+    public Guid PersonId { get; set; }
     public string? Username { get; set; }
     public string? Email { get; set; }
     public string[]? Roles { get; set; }

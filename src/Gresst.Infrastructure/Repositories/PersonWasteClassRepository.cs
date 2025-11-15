@@ -70,7 +70,7 @@ public class PersonWasteClassRepository : IRepository<PersonWasteClass>
     public Task UpdateAsync(PersonWasteClass entity, CancellationToken cancellationToken = default)
     {
         var accountIdLong = GuidLongConverter.ToLong(_currentUserService.GetCurrentAccountId());
-        var personIdString = GuidLongConverter.GuidToString(entity.PersonId);
+        var personIdString = GuidStringConverter.ToString(entity.PersonId);
         var wasteClassIdInt = (int)GuidLongConverter.ToLong(entity.WasteClassId);
 
         var dbEntity = _context.PersonaTipoResiduos.Find(personIdString, wasteClassIdInt, accountIdLong);
@@ -90,7 +90,7 @@ public class PersonWasteClassRepository : IRepository<PersonWasteClass>
     public Task DeleteAsync(PersonWasteClass entity, CancellationToken cancellationToken = default)
     {
         var accountIdLong = GuidLongConverter.ToLong(_currentUserService.GetCurrentAccountId());
-        var personIdString = GuidLongConverter.GuidToString(entity.PersonId);
+        var personIdString = GuidStringConverter.ToString(entity.PersonId);
         var wasteClassIdInt = (int)GuidLongConverter.ToLong(entity.WasteClassId);
 
         var dbEntity = _context.PersonaTipoResiduos.Find(personIdString, wasteClassIdInt, accountIdLong);

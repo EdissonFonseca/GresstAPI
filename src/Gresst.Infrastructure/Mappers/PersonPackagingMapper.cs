@@ -25,7 +25,7 @@ public class PersonPackagingMapper : MapperBase<PersonPackaging, PersonaEmbalaje
             AccountId = GuidLongConverter.ToGuid(dbEntity.IdCuenta),
             
             // Relations
-            PersonId = GuidLongConverter.StringToGuid(dbEntity.IdPersona),
+            PersonId = GuidStringConverter.ToGuid(dbEntity.IdPersona),
             PackagingId = GuidLongConverter.ToGuid(dbEntity.IdEmbalaje),
             
             // Properties
@@ -51,7 +51,7 @@ public class PersonPackagingMapper : MapperBase<PersonPackaging, PersonaEmbalaje
         return new PersonaEmbalaje
         {
             // IDs (composite key)
-            IdPersona = GuidLongConverter.GuidToString(domainEntity.PersonId),
+            IdPersona = GuidStringConverter.ToString(domainEntity.PersonId),
             IdEmbalaje = GuidLongConverter.ToLong(domainEntity.PackagingId),
             IdCuenta = GuidLongConverter.ToLong(domainEntity.AccountId),
             

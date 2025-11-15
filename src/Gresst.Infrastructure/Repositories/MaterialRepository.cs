@@ -5,6 +5,7 @@ using Gresst.Infrastructure.Data;
 using Gresst.Infrastructure.Mappers;
 using Microsoft.EntityFrameworkCore;
 using System.Linq.Expressions;
+using DbMaterial = Gresst.Infrastructure.Data.Entities.Material;
 
 namespace Gresst.Infrastructure.Repositories;
 
@@ -38,13 +39,45 @@ public class MaterialRepository : IRepository<Material>
     public async Task<IEnumerable<Material>> GetAllAsync(CancellationToken cancellationToken = default)
     {
         var accountId = _currentUserService.GetCurrentAccountId();
+        var accountPersonId = _currentUserService.GetCurrentAccountPersonId();
         var accountIdLong = GuidLongConverter.ToLong(accountId);
-        
-        // Material no tiene IdCuenta directamente, pero podemos filtrar por Activo
-        // Si necesitas filtrar por cuenta, necesitarías una relación indirecta
-        var dbEntities = await _context.Materials
-            .Where(m => m.Activo)
-            .Include(m => m.IdTipoResiduoNavigation)
+        var accountPersonIdString = GuidStringConverter.ToString(accountPersonId);
+
+        var dbEntities = await (
+            from m in _context.Materials
+                .Include(x => x.IdTipoResiduoNavigation)
+            join pm in _context.PersonaMaterials
+                on m.IdMaterial equals pm.IdMaterial
+            where m.Activo
+                  && pm.IdCuenta == accountIdLong
+                  && pm.IdPersona == accountPersonIdString
+            select new DbMaterial
+            {
+                IdMaterial = m.IdMaterial,
+
+                Nombre = pm.Nombre ?? m.Nombre,
+                PrecioServicio = pm.PrecioServicio ?? m.PrecioServicio,
+                PrecioCompra = pm.PrecioCompra ?? m.PrecioCompra,
+                Peso = pm.Peso ?? m.Peso,
+                Volumen = pm.Volumen ?? m.Volumen,
+                FactorCompensacionEmision = pm.FactorCompensacionEmision ?? m.FactorCompensacionEmision,
+
+                Descripcion = m.Descripcion,
+                Sinonimos = m.Sinonimos,
+                IdTipoResiduo = m.IdTipoResiduo,
+                Imagen = m.Imagen,
+                Medicion = m.Medicion,
+                Publico = m.Publico,
+                Aprovechable = m.Aprovechable,
+                Activo = m.Activo,
+                IdUsuarioCreacion = m.IdUsuarioCreacion,
+                FechaCreacion = m.FechaCreacion,
+                IdUsuarioUltimaModificacion = m.IdUsuarioUltimaModificacion,
+                FechaUltimaModificacion = m.FechaUltimaModificacion,
+
+                // NECESARIO para que el mapeo funcione si quieres usar navegación
+                IdTipoResiduoNavigation = m.IdTipoResiduoNavigation
+            })
             .ToListAsync(cancellationToken);
 
         return dbEntities.Select(_mapper.ToDomain).ToList();

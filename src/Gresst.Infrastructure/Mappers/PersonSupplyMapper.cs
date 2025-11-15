@@ -25,7 +25,7 @@ public class PersonSupplyMapper : MapperBase<PersonSupply, PersonaInsumo>
             AccountId = GuidLongConverter.ToGuid(dbEntity.IdCuenta),
             
             // Relations
-            PersonId = GuidLongConverter.StringToGuid(dbEntity.IdPersona),
+            PersonId = GuidStringConverter.ToGuid(dbEntity.IdPersona),
             SupplyId = GuidLongConverter.ToGuid(dbEntity.IdInsumo),
             
             // Properties
@@ -51,7 +51,7 @@ public class PersonSupplyMapper : MapperBase<PersonSupply, PersonaInsumo>
         return new PersonaInsumo
         {
             // IDs (composite key)
-            IdPersona = GuidLongConverter.GuidToString(domainEntity.PersonId),
+            IdPersona = GuidStringConverter.ToString(domainEntity.PersonId),
             IdInsumo = GuidLongConverter.ToLong(domainEntity.SupplyId),
             IdCuenta = GuidLongConverter.ToLong(domainEntity.AccountId),
             

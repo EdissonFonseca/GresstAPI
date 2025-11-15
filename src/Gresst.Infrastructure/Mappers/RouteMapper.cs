@@ -50,7 +50,7 @@ public class RouteMapper : MapperBase<DomainRoute, DbRoute>
             
             // Assignment
             VehicleId = vehicleId,
-            DriverId = GuidLongConverter.StringToGuid(dbEntity.IdResponsable),
+            DriverId = GuidStringConverter.ToGuid(dbEntity.IdResponsable),
             
             // Scheduling
             Schedule = dbEntity.Recurrencia, // JSON: Days of week, frequency
@@ -106,7 +106,7 @@ public class RouteMapper : MapperBase<DomainRoute, DbRoute>
             
             // Assignment
             IdVehiculo = idVehiculo, // Mandatory in BD
-            IdResponsable = GuidLongConverter.GuidToString(domainEntity.DriverId ?? Guid.Empty),
+            IdResponsable = GuidStringConverter.ToString(domainEntity.DriverId ?? Guid.Empty),
             
             // Scheduling
             Recurrencia = domainEntity.Schedule ?? string.Empty,
@@ -159,7 +159,7 @@ public class RouteMapper : MapperBase<DomainRoute, DbRoute>
         // Update DriverId if provided
         if (domainEntity.DriverId.HasValue)
         {
-            dbEntity.IdResponsable = GuidLongConverter.GuidToString(domainEntity.DriverId.Value);
+            dbEntity.IdResponsable = GuidStringConverter.ToString(domainEntity.DriverId.Value);
         }
         
         // Audit

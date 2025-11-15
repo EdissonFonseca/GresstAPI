@@ -120,7 +120,7 @@ public class GuidLongConverterTests
     public void StringToGuid_WhenStringIsNull_ReturnsEmptyGuid()
     {
         // Act
-        var result = GuidLongConverter.StringToGuid(null);
+        var result = GuidStringConverter.ToGuid(null);
 
         // Assert
         result.Should().Be(Guid.Empty);
@@ -130,7 +130,7 @@ public class GuidLongConverterTests
     public void StringToGuid_WhenStringIsEmpty_ReturnsEmptyGuid()
     {
         // Act
-        var result = GuidLongConverter.StringToGuid(string.Empty);
+        var result = GuidStringConverter.ToGuid(string.Empty);
 
         // Assert
         result.Should().Be(Guid.Empty);
@@ -143,7 +143,7 @@ public class GuidLongConverterTests
         var guidString = Guid.NewGuid().ToString();
 
         // Act
-        var result = GuidLongConverter.StringToGuid(guidString);
+        var result = GuidStringConverter.ToGuid(guidString);
 
         // Assert
         result.Should().NotBe(Guid.Empty);
@@ -156,7 +156,7 @@ public class GuidLongConverterTests
         var numericString = "123456789";
 
         // Act
-        var result = GuidLongConverter.StringToGuid(numericString);
+        var result = GuidStringConverter.ToGuid(numericString);
 
         // Assert
         result.Should().NotBe(Guid.Empty);
@@ -166,7 +166,7 @@ public class GuidLongConverterTests
     public void GuidToString_WhenGuidIsEmpty_ReturnsEmptyString()
     {
         // Act
-        var result = GuidLongConverter.GuidToString(Guid.Empty);
+        var result = GuidStringConverter.ToString(Guid.Empty);
 
         // Assert
         result.Should().BeEmpty();
@@ -179,7 +179,7 @@ public class GuidLongConverterTests
         var guid = Guid.NewGuid();
 
         // Act
-        var result = GuidLongConverter.GuidToString(guid);
+        var result = GuidStringConverter.ToString(guid);
 
         // Assert
         result.Should().NotBeEmpty();

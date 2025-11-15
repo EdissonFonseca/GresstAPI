@@ -8,5 +8,7 @@ public interface ICurrentUserService
     Guid GetCurrentUserId();
     Guid GetCurrentAccountId();
     string GetCurrentUsername();
+    Guid GetCurrentPersonId();
+    Guid GetCurrentAccountPersonId();
 }
 

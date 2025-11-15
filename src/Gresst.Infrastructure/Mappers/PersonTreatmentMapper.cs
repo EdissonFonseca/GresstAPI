@@ -25,7 +25,7 @@ public class PersonTreatmentMapper : MapperBase<PersonTreatment, PersonaTratamie
             AccountId = GuidLongConverter.ToGuid(dbEntity.IdCuenta),
             
             // Relations
-            PersonId = GuidLongConverter.StringToGuid(dbEntity.IdPersona),
+            PersonId = GuidStringConverter.ToGuid(dbEntity.IdPersona),
             TreatmentId = GuidLongConverter.ToGuid(dbEntity.IdTratamiento),
             
             // Properties
@@ -52,7 +52,7 @@ public class PersonTreatmentMapper : MapperBase<PersonTreatment, PersonaTratamie
         return new PersonaTratamiento
         {
             // IDs (composite key)
-            IdPersona = GuidLongConverter.GuidToString(domainEntity.PersonId),
+            IdPersona = GuidStringConverter.ToString(domainEntity.PersonId),
             IdTratamiento = GuidLongConverter.ToLong(domainEntity.TreatmentId),
             IdCuenta = GuidLongConverter.ToLong(domainEntity.AccountId),
             

@@ -4,6 +4,7 @@ using Gresst.Infrastructure.Common;
 using Gresst.Infrastructure.Data;
 using Gresst.Infrastructure.Data.Entities;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using System.Collections.Generic;
@@ -36,9 +37,9 @@ public class DatabaseAuthenticationService : IAuthenticationService
             // Buscar usuario en BD (por correo o por nombre)
             var usuario = await _context.Usuarios
                 .Include(u => u.IdCuentaNavigation)
-                .FirstOrDefaultAsync(u => 
-                    (u.Correo == request.Username || u.Nombre == request.Username) && 
-                    u.IdEstado == "A", 
+                .FirstOrDefaultAsync(u =>
+                    (u.Correo == request.Username || u.Nombre == request.Username) &&
+                    u.IdEstado == "A",
                     cancellationToken);
 
             if (usuario == null)
@@ -74,8 +75,10 @@ public class DatabaseAuthenticationService : IAuthenticationService
                 RefreshToken = refreshToken,
                 UserId = GuidLongConverter.ToGuid(usuario.IdUsuario),
                 AccountId = GuidLongConverter.ToGuid(usuario.IdCuenta),
+                AccountPersonId = GuidStringConverter.ToGuid(usuario.IdCuentaNavigation.IdPersona),
                 Username = usuario.Nombre,
                 Email = usuario.Correo,
+                PersonId = GuidStringConverter.ToGuid(usuario.IdPersona ?? ""),
                 Roles = ParseRoles(usuario.DatosAdicionales),
                 AccessTokenExpiresAt = accessTokenExpiresAt,
                 RefreshTokenExpiresAt = refreshTokenExpiresAt
@@ -235,7 +238,8 @@ public class DatabaseAuthenticationService : IAuthenticationService
             await _context.SaveChangesAsync(cancellationToken);
 
             // Obtener usuario actualizado
-            var usuario = await _context.Usuarios
+            var usuario = 
+                await _context.Usuarios
                 .Include(u => u.IdCuentaNavigation)
                 .FirstOrDefaultAsync(u => u.IdUsuario == userIdLong, cancellationToken);
 
@@ -431,8 +435,10 @@ public class DatabaseAuthenticationService : IAuthenticationService
             new Claim(JwtRegisteredClaimNames.Jti, jwtId),
             new Claim(ClaimTypes.NameIdentifier, usuario.IdUsuario.ToString()),
             new Claim(ClaimTypes.Name, usuario.Nombre),
+            new Claim(ClaimTypes.Email, usuario.Correo),
             new Claim("AccountId", usuario.IdCuenta.ToString()),
-            new Claim(ClaimTypes.Email, usuario.Correo)
+            new Claim("AccountPersonId", usuario.IdCuentaNavigation.IdPersona),
+            new Claim("PersonId", usuario.IdPersona ?? ""),
         };
 
         // Agregar roles

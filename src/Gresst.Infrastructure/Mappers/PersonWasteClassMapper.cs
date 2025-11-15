@@ -28,7 +28,7 @@ public class PersonWasteClassMapper : MapperBase<PersonWasteClass, PersonaTipoRe
             AccountId = GuidLongConverter.ToGuid(dbEntity.IdCuenta),
             
             // Relations
-            PersonId = GuidLongConverter.StringToGuid(dbEntity.IdPersona),
+            PersonId = GuidStringConverter.ToGuid(dbEntity.IdPersona),
             WasteClassId = wasteClassId,
             
             // Audit
@@ -55,7 +55,7 @@ public class PersonWasteClassMapper : MapperBase<PersonWasteClass, PersonaTipoRe
         return new PersonaTipoResiduo
         {
             // IDs (composite key)
-            IdPersona = GuidLongConverter.GuidToString(domainEntity.PersonId),
+            IdPersona = GuidStringConverter.ToString(domainEntity.PersonId),
             IdTipoResiduo = wasteClassIdInt,
             IdCuenta = GuidLongConverter.ToLong(domainEntity.AccountId),
             

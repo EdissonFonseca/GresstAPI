@@ -33,7 +33,7 @@ public class FacilityContactMapper : MapperBase<FacilityContact, DepositoContact
             
             // Relations
             FacilityId = GuidLongConverter.ToGuid(dbEntity.IdDeposito),
-            ContactId = GuidLongConverter.StringToGuid(dbEntity.IdContacto),
+            ContactId = GuidStringConverter.ToGuid(dbEntity.IdContacto),
             RelationshipType = dbEntity.IdRelacion ?? string.Empty,
             
             // Properties
@@ -60,7 +60,7 @@ public class FacilityContactMapper : MapperBase<FacilityContact, DepositoContact
         {
             // IDs (composite key)
             IdDeposito = GuidLongConverter.ToLong(domainEntity.FacilityId),
-            IdContacto = GuidLongConverter.GuidToString(domainEntity.ContactId),
+            IdContacto = GuidStringConverter.ToString(domainEntity.ContactId),
             IdRelacion = domainEntity.RelationshipType,
             
             // Properties

@@ -79,8 +79,8 @@ public class PersonContactRepository : IPersonContactRepository
     {
         var accountId = _currentUserService.GetCurrentAccountId();
         var accountIdLong = GuidLongConverter.ToLong(accountId);
-        var personIdString = GuidLongConverter.GuidToString(entity.PersonId);
-        var contactIdString = GuidLongConverter.GuidToString(entity.ContactId);
+        var personIdString = GuidStringConverter.ToString(entity.PersonId);
+        var contactIdString = GuidStringConverter.ToString(entity.ContactId);
         
         var dbEntity = await _context.PersonaContactos
             .FirstOrDefaultAsync(pc => 
@@ -100,8 +100,8 @@ public class PersonContactRepository : IPersonContactRepository
     {
         var accountId = _currentUserService.GetCurrentAccountId();
         var accountIdLong = GuidLongConverter.ToLong(accountId);
-        var personIdString = GuidLongConverter.GuidToString(entity.PersonId);
-        var contactIdString = GuidLongConverter.GuidToString(entity.ContactId);
+        var personIdString = GuidStringConverter.ToString(entity.PersonId);
+        var contactIdString = GuidStringConverter.ToString(entity.ContactId);
         
         var dbEntity = await _context.PersonaContactos
             .FirstOrDefaultAsync(pc => 
@@ -130,7 +130,7 @@ public class PersonContactRepository : IPersonContactRepository
     {
         var accountId = _currentUserService.GetCurrentAccountId();
         var accountIdLong = GuidLongConverter.ToLong(accountId);
-        var personIdString = GuidLongConverter.GuidToString(personId);
+        var personIdString = GuidStringConverter.ToString(personId);
         
         var dbEntities = await _context.PersonaContactos
             .Where(pc => pc.IdPersona == personIdString && pc.IdCuenta == accountIdLong && pc.Activo)
@@ -147,7 +147,7 @@ public class PersonContactRepository : IPersonContactRepository
     {
         var accountId = _currentUserService.GetCurrentAccountId();
         var accountIdLong = GuidLongConverter.ToLong(accountId);
-        var contactIdString = GuidLongConverter.GuidToString(contactId);
+        var contactIdString = GuidStringConverter.ToString(contactId);
         
         var dbEntities = await _context.PersonaContactos
             .Where(pc => pc.IdContacto == contactIdString && pc.IdCuenta == accountIdLong && pc.Activo)
@@ -164,8 +164,8 @@ public class PersonContactRepository : IPersonContactRepository
     {
         var accountId = _currentUserService.GetCurrentAccountId();
         var accountIdLong = GuidLongConverter.ToLong(accountId);
-        var personIdString = GuidLongConverter.GuidToString(personId);
-        var contactIdString = GuidLongConverter.GuidToString(contactId);
+        var personIdString = GuidStringConverter.ToString(personId);
+        var contactIdString = GuidStringConverter.ToString(contactId);
         
         var query = _context.PersonaContactos
             .Where(pc => 
@@ -193,7 +193,7 @@ public class PersonContactRepository : IPersonContactRepository
     {
         var accountId = _currentUserService.GetCurrentAccountId();
         var accountIdLong = GuidLongConverter.ToLong(accountId);
-        var personIdString = GuidLongConverter.GuidToString(personId);
+        var personIdString = GuidStringConverter.ToString(personId);
         
         var dbEntities = await _context.PersonaContactos
             .Where(pc => 

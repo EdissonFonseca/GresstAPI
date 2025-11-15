@@ -85,7 +85,7 @@ public class FacilityMaterialRepository : IRepository<FacilityMaterial>
     public Task UpdateAsync(FacilityMaterial entity, CancellationToken cancellationToken = default)
     {
         var dbEntity = _context.PersonaMaterialDepositos
-            .FirstOrDefault(pmd => pmd.IdPersona == GuidLongConverter.GuidToString(entity.PersonId) 
+            .FirstOrDefault(pmd => pmd.IdPersona == GuidStringConverter.ToString(entity.PersonId) 
                 && pmd.IdMaterial == GuidLongConverter.ToLong(entity.MaterialId)
                 && pmd.IdDeposito == GuidLongConverter.ToLong(entity.FacilityId)
                 && pmd.IdCuenta == GuidLongConverter.ToLong(entity.AccountId));
@@ -105,7 +105,7 @@ public class FacilityMaterialRepository : IRepository<FacilityMaterial>
     public Task DeleteAsync(FacilityMaterial entity, CancellationToken cancellationToken = default)
     {
         var dbEntity = _context.PersonaMaterialDepositos
-            .FirstOrDefault(pmd => pmd.IdPersona == GuidLongConverter.GuidToString(entity.PersonId) 
+            .FirstOrDefault(pmd => pmd.IdPersona == GuidStringConverter.ToString(entity.PersonId) 
                 && pmd.IdMaterial == GuidLongConverter.ToLong(entity.MaterialId)
                 && pmd.IdDeposito == GuidLongConverter.ToLong(entity.FacilityId)
                 && pmd.IdCuenta == GuidLongConverter.ToLong(entity.AccountId));

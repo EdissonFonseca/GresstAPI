@@ -73,7 +73,7 @@ public class PersonServiceRepository : IRepository<PersonService>
     public Task UpdateAsync(PersonService entity, CancellationToken cancellationToken = default)
     {
         var accountIdLong = GuidLongConverter.ToLong(_currentUserService.GetCurrentAccountId());
-        var personIdString = GuidLongConverter.GuidToString(entity.PersonId);
+        var personIdString = GuidStringConverter.ToString(entity.PersonId);
         var serviceIdLong = GuidLongConverter.ToLong(entity.ServiceId);
         var startDate = DateOnly.FromDateTime(entity.StartDate);
 
@@ -94,7 +94,7 @@ public class PersonServiceRepository : IRepository<PersonService>
     public Task DeleteAsync(PersonService entity, CancellationToken cancellationToken = default)
     {
         var accountIdLong = GuidLongConverter.ToLong(_currentUserService.GetCurrentAccountId());
-        var personIdString = GuidLongConverter.GuidToString(entity.PersonId);
+        var personIdString = GuidStringConverter.ToString(entity.PersonId);
         var serviceIdLong = GuidLongConverter.ToLong(entity.ServiceId);
         var startDate = DateOnly.FromDateTime(entity.StartDate);
 

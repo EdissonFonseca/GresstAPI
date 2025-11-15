@@ -115,6 +115,17 @@ public class MaterialService : IMaterialService
         return materials.Select(MapToDto).ToList();
     }
 
+    public async Task<IEnumerable<MaterialDto>> GetBySynonimsAsync(string name, CancellationToken cancellationToken = default)
+    {
+        var userMaterialIds = await _segmentationService.GetUserMaterialIdsAsync(cancellationToken);
+
+        var materials = await _materialRepository.FindAsync(
+            m => m.Category == name && userMaterialIds.Contains(m.Id),
+            cancellationToken);
+
+        return materials.Select(MapToDto).ToList();
+    }
+
     /// <summary>
     /// Get Account Person ID (persona de la cuenta)
     /// </summary>

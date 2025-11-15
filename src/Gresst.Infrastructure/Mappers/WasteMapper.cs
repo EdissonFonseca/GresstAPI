@@ -40,13 +40,13 @@ public class WasteMapper : MapperBase<Waste, Residuo>
             
             // Generator - Asumiendo que el propietario es el generador inicialmente
             GeneratorId = !string.IsNullOrEmpty(dbEntity.IdPropietario)
-                ? GuidLongConverter.StringToGuid(dbEntity.IdPropietario)
+                ? GuidStringConverter.ToGuid(dbEntity.IdPropietario)
                 : Guid.Empty,
             GeneratedAt = dbEntity.FechaIngreso ?? dbEntity.FechaCreacion,
             
             // Current Owner
             CurrentOwnerId = !string.IsNullOrEmpty(dbEntity.IdPropietario)
-                ? GuidLongConverter.StringToGuid(dbEntity.IdPropietario)
+                ? GuidStringConverter.ToGuid(dbEntity.IdPropietario)
                 : null,
             
             // Properties
@@ -78,7 +78,7 @@ public class WasteMapper : MapperBase<Waste, Residuo>
             
             // Owner
             IdPropietario = domainEntity.CurrentOwnerId.HasValue 
-                ? GuidLongConverter.GuidToString(domainEntity.CurrentOwnerId.Value)
+                ? GuidStringConverter.ToString(domainEntity.CurrentOwnerId.Value)
                 : null,
             
             // Info
@@ -115,7 +115,7 @@ public class WasteMapper : MapperBase<Waste, Residuo>
         dbEntity.Descripcion = domainEntity.Description;
         dbEntity.IdEstado = MapStatusToDb(domainEntity.Status);
         dbEntity.IdPropietario = domainEntity.CurrentOwnerId.HasValue
-            ? GuidLongConverter.GuidToString(domainEntity.CurrentOwnerId.Value)
+            ? GuidStringConverter.ToString(domainEntity.CurrentOwnerId.Value)
             : null;
         
         // Audit

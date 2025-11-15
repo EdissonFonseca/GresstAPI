@@ -114,7 +114,7 @@ public class DataSegmentationService : IDataSegmentationService
     {
         var userId = _currentUserService.GetCurrentUserId();
         var userIdLong = GuidLongConverter.ToLong(userId);
-        var vehicleIdString = GuidLongConverter.GuidToString(vehicleId);
+        var vehicleIdString = GuidStringConverter.ToString(vehicleId);
 
         // Admin tiene acceso a todo
         if (await CurrentUserIsAdminAsync(cancellationToken))
@@ -139,7 +139,7 @@ public class DataSegmentationService : IDataSegmentationService
                 .Select(v => v.IdVehiculo)
                 .ToListAsync(cancellationToken);
             
-            return allVehicles.Select(GuidLongConverter.StringToGuid);
+            return allVehicles.Select(GuidStringConverter.ToGuid);
         }
 
         // Usuario normal solo ve sus vehículos asignados
@@ -148,13 +148,13 @@ public class DataSegmentationService : IDataSegmentationService
             .Select(uv => uv.IdVehiculo)
             .ToListAsync(cancellationToken);
 
-        return vehicleIds.Select(GuidLongConverter.StringToGuid);
+        return vehicleIds.Select(GuidStringConverter.ToGuid);
     }
 
     public async Task<bool> AssignVehicleToUserAsync(Guid userId, Guid vehicleId, CancellationToken cancellationToken = default)
     {
         var userIdLong = GuidLongConverter.ToLong(userId);
-        var vehicleIdString = GuidLongConverter.GuidToString(vehicleId);
+        var vehicleIdString = GuidStringConverter.ToString(vehicleId);
         var currentUserIdLong = GuidLongConverter.ToLong(_currentUserService.GetCurrentUserId());
 
         var exists = await _context.UsuarioVehiculos
@@ -180,7 +180,7 @@ public class DataSegmentationService : IDataSegmentationService
     public async Task<bool> RevokeVehicleFromUserAsync(Guid userId, Guid vehicleId, CancellationToken cancellationToken = default)
     {
         var userIdLong = GuidLongConverter.ToLong(userId);
-        var vehicleIdString = GuidLongConverter.GuidToString(vehicleId);
+        var vehicleIdString = GuidStringConverter.ToString(vehicleId);
 
         var assignment = await _context.UsuarioVehiculos
             .FirstOrDefaultAsync(uv => uv.IdUsuario == userIdLong && uv.IdVehiculo == vehicleIdString, cancellationToken);

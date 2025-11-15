@@ -71,7 +71,7 @@ public class PersonTreatmentRepository : IRepository<PersonTreatment>
     public Task UpdateAsync(PersonTreatment entity, CancellationToken cancellationToken = default)
     {
         var accountIdLong = GuidLongConverter.ToLong(_currentUserService.GetCurrentAccountId());
-        var personIdString = GuidLongConverter.GuidToString(entity.PersonId);
+        var personIdString = GuidStringConverter.ToString(entity.PersonId);
         var treatmentIdLong = GuidLongConverter.ToLong(entity.TreatmentId);
 
         var dbEntity = _context.PersonaTratamientos.Find(personIdString, treatmentIdLong, accountIdLong);
@@ -91,7 +91,7 @@ public class PersonTreatmentRepository : IRepository<PersonTreatment>
     public Task DeleteAsync(PersonTreatment entity, CancellationToken cancellationToken = default)
     {
         var accountIdLong = GuidLongConverter.ToLong(_currentUserService.GetCurrentAccountId());
-        var personIdString = GuidLongConverter.GuidToString(entity.PersonId);
+        var personIdString = GuidStringConverter.ToString(entity.PersonId);
         var treatmentIdLong = GuidLongConverter.ToLong(entity.TreatmentId);
 
         var dbEntity = _context.PersonaTratamientos.Find(personIdString, treatmentIdLong, accountIdLong);

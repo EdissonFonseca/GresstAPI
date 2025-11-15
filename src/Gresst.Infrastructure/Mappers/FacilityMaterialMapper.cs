@@ -25,7 +25,7 @@ public class FacilityMaterialMapper : MapperBase<FacilityMaterial, PersonaMateri
             AccountId = GuidLongConverter.ToGuid(dbEntity.IdCuenta),
             
             // Relations
-            PersonId = GuidLongConverter.StringToGuid(dbEntity.IdPersona),
+            PersonId = GuidStringConverter.ToGuid(dbEntity.IdPersona),
             MaterialId = GuidLongConverter.ToGuid(dbEntity.IdMaterial),
             FacilityId = GuidLongConverter.ToGuid(dbEntity.IdDeposito),
             
@@ -57,7 +57,7 @@ public class FacilityMaterialMapper : MapperBase<FacilityMaterial, PersonaMateri
         return new PersonaMaterialDeposito
         {
             // IDs (composite key)
-            IdPersona = GuidLongConverter.GuidToString(domainEntity.PersonId),
+            IdPersona = GuidStringConverter.ToString(domainEntity.PersonId),
             IdMaterial = GuidLongConverter.ToLong(domainEntity.MaterialId),
             IdDeposito = GuidLongConverter.ToLong(domainEntity.FacilityId),
             IdCuenta = GuidLongConverter.ToLong(domainEntity.AccountId),

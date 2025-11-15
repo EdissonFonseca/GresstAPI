@@ -71,7 +71,7 @@ public class UserService : IUserService
             Correo = dto.Email,
             Clave = HashPassword(dto.Password),
             IdEstado = "A",
-            IdPersona = dto.PersonId.HasValue ? GuidLongConverter.GuidToString(dto.PersonId.Value) : null,
+            IdPersona = dto.PersonId.HasValue ? GuidStringConverter.ToString(dto.PersonId.Value) : null,
             DatosAdicionales = dto.Roles != null && dto.Roles.Length > 0
                 ? JsonSerializer.Serialize(new { roles = dto.Roles })
                 : JsonSerializer.Serialize(new { roles = new[] { "User" } })
@@ -176,7 +176,7 @@ public class UserService : IUserService
             Email = usuario.Correo,
             Status = usuario.IdEstado,
             PersonId = !string.IsNullOrEmpty(usuario.IdPersona) 
-                ? GuidLongConverter.StringToGuid(usuario.IdPersona) 
+                ? GuidStringConverter.ToGuid(usuario.IdPersona) 
                 : null,
             PersonName = usuario.IdPersonaNavigation?.Nombre,
             Roles = roles ?? new[] { "User" },

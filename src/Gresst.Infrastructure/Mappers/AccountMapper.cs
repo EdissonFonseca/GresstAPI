@@ -32,7 +32,7 @@ public class AccountMapper : MapperBase<Account, Cuentum>
             Status = MapStatus(dbEntity.IdEstado),
             
             // Relations
-            PersonId = GuidLongConverter.StringToGuid(dbEntity.IdPersona),
+            PersonId = GuidStringConverter.ToGuid(dbEntity.IdPersona),
             ParentAccountId = null, // Cuentum doesn't have parent relationship
             
             // Audit
@@ -63,7 +63,7 @@ public class AccountMapper : MapperBase<Account, Cuentum>
             IdEstado = MapStatusToDb(domainEntity.Status),
             
             // Relations
-            IdPersona = GuidLongConverter.GuidToString(domainEntity.PersonId),
+            IdPersona = GuidStringConverter.ToString(domainEntity.PersonId),
             IdUsuario = 0, // Usuario is for authentication, not directly from domain
             
             // Technical fields (in database but not in domain)
@@ -93,7 +93,7 @@ public class AccountMapper : MapperBase<Account, Cuentum>
         dbEntity.Nombre = domainEntity.Name;
         dbEntity.IdRol = MapRoleToDb(domainEntity.Role);
         dbEntity.IdEstado = MapStatusToDb(domainEntity.Status);
-        dbEntity.IdPersona = GuidLongConverter.GuidToString(domainEntity.PersonId);
+        dbEntity.IdPersona = GuidStringConverter.ToString(domainEntity.PersonId);
         
         // Audit
         dbEntity.FechaUltimaModificacion = domainEntity.UpdatedAt;
