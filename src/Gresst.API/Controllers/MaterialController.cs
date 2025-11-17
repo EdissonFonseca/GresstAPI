@@ -43,38 +43,11 @@ public class MaterialController : ControllerBase
         return Ok(materials);
     }
 
-    /// <summary>
-    /// GET: Obtener materiales de un proveedor
-    /// </summary>
-    [HttpGet("provider/{providerId}")]
-    [ProducesResponseType(typeof(IEnumerable<MaterialDto>), 200)]
-    public async Task<ActionResult<IEnumerable<MaterialDto>>> GetProviderMaterials(Guid providerId, CancellationToken cancellationToken)
-    {
-        var materials = await _materialService.GetProviderMaterialsAsync(providerId, cancellationToken);
-        return Ok(materials);
-    }
+    // Note: Material endpoints for clients and providers have been moved to PersonController
+    // Use GET /api/person/{personId}/material instead
 
-    /// <summary>
-    /// GET: Obtener materiales de un cliente
-    /// </summary>
-    [HttpGet("client/{clientId}")]
-    [ProducesResponseType(typeof(IEnumerable<MaterialDto>), 200)]
-    public async Task<ActionResult<IEnumerable<MaterialDto>>> GetClientMaterials(Guid clientId, CancellationToken cancellationToken)
-    {
-        var materials = await _materialService.GetClientMaterialsAsync(clientId, cancellationToken);
-        return Ok(materials);
-    }
-
-    /// <summary>
-    /// GET: Obtener materiales de un facility
-    /// </summary>
-    [HttpGet("facility/{facilityId}")]
-    [ProducesResponseType(typeof(IEnumerable<MaterialDto>), 200)]
-    public async Task<ActionResult<IEnumerable<MaterialDto>>> GetFacilityMaterials(Guid facilityId, CancellationToken cancellationToken)
-    {
-        var materials = await _materialService.GetFacilityMaterialsAsync(facilityId, cancellationToken);
-        return Ok(materials);
-    }
+    // Note: Facility material endpoints have been moved to FacilityController
+    // Use GET /api/facility/{facilityId}/material instead
 
     /// <summary>
     /// GET: Obtener material por ID
@@ -161,50 +134,11 @@ public class MaterialController : ControllerBase
         return CreatedAtAction(nameof(GetById), new { id = material.Id }, material);
     }
 
-    /// <summary>
-    /// POST: Crear material para un proveedor
-    /// </summary>
-    [HttpPost("provider/{providerId}")]
-    [ProducesResponseType(typeof(MaterialDto), 201)]
-    [ProducesResponseType(400)]
-    public async Task<ActionResult<MaterialDto>> CreateProviderMaterial(Guid providerId, [FromBody] CreateMaterialDto dto, CancellationToken cancellationToken)
-    {
-        if (!ModelState.IsValid)
-            return BadRequest(ModelState);
+    // Note: Material creation endpoints for clients and providers have been moved to PersonController
+    // Use POST /api/person/{personId}/material instead
 
-        var material = await _materialService.CreateProviderMaterialAsync(providerId, dto, cancellationToken);
-        return CreatedAtAction(nameof(GetById), new { id = material.Id }, material);
-    }
-
-    /// <summary>
-    /// POST: Crear material para un cliente
-    /// </summary>
-    [HttpPost("client/{clientId}")]
-    [ProducesResponseType(typeof(MaterialDto), 201)]
-    [ProducesResponseType(400)]
-    public async Task<ActionResult<MaterialDto>> CreateClientMaterial(Guid clientId, [FromBody] CreateMaterialDto dto, CancellationToken cancellationToken)
-    {
-        if (!ModelState.IsValid)
-            return BadRequest(ModelState);
-
-        var material = await _materialService.CreateClientMaterialAsync(clientId, dto, cancellationToken);
-        return CreatedAtAction(nameof(GetById), new { id = material.Id }, material);
-    }
-
-    /// <summary>
-    /// POST: Crear material para un facility
-    /// </summary>
-    [HttpPost("facility/{facilityId}")]
-    [ProducesResponseType(typeof(MaterialDto), 201)]
-    [ProducesResponseType(400)]
-    public async Task<ActionResult<MaterialDto>> CreateFacilityMaterial(Guid facilityId, [FromBody] CreateMaterialDto dto, CancellationToken cancellationToken)
-    {
-        if (!ModelState.IsValid)
-            return BadRequest(ModelState);
-
-        var material = await _materialService.CreateFacilityMaterialAsync(facilityId, dto, cancellationToken);
-        return CreatedAtAction(nameof(GetById), new { id = material.Id }, material);
-    }
+    // Note: Facility material creation endpoints have been moved to FacilityController
+    // Use POST /api/facility/{facilityId}/material instead
 
     /// <summary>
     /// PUT: Actualizar material existente

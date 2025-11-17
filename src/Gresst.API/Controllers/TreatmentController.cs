@@ -173,67 +173,7 @@ public class TreatmentController : ControllerBase
         return NoContent();
     }
 
-    // PersonTreatment - Provider endpoints
-    /// <summary>
-    /// GET: Obtener tratamientos de un proveedor
-    /// </summary>
-    [HttpGet("provider/{providerId}")]
-    [ProducesResponseType(typeof(IEnumerable<PersonTreatmentDto>), 200)]
-    public async Task<ActionResult<IEnumerable<PersonTreatmentDto>>> GetProviderTreatments(Guid providerId, CancellationToken cancellationToken)
-    {
-        var treatments = await _treatmentService.GetProviderTreatmentsAsync(providerId, cancellationToken);
-        return Ok(treatments);
-    }
-
-    /// <summary>
-    /// POST: Crear asociación de tratamiento para un proveedor
-    /// </summary>
-    [HttpPost("provider/{providerId}")]
-    [ProducesResponseType(typeof(PersonTreatmentDto), 201)]
-    [ProducesResponseType(400)]
-    public async Task<ActionResult<PersonTreatmentDto>> CreateProviderTreatment(Guid providerId, [FromBody] CreatePersonTreatmentDto dto, CancellationToken cancellationToken)
-    {
-        if (!ModelState.IsValid)
-            return BadRequest(ModelState);
-
-        var personTreatment = await _treatmentService.CreateProviderTreatmentAsync(providerId, dto, cancellationToken);
-        return CreatedAtAction(nameof(GetProviderTreatments), new { providerId }, personTreatment);
-    }
-
-    /// <summary>
-    /// PUT: Actualizar asociación de tratamiento de un proveedor
-    /// </summary>
-    [HttpPut("provider/{providerId}")]
-    [ProducesResponseType(typeof(PersonTreatmentDto), 200)]
-    [ProducesResponseType(400)]
-    [ProducesResponseType(404)]
-    public async Task<ActionResult<PersonTreatmentDto>> UpdateProviderTreatment(Guid providerId, [FromBody] UpdatePersonTreatmentDto dto, CancellationToken cancellationToken)
-    {
-        if (!ModelState.IsValid)
-            return BadRequest(ModelState);
-
-        var personTreatment = await _treatmentService.UpdateProviderTreatmentAsync(providerId, dto, cancellationToken);
-        
-        if (personTreatment == null)
-            return NotFound(new { message = "PersonTreatment not found" });
-
-        return Ok(personTreatment);
-    }
-
-    /// <summary>
-    /// DELETE: Eliminar asociación de tratamiento de un proveedor
-    /// </summary>
-    [HttpDelete("provider/{providerId}/{treatmentId}")]
-    [ProducesResponseType(204)]
-    [ProducesResponseType(404)]
-    public async Task<ActionResult> DeleteProviderTreatment(Guid providerId, Guid treatmentId, CancellationToken cancellationToken)
-    {
-        var success = await _treatmentService.DeleteProviderTreatmentAsync(providerId, treatmentId, cancellationToken);
-        
-        if (!success)
-            return NotFound(new { message = "PersonTreatment not found" });
-
-        return NoContent();
-    }
+    // Note: Provider treatment endpoints have been moved to PersonController
+    // Use GET /api/person/{personId}/treatment, POST /api/person/{personId}/treatment, etc. instead
 }
 

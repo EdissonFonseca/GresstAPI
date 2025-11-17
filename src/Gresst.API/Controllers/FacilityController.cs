@@ -12,10 +12,12 @@ namespace Gresst.API.Controllers;
 public class FacilityController : ControllerBase
 {
     private readonly IFacilityService _facilityService;
+    private readonly IMaterialService _materialService;
 
-    public FacilityController(IFacilityService facilityService)
+    public FacilityController(IFacilityService facilityService, IMaterialService materialService)
     {
         _facilityService = facilityService;
+        _materialService = materialService;
     }
 
     /// <summary>
@@ -44,27 +46,8 @@ public class FacilityController : ControllerBase
         return Ok(facilities);
     }
 
-    /// <summary>
-    /// GET: Obtener facilities de un proveedor
-    /// </summary>
-    [HttpGet("provider/{providerId}")]
-    [ProducesResponseType(typeof(IEnumerable<FacilityDto>), 200)]
-    public async Task<ActionResult<IEnumerable<FacilityDto>>> GetProviderFacilities(Guid providerId, CancellationToken cancellationToken)
-    {
-        var facilities = await _facilityService.GetProviderFacilitiesAsync(providerId, cancellationToken);
-        return Ok(facilities);
-    }
-
-    /// <summary>
-    /// GET: Obtener facilities de un cliente
-    /// </summary>
-    [HttpGet("client/{clientId}")]
-    [ProducesResponseType(typeof(IEnumerable<FacilityDto>), 200)]
-    public async Task<ActionResult<IEnumerable<FacilityDto>>> GetClientFacilities(Guid clientId, CancellationToken cancellationToken)
-    {
-        var facilities = await _facilityService.GetClientFacilitiesAsync(clientId, cancellationToken);
-        return Ok(facilities);
-    }
+    // Note: Facility endpoints for clients and providers have been moved to PersonController
+    // Use GET /api/person/{personId}/facility instead
 
     /// <summary>
     /// GET: Obtener facility por ID
@@ -159,35 +142,8 @@ public class FacilityController : ControllerBase
         return CreatedAtAction(nameof(GetById), new { id = facility.Id }, facility);
     }
 
-    /// <summary>
-    /// POST: Crear facility para un proveedor
-    /// </summary>
-    [HttpPost("provider/{providerId}")]
-    [ProducesResponseType(typeof(FacilityDto), 201)]
-    [ProducesResponseType(400)]
-    public async Task<ActionResult<FacilityDto>> CreateProviderFacility(Guid providerId, [FromBody] CreateFacilityDto dto, CancellationToken cancellationToken)
-    {
-        if (!ModelState.IsValid)
-            return BadRequest(ModelState);
-
-        var facility = await _facilityService.CreateProviderFacilityAsync(providerId, dto, cancellationToken);
-        return CreatedAtAction(nameof(GetById), new { id = facility.Id }, facility);
-    }
-
-    /// <summary>
-    /// POST: Crear facility para un cliente
-    /// </summary>
-    [HttpPost("client/{clientId}")]
-    [ProducesResponseType(typeof(FacilityDto), 201)]
-    [ProducesResponseType(400)]
-    public async Task<ActionResult<FacilityDto>> CreateClientFacility(Guid clientId, [FromBody] CreateFacilityDto dto, CancellationToken cancellationToken)
-    {
-        if (!ModelState.IsValid)
-            return BadRequest(ModelState);
-
-        var facility = await _facilityService.CreateClientFacilityAsync(clientId, dto, cancellationToken);
-        return CreatedAtAction(nameof(GetById), new { id = facility.Id }, facility);
-    }
+    // Note: Facility creation endpoints for clients and providers have been moved to PersonController
+    // Use POST /api/person/{personId}/facility instead
 
     /// <summary>
     /// PUT: Actualizar facility existente
@@ -242,6 +198,33 @@ public class FacilityController : ControllerBase
             return NotFound(new { message = "Facility not found or you don't have access" });
 
         return NoContent();
+    }
+
+    // Material endpoints - Nested under facility
+    /// <summary>
+    /// GET: Obtener materiales de un facility
+    /// </summary>
+    [HttpGet("{facilityId}/material")]
+    [ProducesResponseType(typeof(IEnumerable<MaterialDto>), 200)]
+    public async Task<ActionResult<IEnumerable<MaterialDto>>> GetFacilityMaterials(Guid facilityId, CancellationToken cancellationToken)
+    {
+        var materials = await _materialService.GetFacilityMaterialsAsync(facilityId, cancellationToken);
+        return Ok(materials);
+    }
+
+    /// <summary>
+    /// POST: Crear material para un facility
+    /// </summary>
+    [HttpPost("{facilityId}/material")]
+    [ProducesResponseType(typeof(MaterialDto), 201)]
+    [ProducesResponseType(400)]
+    public async Task<ActionResult<MaterialDto>> CreateFacilityMaterial(Guid facilityId, [FromBody] CreateMaterialDto dto, CancellationToken cancellationToken)
+    {
+        if (!ModelState.IsValid)
+            return BadRequest(ModelState);
+
+        var material = await _materialService.CreateFacilityMaterialAsync(facilityId, dto, cancellationToken);
+        return CreatedAtAction(nameof(GetFacilityMaterials), new { facilityId }, material);
     }
 }
 

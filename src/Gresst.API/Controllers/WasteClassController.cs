@@ -171,67 +171,7 @@ public class WasteClassController : ControllerBase
         return NoContent();
     }
 
-    // PersonWasteClass - Provider endpoints
-    /// <summary>
-    /// GET: Obtener clases de residuo de un proveedor
-    /// </summary>
-    [HttpGet("provider/{providerId}")]
-    [ProducesResponseType(typeof(IEnumerable<PersonWasteClassDto>), 200)]
-    public async Task<ActionResult<IEnumerable<PersonWasteClassDto>>> GetProviderWasteClasses(Guid providerId, CancellationToken cancellationToken)
-    {
-        var wasteClasses = await _wasteClassService.GetProviderWasteClassesAsync(providerId, cancellationToken);
-        return Ok(wasteClasses);
-    }
-
-    /// <summary>
-    /// POST: Crear asociación de clase de residuo para un proveedor
-    /// </summary>
-    [HttpPost("provider/{providerId}")]
-    [ProducesResponseType(typeof(PersonWasteClassDto), 201)]
-    [ProducesResponseType(400)]
-    public async Task<ActionResult<PersonWasteClassDto>> CreateProviderWasteClass(Guid providerId, [FromBody] CreatePersonWasteClassDto dto, CancellationToken cancellationToken)
-    {
-        if (!ModelState.IsValid)
-            return BadRequest(ModelState);
-
-        var personWasteClass = await _wasteClassService.CreateProviderWasteClassAsync(providerId, dto, cancellationToken);
-        return CreatedAtAction(nameof(GetProviderWasteClasses), new { providerId }, personWasteClass);
-    }
-
-    /// <summary>
-    /// PUT: Actualizar asociación de clase de residuo de un proveedor
-    /// </summary>
-    [HttpPut("provider/{providerId}")]
-    [ProducesResponseType(typeof(PersonWasteClassDto), 200)]
-    [ProducesResponseType(400)]
-    [ProducesResponseType(404)]
-    public async Task<ActionResult<PersonWasteClassDto>> UpdateProviderWasteClass(Guid providerId, [FromBody] UpdatePersonWasteClassDto dto, CancellationToken cancellationToken)
-    {
-        if (!ModelState.IsValid)
-            return BadRequest(ModelState);
-
-        var personWasteClass = await _wasteClassService.UpdateProviderWasteClassAsync(providerId, dto, cancellationToken);
-        
-        if (personWasteClass == null)
-            return NotFound(new { message = "PersonWasteClass not found" });
-
-        return Ok(personWasteClass);
-    }
-
-    /// <summary>
-    /// DELETE: Eliminar asociación de clase de residuo de un proveedor
-    /// </summary>
-    [HttpDelete("provider/{providerId}/{wasteClassId}")]
-    [ProducesResponseType(204)]
-    [ProducesResponseType(404)]
-    public async Task<ActionResult> DeleteProviderWasteClass(Guid providerId, Guid wasteClassId, CancellationToken cancellationToken)
-    {
-        var success = await _wasteClassService.DeleteProviderWasteClassAsync(providerId, wasteClassId, cancellationToken);
-        
-        if (!success)
-            return NotFound(new { message = "PersonWasteClass not found" });
-
-        return NoContent();
-    }
+    // Note: Provider waste class endpoints have been moved to PersonController
+    // Use GET /api/person/{personId}/wasteclass, POST /api/person/{personId}/wasteclass, etc. instead
 }
 

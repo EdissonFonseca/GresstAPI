@@ -173,67 +173,7 @@ public class ServiceController : ControllerBase
         return NoContent();
     }
 
-    // PersonService - Provider endpoints
-    /// <summary>
-    /// GET: Obtener servicios de un proveedor
-    /// </summary>
-    [HttpGet("provider/{providerId}")]
-    [ProducesResponseType(typeof(IEnumerable<PersonServiceDto>), 200)]
-    public async Task<ActionResult<IEnumerable<PersonServiceDto>>> GetProviderServices(Guid providerId, CancellationToken cancellationToken)
-    {
-        var services = await _serviceService.GetProviderServicesAsync(providerId, cancellationToken);
-        return Ok(services);
-    }
-
-    /// <summary>
-    /// POST: Crear servicio para un proveedor
-    /// </summary>
-    [HttpPost("provider/{providerId}")]
-    [ProducesResponseType(typeof(PersonServiceDto), 201)]
-    [ProducesResponseType(400)]
-    public async Task<ActionResult<PersonServiceDto>> CreateProviderService(Guid providerId, [FromBody] CreatePersonServiceDto dto, CancellationToken cancellationToken)
-    {
-        if (!ModelState.IsValid)
-            return BadRequest(ModelState);
-
-        var personService = await _serviceService.CreateProviderServiceAsync(providerId, dto, cancellationToken);
-        return CreatedAtAction(nameof(GetProviderServices), new { providerId }, personService);
-    }
-
-    /// <summary>
-    /// PUT: Actualizar servicio de un proveedor
-    /// </summary>
-    [HttpPut("provider/{providerId}")]
-    [ProducesResponseType(typeof(PersonServiceDto), 200)]
-    [ProducesResponseType(400)]
-    [ProducesResponseType(404)]
-    public async Task<ActionResult<PersonServiceDto>> UpdateProviderService(Guid providerId, [FromBody] UpdatePersonServiceDto dto, CancellationToken cancellationToken)
-    {
-        if (!ModelState.IsValid)
-            return BadRequest(ModelState);
-
-        var personService = await _serviceService.UpdateProviderServiceAsync(providerId, dto, cancellationToken);
-        
-        if (personService == null)
-            return NotFound(new { message = "PersonService not found" });
-
-        return Ok(personService);
-    }
-
-    /// <summary>
-    /// DELETE: Eliminar servicio de un proveedor
-    /// </summary>
-    [HttpDelete("provider/{providerId}/{serviceId}/{startDate}")]
-    [ProducesResponseType(204)]
-    [ProducesResponseType(404)]
-    public async Task<ActionResult> DeleteProviderService(Guid providerId, Guid serviceId, DateTime startDate, CancellationToken cancellationToken)
-    {
-        var success = await _serviceService.DeleteProviderServiceAsync(providerId, serviceId, startDate, cancellationToken);
-        
-        if (!success)
-            return NotFound(new { message = "PersonService not found" });
-
-        return NoContent();
-    }
+    // Note: Provider service endpoints have been moved to PersonController
+    // Use GET /api/person/{personId}/service, POST /api/person/{personId}/service, etc. instead
 }
 
