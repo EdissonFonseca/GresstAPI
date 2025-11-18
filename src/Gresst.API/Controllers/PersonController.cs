@@ -18,6 +18,8 @@ public class PersonController : ControllerBase
     private readonly ITreatmentService _treatmentService;
     private readonly IWasteClassService _wasteClassService;
     private readonly IFacilityService _facilityService;
+    private readonly IVehicleService _vehicleService;
+    private readonly IPersonContactService _personContactService;
 
     public PersonController(
         IClientService clientService,
@@ -26,7 +28,9 @@ public class PersonController : ControllerBase
         IServiceService serviceService,
         ITreatmentService treatmentService,
         IWasteClassService wasteClassService,
-        IFacilityService facilityService)
+        IFacilityService facilityService,
+        IVehicleService vehicleService,
+        IPersonContactService personContactService)
     {
         _clientService = clientService;
         _providerService = providerService;
@@ -35,6 +39,8 @@ public class PersonController : ControllerBase
         _treatmentService = treatmentService;
         _wasteClassService = wasteClassService;
         _facilityService = facilityService;
+        _vehicleService = vehicleService;
+        _personContactService = personContactService;
     }
 
     // Material endpoints - Nested under person
@@ -370,6 +376,132 @@ public class PersonController : ControllerBase
         // Create material for the facility
         var material = await _materialService.CreateFacilityMaterialAsync(facilityId, dto, cancellationToken);
         return CreatedAtAction(nameof(GetPersonFacilityMaterials), new { personId, facilityId }, material);
+    }
+
+    // Vehicle endpoints - Nested under person
+    /// <summary>
+    /// GET: Obtener vehículos de una persona (cliente o proveedor)
+    /// </summary>
+    [HttpGet("{personId}/vehicle")]
+    [ProducesResponseType(typeof(IEnumerable<VehicleDto>), 200)]
+    public async Task<ActionResult<IEnumerable<VehicleDto>>> GetPersonVehicles(Guid personId, CancellationToken cancellationToken)
+    {
+        // Try as client first, then as provider
+        var clientVehicles = await _vehicleService.GetClientVehiclesAsync(personId, cancellationToken);
+        if (clientVehicles.Any())
+            return Ok(clientVehicles);
+
+        var providerVehicles = await _vehicleService.GetProviderVehiclesAsync(personId, cancellationToken);
+        return Ok(providerVehicles);
+    }
+
+    /// <summary>
+    /// POST: Crear vehículo para una persona (cliente o proveedor)
+    /// </summary>
+    [HttpPost("{personId}/vehicle")]
+    [ProducesResponseType(typeof(VehicleDto), 201)]
+    [ProducesResponseType(400)]
+    public async Task<ActionResult<VehicleDto>> CreatePersonVehicle(Guid personId, [FromBody] CreateVehicleDto dto, CancellationToken cancellationToken)
+    {
+        if (!ModelState.IsValid)
+            return BadRequest(ModelState);
+
+        // Try as client first, then as provider
+        try
+        {
+            var vehicle = await _vehicleService.CreateClientVehicleAsync(personId, dto, cancellationToken);
+            return CreatedAtAction(nameof(GetPersonVehicles), new { personId }, vehicle);
+        }
+        catch
+        {
+            // If fails as client, try as provider
+            var vehicle = await _vehicleService.CreateProviderVehicleAsync(personId, dto, cancellationToken);
+            return CreatedAtAction(nameof(GetPersonVehicles), new { personId }, vehicle);
+        }
+    }
+
+    // Contact endpoints - Nested under person
+    /// <summary>
+    /// GET: Obtener contactos de una persona (cliente o proveedor)
+    /// </summary>
+    [HttpGet("{personId}/contact")]
+    [ProducesResponseType(typeof(IEnumerable<PersonContactDto>), 200)]
+    public async Task<ActionResult<IEnumerable<PersonContactDto>>> GetPersonContacts(Guid personId, CancellationToken cancellationToken)
+    {
+        var contacts = await _personContactService.GetPersonContactsAsync(personId, cancellationToken);
+        return Ok(contacts);
+    }
+
+    /// <summary>
+    /// GET: Obtener un contacto específico de una persona
+    /// </summary>
+    [HttpGet("{personId}/contact/{contactId}")]
+    [ProducesResponseType(typeof(PersonContactDto), 200)]
+    [ProducesResponseType(404)]
+    public async Task<ActionResult<PersonContactDto>> GetPersonContact(
+        Guid personId,
+        Guid contactId,
+        [FromQuery] string? relationshipType,
+        CancellationToken cancellationToken)
+    {
+        var contact = await _personContactService.GetPersonContactAsync(personId, contactId, relationshipType, cancellationToken);
+        if (contact == null)
+            return NotFound(new { message = "Contact not found or does not belong to this person" });
+
+        return Ok(contact);
+    }
+
+    /// <summary>
+    /// POST: Crear contacto para una persona (cliente o proveedor)
+    /// </summary>
+    [HttpPost("{personId}/contact")]
+    [ProducesResponseType(typeof(PersonContactDto), 201)]
+    [ProducesResponseType(400)]
+    public async Task<ActionResult<PersonContactDto>> CreatePersonContact(Guid personId, [FromBody] CreatePersonContactDto dto, CancellationToken cancellationToken)
+    {
+        if (!ModelState.IsValid)
+            return BadRequest(ModelState);
+
+        var contact = await _personContactService.CreatePersonContactAsync(personId, dto, cancellationToken);
+        return CreatedAtAction(nameof(GetPersonContact), new { personId, contactId = contact.ContactId }, contact);
+    }
+
+    /// <summary>
+    /// PUT: Actualizar contacto de una persona (cliente o proveedor)
+    /// </summary>
+    [HttpPut("{personId}/contact")]
+    [ProducesResponseType(typeof(PersonContactDto), 200)]
+    [ProducesResponseType(400)]
+    [ProducesResponseType(404)]
+    public async Task<ActionResult<PersonContactDto>> UpdatePersonContact(Guid personId, [FromBody] UpdatePersonContactDto dto, CancellationToken cancellationToken)
+    {
+        if (!ModelState.IsValid)
+            return BadRequest(ModelState);
+
+        var contact = await _personContactService.UpdatePersonContactAsync(personId, dto, cancellationToken);
+        if (contact == null)
+            return NotFound(new { message = "Contact not found or does not belong to this person" });
+
+        return Ok(contact);
+    }
+
+    /// <summary>
+    /// DELETE: Eliminar contacto de una persona (cliente o proveedor)
+    /// </summary>
+    [HttpDelete("{personId}/contact/{contactId}")]
+    [ProducesResponseType(204)]
+    [ProducesResponseType(404)]
+    public async Task<ActionResult> DeletePersonContact(
+        Guid personId,
+        Guid contactId,
+        [FromQuery] string? relationshipType,
+        CancellationToken cancellationToken)
+    {
+        var deleted = await _personContactService.DeletePersonContactAsync(personId, contactId, relationshipType, cancellationToken);
+        if (!deleted)
+            return NotFound(new { message = "Contact not found or does not belong to this person" });
+
+        return NoContent();
     }
 }
 

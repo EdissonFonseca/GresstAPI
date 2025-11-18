@@ -44,27 +44,8 @@ public class VehicleController : ControllerBase
         return Ok(vehicles);
     }
 
-    /// <summary>
-    /// GET: Obtener vehículos de un proveedor
-    /// </summary>
-    [HttpGet("provider/{providerId}")]
-    [ProducesResponseType(typeof(IEnumerable<VehicleDto>), 200)]
-    public async Task<ActionResult<IEnumerable<VehicleDto>>> GetProviderVehicles(Guid providerId, CancellationToken cancellationToken)
-    {
-        var vehicles = await _vehicleService.GetProviderVehiclesAsync(providerId, cancellationToken);
-        return Ok(vehicles);
-    }
-
-    /// <summary>
-    /// GET: Obtener vehículos de un cliente
-    /// </summary>
-    [HttpGet("client/{clientId}")]
-    [ProducesResponseType(typeof(IEnumerable<VehicleDto>), 200)]
-    public async Task<ActionResult<IEnumerable<VehicleDto>>> GetClientVehicles(Guid clientId, CancellationToken cancellationToken)
-    {
-        var vehicles = await _vehicleService.GetClientVehiclesAsync(clientId, cancellationToken);
-        return Ok(vehicles);
-    }
+    // Note: Vehicle endpoints for clients and providers have been moved to PersonController
+    // Use GET /api/person/{personId}/vehicle instead
 
     /// <summary>
     /// GET: Obtener vehículo por ID
@@ -128,35 +109,8 @@ public class VehicleController : ControllerBase
         return CreatedAtAction(nameof(GetById), new { id = vehicle.Id }, vehicle);
     }
 
-    /// <summary>
-    /// POST: Crear vehículo para un proveedor
-    /// </summary>
-    [HttpPost("provider/{providerId}")]
-    [ProducesResponseType(typeof(VehicleDto), 201)]
-    [ProducesResponseType(400)]
-    public async Task<ActionResult<VehicleDto>> CreateProviderVehicle(Guid providerId, [FromBody] CreateVehicleDto dto, CancellationToken cancellationToken)
-    {
-        if (!ModelState.IsValid)
-            return BadRequest(ModelState);
-
-        var vehicle = await _vehicleService.CreateProviderVehicleAsync(providerId, dto, cancellationToken);
-        return CreatedAtAction(nameof(GetById), new { id = vehicle.Id }, vehicle);
-    }
-
-    /// <summary>
-    /// POST: Crear vehículo para un cliente
-    /// </summary>
-    [HttpPost("client/{clientId}")]
-    [ProducesResponseType(typeof(VehicleDto), 201)]
-    [ProducesResponseType(400)]
-    public async Task<ActionResult<VehicleDto>> CreateClientVehicle(Guid clientId, [FromBody] CreateVehicleDto dto, CancellationToken cancellationToken)
-    {
-        if (!ModelState.IsValid)
-            return BadRequest(ModelState);
-
-        var vehicle = await _vehicleService.CreateClientVehicleAsync(clientId, dto, cancellationToken);
-        return CreatedAtAction(nameof(GetById), new { id = vehicle.Id }, vehicle);
-    }
+    // Note: Vehicle creation endpoints for clients and providers have been moved to PersonController
+    // Use POST /api/person/{personId}/vehicle instead
 
     /// <summary>
     /// PUT: Actualizar vehículo existente
