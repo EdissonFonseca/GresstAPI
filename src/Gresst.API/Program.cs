@@ -175,6 +175,7 @@ builder.Services.AddScoped<IAuthorizationService, AuthorizationService>();
 // Planning Services
 builder.Services.AddScoped<IRequestService, RequestService>();
 builder.Services.AddScoped<IOrderService, OrderService>();
+builder.Services.AddScoped<IProcessService, ProcessService>();
 
 // CORS
 builder.Services.AddCors(options =>
