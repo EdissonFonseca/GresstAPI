@@ -145,6 +145,7 @@ builder.Services.AddScoped<IRepository<Treatment>, TreatmentRepository>();
 builder.Services.AddScoped<IRepository<PersonTreatment>, PersonTreatmentRepository>();
 builder.Services.AddScoped<IRepository<Gresst.Domain.Entities.Route>, RouteRepository>();
 builder.Services.AddScoped<IRepository<Gresst.Domain.Entities.RouteStop>, RouteStopRepository>();
+builder.Services.AddScoped<Gresst.Application.Services.IRequestRepository, RequestRepository>();
 
 // Generic repository for entities without specific mappers yet
 builder.Services.AddScoped(typeof(IRepository<>), typeof(GenericInfraRepository<>));
@@ -171,10 +172,9 @@ builder.Services.AddScoped<IRouteService, RouteService>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IAuthorizationService, AuthorizationService>();
 
-// Planning Services (To be implemented)
-// builder.Services.AddScoped<IRequestService, RequestService>();
+// Planning Services
+builder.Services.AddScoped<IRequestService, RequestService>();
 // builder.Services.AddScoped<IOrderService, OrderService>();
-// builder.Services.AddScoped<IRouteService, RouteService>();
 
 // CORS
 builder.Services.AddCors(options =>

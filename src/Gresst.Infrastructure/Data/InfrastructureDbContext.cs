@@ -2019,6 +2019,12 @@ public partial class InfrastructureDbContext : DbContext
             entity.ToView("vwVehiculo");
         });
 
+        // Configure keyless entity for SQL function result
+        modelBuilder.Entity<MobileTransportWasteResult>(entity =>
+        {
+            entity.HasNoKey();
+        });
+
         OnModelCreatingPartial(modelBuilder);
     }
 

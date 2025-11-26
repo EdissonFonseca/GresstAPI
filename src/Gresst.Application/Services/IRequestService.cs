@@ -14,5 +14,8 @@ public interface IRequestService
     Task<RequestDto> ApproveAsync(Guid id, decimal? agreedCost, CancellationToken cancellationToken = default);
     Task<RequestDto> RejectAsync(Guid id, string reason, CancellationToken cancellationToken = default);
     Task CancelAsync(Guid id, CancellationToken cancellationToken = default);
+    
+    // Mobile transport waste operations
+    Task<IEnumerable<MobileTransportWasteDto>> GetMobileTransportWasteAsync(Guid personId, CancellationToken cancellationToken = default);
 }
 
