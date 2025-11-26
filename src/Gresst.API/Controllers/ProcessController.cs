@@ -29,13 +29,13 @@ public class ProcessController : ControllerBase
     }
 
     /// <summary>
-    /// Get transport requests as processes with subprocesses and tasks
+    /// Get transport operations as processes with subprocesses and tasks
     /// </summary>
     /// <remarks>
-    /// Returns transport requests structured as:
-    /// - Process: Each request (grouped by IdGrupo or IdSolicitud)
-    /// - SubProcess: Each order (IdOrden) within a request
-    /// - Task: Each transport item within an order or request
+    /// Transport hierarchy:
+    /// - Process  : Service Order (Orden de servicio) associated to a vehicle (IdOrden / IdVehiculo)
+    /// - SubProcess: Each collection point for the order (OrdenPlaneacion → grouped by request + origin depot)
+    /// - Task    : Each request detail (SolicitudDetalle) at that collection point (\"pick up this material\")
     /// </remarks>
     [HttpGet("transport-requests")]
     [ProducesResponseType(typeof(IEnumerable<ProcessDto>), 200)]
@@ -61,71 +61,77 @@ public class ProcessController : ControllerBase
     }
 
     /// <summary>
-    /// Maps transport waste data to process hierarchy
+    /// Maps transport waste data to process hierarchy:
+    /// Process  = Order (IdOrden / vehicle)
+    /// SubProcess = Collection point (OrdenPlaneacion → request + origin depot)
+    /// Task    = Request detail (SolicitudDetalle) at that point
     /// </summary>
     private List<ProcessDto> MapTransportDataToProcesses(IEnumerable<MobileTransportWasteDto> transportData)
     {
         var processes = new List<ProcessDto>();
-        
-        // Group by IdGrupo (which combines IdSolicitud and IdDepositoOrigen)
-        var groupedByProcess = transportData
-            .GroupBy(d => d.IdGrupo ?? $"Request-{d.IdSolicitud}")
+        var data = transportData.ToList();
+
+        // 1) Processes: group by Order (IdOrden) – one process per service order / vehicle
+        var orderGroups = data
+            .Where(d => d.IdOrden.HasValue)
+            .GroupBy(d => d.IdOrden!.Value)
             .ToList();
 
-        foreach (var processGroup in groupedByProcess)
+        foreach (var orderGroup in orderGroups)
         {
-            var firstItem = processGroup.First();
-            
-            // Create Process from request
+            var firstOrderItem = orderGroup.First();
+
+            // Process = Service Order associated to a vehicle
             var process = new ProcessDto
             {
-                Id = Guid.NewGuid(), // Generate or use IdSolicitud if available
-                Name = firstItem.Titulo ?? $"Transport Request {firstItem.NumeroSolicitud ?? firstItem.IdSolicitud}",
-                Description = $"Transport process for request {firstItem.NumeroSolicitud ?? firstItem.IdSolicitud}",
-                Status = MapStatus(firstItem.IdEstado, firstItem.IdEtapa, firstItem.IdFase),
-                StartDate = firstItem.FechaInicio,
-                DueDate = firstItem.FechaSolicitud,
-                Priority = DeterminePriority(firstItem),
+                Id = Guid.NewGuid(),
+                Name = $"Order {firstOrderItem.NumeroOrden ?? firstOrderItem.IdOrden} - Vehicle {firstOrderItem.IdVehiculo ?? "N/A"}",
+                Description = $"Transport order {firstOrderItem.NumeroOrden ?? firstOrderItem.IdOrden} for vehicle {firstOrderItem.IdVehiculo ?? "N/A"}",
+                Status = MapStatus(firstOrderItem.IdEstado, firstOrderItem.IdEtapa, firstOrderItem.IdFase),
+                StartDate = orderGroup.Min(i => i.FechaInicio) ?? firstOrderItem.FechaInicio,
+                DueDate = orderGroup.Min(i => i.FechaSolicitud) ?? firstOrderItem.FechaSolicitud,
+                Priority = DeterminePriority(firstOrderItem),
                 Metadata = new Dictionary<string, object>
                 {
-                    { "IdSolicitud", firstItem.IdSolicitud },
-                    { "NumeroSolicitud", firstItem.NumeroSolicitud ?? 0 },
-                    { "IdGrupo", firstItem.IdGrupo ?? "" },
-                    { "Solicitante", firstItem.Solicitante ?? "" },
-                    { "Proveedor", firstItem.Proveedor ?? "" }
+                    { "IdOrden", firstOrderItem.IdOrden!.Value },
+                    { "NumeroOrden", firstOrderItem.NumeroOrden ?? 0 },
+                    { "IdVehiculo", firstOrderItem.IdVehiculo ?? "" },
+                    { "Solicitudes", orderGroup.Select(i => i.IdSolicitud).Distinct().ToList() }
                 }
             };
 
-            // Group items by Order (IdOrden) to create SubProcesses
-            var orderGroups = processGroup
-                .Where(d => d.IdOrden.HasValue)
-                .GroupBy(d => d.IdOrden!.Value)
+            // 2) SubProcesses: group by collection point (IdGrupo = IdSolicitud-IdDepositoOrigen)
+            var collectionPointGroups = orderGroup
+                .GroupBy(i => i.IdGrupo ?? $"Req-{i.IdSolicitud}-Origin-{i.IdDepositoOrigen ?? 0}")
                 .ToList();
 
-            // Create SubProcesses for each order
-            foreach (var orderGroup in orderGroups)
+            foreach (var cpGroup in collectionPointGroups)
             {
-                var orderFirstItem = orderGroup.First();
+                var cpFirst = cpGroup.First();
+
                 var subProcess = new SubProcessDto
                 {
                     Id = Guid.NewGuid(),
                     ProcessId = process.Id,
-                    Name = $"Order {orderFirstItem.NumeroOrden ?? orderFirstItem.IdOrden}",
-                    Description = $"Transport order {orderFirstItem.NumeroOrden ?? orderFirstItem.IdOrden}",
-                    Status = MapStatus(orderFirstItem.IdEstado, orderFirstItem.IdEtapa, orderFirstItem.IdFase),
-                    StartDate = orderFirstItem.FechaInicio,
-                    Priority = DeterminePriority(orderFirstItem),
+                    Name = $"Pickup at {cpFirst.DepositoOrigen ?? "Unknown origin"}",
+                    Description = $"Collection point at {cpFirst.DepositoOrigen ?? "origin depot"} for order {firstOrderItem.NumeroOrden ?? firstOrderItem.IdOrden}",
+                    Status = MapStatus(cpFirst.IdEstado, cpFirst.IdEtapa, cpFirst.IdFase),
+                    StartDate = cpGroup.Min(i => i.FechaInicio) ?? cpFirst.FechaInicio,
+                    Priority = DeterminePriority(cpFirst),
                     Metadata = new Dictionary<string, object>
                     {
-                        { "IdOrden", orderFirstItem.IdOrden!.Value },
-                        { "NumeroOrden", orderFirstItem.NumeroOrden ?? 0 },
-                        { "IdVehiculo", orderFirstItem.IdVehiculo ?? "" },
-                        { "IdResponsable", orderFirstItem.IdResponsable ?? "" }
+                        { "IdGrupo", cpFirst.IdGrupo ?? "" },
+                        { "IdSolicitud", cpFirst.IdSolicitud },
+                        { "IdDepositoOrigen", cpFirst.IdDepositoOrigen ?? 0 },
+                        { "DepositoOrigen", cpFirst.DepositoOrigen ?? "" },
+                        { "DireccionOrigen", cpFirst.DireccionOrigen ?? "" },
+                        { "LatitudOrigen", cpFirst.LatitudOrigen ?? 0 },
+                        { "LongitudOrigen", cpFirst.LongitudOrigen ?? 0 }
                     }
                 };
 
-                // Create Tasks for each item in the order
-                foreach (var item in orderGroup)
+                // 3) Tasks: each SolicitudDetalle (row) at this collection point
+                foreach (var item in cpGroup)
                 {
                     var task = CreateTaskFromTransportItem(item, process.Id, subProcess.Id);
                     subProcess.Tasks.Add(task);
@@ -134,18 +140,63 @@ public class ProcessController : ControllerBase
                 process.SubProcesses.Add(subProcess);
             }
 
-            // Create Tasks for items without orders (directly under process)
-            var itemsWithoutOrder = processGroup
-                .Where(d => !d.IdOrden.HasValue)
+            processes.Add(process);
+        }
+
+        // Optional: handle items without an associated order as standalone processes
+        var withoutOrder = data.Where(d => !d.IdOrden.HasValue).ToList();
+        if (withoutOrder.Any())
+        {
+            var fallbackGroups = withoutOrder
+                .GroupBy(i => i.IdGrupo ?? $"Req-{i.IdSolicitud}-Origin-{i.IdDepositoOrigen ?? 0}")
                 .ToList();
 
-            foreach (var item in itemsWithoutOrder)
+            foreach (var group in fallbackGroups)
             {
-                var task = CreateTaskFromTransportItem(item, process.Id, null);
-                process.Tasks.Add(task);
-            }
+                var first = group.First();
+                var process = new ProcessDto
+                {
+                    Id = Guid.NewGuid(),
+                    Name = first.Titulo ?? $"Unscheduled transport for request {first.NumeroSolicitud ?? first.IdSolicitud}",
+                    Description = "Unscheduled transport without service order",
+                    Status = MapStatus(first.IdEstado, first.IdEtapa, first.IdFase),
+                    StartDate = group.Min(i => i.FechaInicio) ?? first.FechaInicio,
+                    DueDate = group.Min(i => i.FechaSolicitud) ?? first.FechaSolicitud,
+                    Priority = DeterminePriority(first),
+                    Metadata = new Dictionary<string, object>
+                    {
+                        { "IdSolicitud", first.IdSolicitud },
+                        { "NumeroSolicitud", first.NumeroSolicitud ?? 0 },
+                        { "IdGrupo", first.IdGrupo ?? "" }
+                    }
+                };
 
-            processes.Add(process);
+                var subProcess = new SubProcessDto
+                {
+                    Id = Guid.NewGuid(),
+                    ProcessId = process.Id,
+                    Name = $"Pickup at {first.DepositoOrigen ?? "Unknown origin"}",
+                    Description = "Collection point without associated order",
+                    Status = MapStatus(first.IdEstado, first.IdEtapa, first.IdFase),
+                    StartDate = group.Min(i => i.FechaInicio) ?? first.FechaInicio,
+                    Priority = DeterminePriority(first),
+                    Metadata = new Dictionary<string, object>
+                    {
+                        { "IdGrupo", first.IdGrupo ?? "" },
+                        { "IdDepositoOrigen", first.IdDepositoOrigen ?? 0 },
+                        { "DepositoOrigen", first.DepositoOrigen ?? "" }
+                    }
+                };
+
+                foreach (var item in group)
+                {
+                    var task = CreateTaskFromTransportItem(item, process.Id, subProcess.Id);
+                    subProcess.Tasks.Add(task);
+                }
+
+                process.SubProcesses.Add(subProcess);
+                processes.Add(process);
+            }
         }
 
         return processes;
