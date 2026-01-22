@@ -227,7 +227,7 @@ app.UseExceptionHandler(errorApp =>
     });
 });
 
-app.UseHttpsRedirection();
+// app.UseHttpsRedirection(); // Comentado para desarrollo sin certificado HTTPS
 app.UseCors("AllowAll");
 app.UseAuthentication();
 app.UseAuthorization();

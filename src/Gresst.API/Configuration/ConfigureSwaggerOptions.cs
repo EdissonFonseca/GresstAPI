@@ -29,18 +29,5 @@ public sealed class ConfigureSwaggerOptions : IConfigureOptions<SwaggerGenOption
                 }
             );
         }
-
-        // JWT definition (sin SecurityRequirement global)
-        //options.AddSecurityDefinition("Bearer", new()
-        //{
-        //    Type = SecuritySchemeType.Http,
-        //    Scheme = "bearer",
-        //    BearerFormat = "JWT",
-        //    In = ParameterLocation.Header,
-        //    Description = "Enter JWT token as: Bearer {token}"
-        //});
-
-        // Aplica seguridad SOLO a endpoints con [Authorize]
-        options.OperationFilter<AuthorizeOperationFilter>();
     }
 }
