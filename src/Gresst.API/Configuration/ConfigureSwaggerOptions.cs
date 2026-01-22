@@ -1,11 +1,10 @@
 using Asp.Versioning.ApiExplorer;
 using Microsoft.Extensions.Options;
-using Microsoft.OpenApi.Models;
 using Swashbuckle.AspNetCore.SwaggerGen;
 
 namespace Gresst.API.Configuration;
 
-public class ConfigureSwaggerOptions : IConfigureOptions<SwaggerGenOptions>
+public sealed class ConfigureSwaggerOptions : IConfigureOptions<SwaggerGenOptions>
 {
     private readonly IApiVersionDescriptionProvider _provider;
 
@@ -18,37 +17,30 @@ public class ConfigureSwaggerOptions : IConfigureOptions<SwaggerGenOptions>
     {
         foreach (var description in _provider.ApiVersionDescriptions)
         {
-            options.SwaggerDoc(description.GroupName, new OpenApiInfo
-            {
-                Title = "Gresst Waste Management API",
-                Version = description.ApiVersion.ToString(),
-                Description = "Complete waste management system with traceability, inventory, and certificates"
-            });
+            options.SwaggerDoc(
+                description.GroupName,
+                new()
+                {
+                    Title = "Gresst Waste Management API",
+                    Version = description.ApiVersion.ToString(),
+                    Description = description.IsDeprecated
+                        ? "⚠️ This API version has been deprecated."
+                        : "Complete waste management system with traceability, inventory, and certificates"
+                }
+            );
         }
 
-        options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
-        {
-            Description = "JWT Authorization header using Bearer scheme. Example: \"Bearer {token}\"",
-            Name = "Authorization",
-            In = ParameterLocation.Header,
-            Type = SecuritySchemeType.ApiKey,
-            Scheme = "Bearer"
-        });
+        // JWT definition (sin SecurityRequirement global)
+        //options.AddSecurityDefinition("Bearer", new()
+        //{
+        //    Type = SecuritySchemeType.Http,
+        //    Scheme = "bearer",
+        //    BearerFormat = "JWT",
+        //    In = ParameterLocation.Header,
+        //    Description = "Enter JWT token as: Bearer {token}"
+        //});
 
-        options.AddSecurityRequirement(new OpenApiSecurityRequirement
-        {
-            {
-                new OpenApiSecurityScheme
-                {
-                    Reference = new OpenApiReference
-                    {
-                        Type = ReferenceType.SecurityScheme,
-                        Id = "Bearer"
-                    }
-                },
-                Array.Empty<string>()
-            }
-        });
+        // Aplica seguridad SOLO a endpoints con [Authorize]
+        options.OperationFilter<AuthorizeOperationFilter>();
     }
 }
-
