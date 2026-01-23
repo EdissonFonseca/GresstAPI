@@ -461,7 +461,9 @@ public class DatabaseAuthenticationService : IAuthenticationService
             Expires = DateTime.UtcNow.AddMinutes(GetAccessTokenExpirationMinutes()),
             SigningCredentials = new SigningCredentials(
                 new SymmetricSecurityKey(key),
-                SecurityAlgorithms.HmacSha256Signature)
+                SecurityAlgorithms.HmacSha256Signature),
+            Issuer = GetJwtIssuer(),
+            Audience = GetJwtAudience()
         };
 
         var token = tokenHandler.CreateToken(tokenDescriptor);
@@ -564,5 +566,15 @@ public class DatabaseAuthenticationService : IAuthenticationService
         return double.TryParse(_configuration["Authentication:RefreshTokenExpirationDays"], out var days) 
             ? days 
             : 7; // 7 días por defecto
+    }
+
+    private string? GetJwtIssuer()
+    {
+        return _configuration["Authentication:JwtIssuer"];
+    }
+
+    private string? GetJwtAudience()
+    {
+        return _configuration["Authentication:JwtAudience"];
     }
 }

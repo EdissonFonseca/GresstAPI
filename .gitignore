@@ -38,6 +38,10 @@ bld/
 
 # User-specific files
 appsettings.local.json
+appsettings.Production.json
+
+# Allow example files in Git (they contain no secrets)
+!appsettings.Production.json.example
 
 # Publish folder (deployment artifacts)
 publish/

@@ -1,0 +1,30 @@
+{
+  "Logging": {
+    "LogLevel": {
+      "Default": "Warning",
+      "Microsoft.AspNetCore": "Warning",
+      "Microsoft.EntityFrameworkCore": "Error"
+    }
+  },
+  "AllowedHosts": "tu-dominio.com,www.tu-dominio.com",
+  "Swagger": {
+    "Enabled": true,
+    "RequireAuth": true
+  },
+  "ConnectionStrings": {
+    "DefaultConnection": "Server=TU_SERVIDOR_PRODUCCION;Database=Gresst_Production;User Id=TU_USUARIO;Password=TU_PASSWORD_SEGURO;TrustServerCertificate=False;Encrypt=True;MultipleActiveResultSets=true"
+  },
+  "Authentication": {
+    "Mode": "Database",
+    "JwtSecret": "GENERA_UNA_CLAVE_SECRETA_MUY_LARGA_Y_SEGURA_DE_AL_MENOS_64_CARACTERES_PARA_PRODUCCION",
+    "AccessTokenExpirationMinutes": "15",
+    "RefreshTokenExpirationDays": "7",
+    "JwtIssuer": "https://api.tu-dominio.com",
+    "JwtAudience": "https://tu-dominio.com",
+    "ExternalProvider": {
+      "Url": "https://tu-proveedor-auth.com",
+      "ClientId": "tu-client-id-produccion",
+      "ClientSecret": "tu-client-secret-produccion"
+    }
+  }
+}

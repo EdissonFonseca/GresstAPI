@@ -16,6 +16,7 @@ using Microsoft.AspNetCore.Server.Kestrel.Core;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Serilog;
+using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
 
@@ -64,14 +65,16 @@ builder.Services.AddAuthentication(options =>
 })
 .AddJwtBearer(options =>
 {
-    options.RequireHttpsMetadata = false; // Set to true in production
+    options.RequireHttpsMetadata = builder.Environment.IsProduction();
     options.SaveToken = true;
     options.TokenValidationParameters = new TokenValidationParameters
     {
         ValidateIssuerSigningKey = true,
         IssuerSigningKey = new SymmetricSecurityKey(key),
-        ValidateIssuer = false,
-        ValidateAudience = false,
+        ValidateIssuer = builder.Environment.IsProduction(),
+        ValidateAudience = builder.Environment.IsProduction(),
+        Issuer = builder.Configuration["Authentication:JwtIssuer"],
+        ValidAudience = builder.Configuration["Authentication:JwtAudience"],
         ClockSkew = TimeSpan.Zero
     };
 });
@@ -180,12 +183,43 @@ builder.Services.AddScoped<IProcessService, ProcessService>();
 // CORS
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowAll", policy =>
+    if (builder.Environment.IsDevelopment())
     {
-        policy.AllowAnyOrigin()
-              .AllowAnyMethod()
-              .AllowAnyHeader();
-    });
+        // En desarrollo: permitir todo
+        options.AddPolicy("AllowAll", policy =>
+        {
+            policy.AllowAnyOrigin()
+                  .AllowAnyMethod()
+                  .AllowAnyHeader();
+        });
+    }
+    else
+    {
+        // En producción: solo dominios específicos
+        var allowedHosts = builder.Configuration.GetValue<string>("AllowedHosts") ?? string.Empty;
+        var origins = allowedHosts.Split(',', StringSplitOptions.RemoveEmptyEntries)
+            .Select(origin => origin.Trim())
+            .Where(origin => !string.IsNullOrEmpty(origin))
+            .Select(origin => origin.StartsWith("http") ? origin : $"https://{origin}")
+            .ToArray();
+
+        options.AddPolicy("AllowAll", policy =>
+        {
+            if (origins.Length > 0)
+            {
+                policy.WithOrigins(origins)
+                      .AllowAnyMethod()
+                      .AllowAnyHeader()
+                      .AllowCredentials();
+            }
+            else
+            {
+                // Fallback: si no hay dominios configurados, no permitir nada
+                policy.AllowAnyMethod()
+                      .AllowAnyHeader();
+            }
+        });
+    }
 });
 
 // Detectar si estamos en Windows
@@ -208,21 +242,6 @@ if (!isWindows)
 var app = builder.Build();
 
 // Configure the HTTP request pipeline
-// Always enable Swagger for easy API testing
-app.UseSwagger();
-
-var apiVersionDescriptionProvider = app.Services.GetRequiredService<IApiVersionDescriptionProvider>();
-
-app.UseSwaggerUI(options =>
-{
-    foreach (var description in apiVersionDescriptionProvider.ApiVersionDescriptions)
-    {
-        options.SwaggerEndpoint($"/swagger/{description.GroupName}/swagger.json", $"Gresst API {description.GroupName.ToUpperInvariant()}");
-    }
-
-    options.RoutePrefix = string.Empty; // Swagger at root
-});
-
 app.UseSerilogRequestLogging();
 
 app.UseExceptionHandler(errorApp =>
@@ -249,8 +268,8 @@ app.UseExceptionHandler(errorApp =>
     });
 });
 
-// HTTPS redirection solo en Windows
-if (isWindows)
+// HTTPS redirection: siempre en producción, condicional en desarrollo
+if (app.Environment.IsProduction() || isWindows)
 {
     app.UseHttpsRedirection();
 }
@@ -258,6 +277,62 @@ if (isWindows)
 app.UseCors("AllowAll");
 app.UseAuthentication();
 app.UseAuthorization();
+
+// Configuración de Swagger (configurable y protegido)
+var enableSwagger = app.Configuration.GetValue<bool>("Swagger:Enabled", true);
+var requireAuthForSwagger = app.Configuration.GetValue<bool>("Swagger:RequireAuth", false) 
+    || app.Environment.IsProduction();
+
+if (enableSwagger)
+{
+    // Proteger Swagger con autenticación si está configurado
+    if (requireAuthForSwagger)
+    {
+        app.Use(async (context, next) =>
+        {
+            // Verificar si la ruta es Swagger o la raíz (donde está SwaggerUI)
+            if (context.Request.Path.StartsWithSegments("/swagger") || 
+                context.Request.Path == "/" || 
+                string.IsNullOrEmpty(context.Request.Path.Value) || 
+                context.Request.Path.Value == "/")
+            {
+                if (!context.User.Identity?.IsAuthenticated ?? true)
+                {
+                    context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+                    context.Response.ContentType = "application/json";
+                    await context.Response.WriteAsJsonAsync(new { 
+                        error = "Unauthorized", 
+                        message = "Swagger requires authentication. Please provide a valid JWT token in the Authorization header." 
+                    });
+                    return;
+                }
+            }
+            await next();
+        });
+    }
+    
+    app.UseSwagger();
+    
+    var apiVersionDescriptionProvider = app.Services.GetRequiredService<IApiVersionDescriptionProvider>();
+    
+    app.UseSwaggerUI(options =>
+    {
+        foreach (var description in apiVersionDescriptionProvider.ApiVersionDescriptions)
+        {
+            options.SwaggerEndpoint($"/swagger/{description.GroupName}/swagger.json", 
+                $"Gresst API {description.GroupName.ToUpperInvariant()}");
+        }
+        
+        options.RoutePrefix = string.Empty; // Swagger at root
+        
+        // Configurar autenticación en SwaggerUI si está protegido
+        if (requireAuthForSwagger)
+        {
+            options.ConfigObject.AdditionalItems.Add("persistAuthorization", "true");
+        }
+    });
+}
+
 app.MapControllers();
 
 app.Run();
