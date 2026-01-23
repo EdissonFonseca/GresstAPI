@@ -11,8 +11,6 @@ namespace Gresst.API.Controllers;
 [Route("api/v{version:apiVersion}/[controller]")]
 public class PersonController : ControllerBase
 {
-    private readonly IClientService _clientService;
-    private readonly IProviderService _providerService;
     private readonly IMaterialService _materialService;
     private readonly IServiceService _serviceService;
     private readonly ITreatmentService _treatmentService;
@@ -32,8 +30,6 @@ public class PersonController : ControllerBase
         IVehicleService vehicleService,
         IPersonContactService personContactService)
     {
-        _clientService = clientService;
-        _providerService = providerService;
         _materialService = materialService;
         _serviceService = serviceService;
         _treatmentService = treatmentService;

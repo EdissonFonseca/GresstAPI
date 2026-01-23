@@ -1,5 +1,6 @@
 using Gresst.Domain.Entities;
 using Gresst.Domain.Interfaces;
+using Gresst.Infrastructure.Common;
 using Gresst.Infrastructure.Data;
 using Gresst.Infrastructure.Mappers;
 using Microsoft.EntityFrameworkCore;
@@ -25,7 +26,7 @@ public class PersonRepository : IPersonRepository
 
     public async Task<Person?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
     {
-        var idString = ConvertGuidToString(id);
+        var idString = GuidStringConverter.ToString(id);
         var dbEntity = await _context.Personas.FindAsync(new object[] { idString }, cancellationToken);
         
         return dbEntity != null ? _mapper.ToDomain(dbEntity) : null;
@@ -34,7 +35,7 @@ public class PersonRepository : IPersonRepository
     public async Task<IEnumerable<Person>> GetAllAsync(CancellationToken cancellationToken = default)
     {
         var accountId = _currentUserService.GetCurrentAccountId();
-        var accountIdLong = ConvertGuidToLong(accountId);
+        var accountIdLong = GuidLongConverter.ToLong(accountId);
         
         var dbEntities = await _context.Personas
             .Where(p => p.Activo && p.IdCuenta == accountIdLong)
@@ -56,7 +57,7 @@ public class PersonRepository : IPersonRepository
         // Set audit fields
         dbEntity.FechaCreacion = DateTime.UtcNow;
         dbEntity.IdUsuarioCreacion = GetCurrentUserIdAsLong();
-        dbEntity.IdCuenta = ConvertGuidToLong(_currentUserService.GetCurrentAccountId());
+        dbEntity.IdCuenta = GuidLongConverter.ToLong(_currentUserService.GetCurrentAccountId());
         
         // Generate IdPersona if empty
         if (string.IsNullOrEmpty(dbEntity.IdPersona))
@@ -66,13 +67,13 @@ public class PersonRepository : IPersonRepository
         
         await _context.Personas.AddAsync(dbEntity, cancellationToken);
         
-        entity.Id = ConvertStringToGuid(dbEntity.IdPersona);
+        entity.Id = GuidStringConverter.ToGuid(dbEntity.IdPersona);
         return entity;
     }
 
     public Task UpdateAsync(Person entity, CancellationToken cancellationToken = default)
     {
-        var idString = ConvertGuidToString(entity.Id);
+        var idString = GuidStringConverter.ToString(entity.Id);
         var dbEntity = _context.Personas.Find(idString);
         
         if (dbEntity == null)
@@ -89,7 +90,7 @@ public class PersonRepository : IPersonRepository
 
     public Task DeleteAsync(Person entity, CancellationToken cancellationToken = default)
     {
-        var idString = ConvertGuidToString(entity.Id);
+        var idString = GuidStringConverter.ToString(entity.Id);
         var dbEntity = _context.Personas.Find(idString);
         
         if (dbEntity == null)
@@ -107,7 +108,7 @@ public class PersonRepository : IPersonRepository
     public async Task<int> CountAsync(Expression<Func<Person, bool>>? predicate = null, CancellationToken cancellationToken = default)
     {
         var accountId = _currentUserService.GetCurrentAccountId();
-        var accountIdLong = ConvertGuidToLong(accountId);
+        var accountIdLong = GuidLongConverter.ToLong(accountId);
         
         if (predicate == null)
         {
@@ -121,49 +122,19 @@ public class PersonRepository : IPersonRepository
     }
 
     // Helper methods
-    private Guid ConvertLongToGuid(long id)
-    {
-        if (id == 0) return Guid.Empty;
-        return new Guid(id.ToString().PadLeft(32, '0'));
-    }
 
-    private Guid ConvertStringToGuid(string id)
-    {
-        if (string.IsNullOrEmpty(id)) return Guid.Empty;
-        
-        if (Guid.TryParse(id, out var guid))
-            return guid;
-        
-        return new Guid(id.PadLeft(32, '0').Substring(0, 32));
-    }
-
-    private long ConvertGuidToLong(Guid guid)
-    {
-        if (guid == Guid.Empty) return 0;
-        
-        var guidString = guid.ToString().Replace("-", "");
-        var numericPart = new string(guidString.Where(char.IsDigit).Take(18).ToArray());
-        
-        return long.TryParse(numericPart, out var result) ? result : 0;
-    }
-
-    private string ConvertGuidToString(Guid guid)
-    {
-        if (guid == Guid.Empty) return string.Empty;
-        return guid.ToString().Replace("-", "").Substring(0, 40);
-    }
 
     private long GetCurrentUserIdAsLong()
     {
         var userId = _currentUserService.GetCurrentUserId();
-        return ConvertGuidToLong(userId);
+        return GuidLongConverter.ToLong(userId);
     }
 
     // IPersonRepository methods
     public async Task<IEnumerable<Person>> GetByRoleAsync(string roleCode, CancellationToken cancellationToken = default)
     {
         var accountId = _currentUserService.GetCurrentAccountId();
-        var accountIdLong = ConvertGuidToLong(accountId);
+        var accountIdLong = GuidLongConverter.ToLong(accountId);
         
         var dbEntities = await _context.Personas
             .Where(p => p.Activo && 
@@ -176,7 +147,7 @@ public class PersonRepository : IPersonRepository
 
     public async Task<Person?> GetByIdAndRoleAsync(Guid id, string roleCode, CancellationToken cancellationToken = default)
     {
-        var idString = ConvertGuidToString(id);
+        var idString = GuidStringConverter.ToString(id);
         var dbEntity = await _context.Personas.FindAsync(new object[] { idString }, cancellationToken);
         
         if (dbEntity == null || dbEntity.IdRol != roleCode)
@@ -187,7 +158,7 @@ public class PersonRepository : IPersonRepository
 
     public async Task SetPersonRoleAsync(Guid personId, string roleCode, CancellationToken cancellationToken = default)
     {
-        var idString = ConvertGuidToString(personId);
+        var idString = GuidStringConverter.ToString(personId);
         var dbEntity = await _context.Personas.FindAsync(new object[] { idString }, cancellationToken);
         
         if (dbEntity != null)
@@ -198,5 +169,34 @@ public class PersonRepository : IPersonRepository
             _context.Personas.Update(dbEntity);
         }
     }
+
+    public async Task<IEnumerable<Person>> GetClientsAsync(CancellationToken cancellationToken = default)
+    {
+        var accountId = _currentUserService.GetCurrentAccountId();
+        var accountIdLong = GuidLongConverter.ToLong(accountId);
+        var personId = _currentUserService.GetCurrentAccountPersonId();
+        var personIdString = GuidStringConverter.ToString(personId);
+
+        var persons = await _context.PersonaContactos
+            .AsNoTracking()
+            .Where(pc =>
+                pc.Activo &&
+                pc.IdCuenta == accountIdLong &&
+                pc.IdRelacion == Relation.CLIENT &&
+                pc.IdPersona == personIdString
+            )
+            .Join(
+                _context.Personas,
+                pc => pc.IdContacto,
+                p => p.IdPersona,
+                (pc, p) => p
+            )
+            .ToListAsync(cancellationToken);
+
+        return persons
+            .Select(p => _mapper.ToDomain(p))
+            .ToList();
+    }
+
 }
 

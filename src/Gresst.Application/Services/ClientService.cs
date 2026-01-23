@@ -26,7 +26,7 @@ public class ClientService : IClientService
 
     public async Task<IEnumerable<ClientDto>> GetAllAsync(CancellationToken cancellationToken = default)
     {
-        var persons = await _personRepository.GetByRoleAsync(CLIENT_ROLE_CODE, cancellationToken);
+        var persons = await _personRepository.GetClientsAsync(cancellationToken);
         return persons.Select(MapToDto).ToList();
     }
 
