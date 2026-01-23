@@ -278,9 +278,11 @@ app.UseCors("AllowAll");
 
 // Configuración de Swagger (debe ir ANTES de Authentication/Authorization cuando no requiere auth)
 var enableSwagger = app.Configuration.GetValue<bool>("Swagger:Enabled", true);
-// Solo requerir auth si está explícitamente configurado como true
-// En producción, por defecto requiere auth, pero puede ser sobrescrito por configuración
-var requireAuthForSwagger = app.Configuration.GetValue<bool>("Swagger:RequireAuth", app.Environment.IsProduction());
+// SEGURIDAD: En producción SIEMPRE requerir autenticación (no puede ser sobrescrito por configuración)
+// En desarrollo: respetar la configuración Swagger:RequireAuth
+var requireAuthForSwagger = app.Environment.IsProduction() 
+    ? true  // Producción: hardcoded a true, ignora cualquier configuración por seguridad
+    : app.Configuration.GetValue<bool>("Swagger:RequireAuth", false);  // Desarrollo: respetar configuración
 
 if (enableSwagger && !requireAuthForSwagger)
 {
@@ -350,4 +352,3 @@ if (enableSwagger && requireAuthForSwagger)
 app.MapControllers();
 
 app.Run();
-
