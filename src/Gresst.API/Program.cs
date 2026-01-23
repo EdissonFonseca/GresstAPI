@@ -280,8 +280,9 @@ app.UseAuthorization();
 
 // Configuración de Swagger (configurable y protegido)
 var enableSwagger = app.Configuration.GetValue<bool>("Swagger:Enabled", true);
-var requireAuthForSwagger = app.Configuration.GetValue<bool>("Swagger:RequireAuth", false) 
-    || app.Environment.IsProduction();
+// Solo requerir auth si está explícitamente configurado como true
+// En producción, por defecto requiere auth, pero puede ser sobrescrito por configuración
+var requireAuthForSwagger = app.Configuration.GetValue<bool>("Swagger:RequireAuth", app.Environment.IsProduction());
 
 if (enableSwagger)
 {
