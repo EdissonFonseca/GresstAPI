@@ -280,18 +280,10 @@ if (app.Environment.IsProduction() || isWindows)
 
 app.UseCors("AllowAll");
 
-// Configuración de Swagger (debe ir ANTES de Authentication/Authorization cuando no requiere auth)
+// Swagger: configurar ANTES de Authentication/Authorization para acceso sin autenticación
 var enableSwagger = app.Configuration.GetValue<bool>("Swagger:Enabled", true);
-// SEGURIDAD: En producción SIEMPRE requerir autenticación (no puede ser sobrescrito por configuración)
-// En desarrollo: respetar la configuración Swagger:RequireAuth
-var requireAuthForSwagger = app.Environment.IsProduction() 
-    ? true  // Producción: hardcoded a true, ignora cualquier configuración por seguridad
-    : app.Configuration.GetValue<bool>("Swagger:RequireAuth", false);  // Desarrollo: respetar configuración
-
-// Configurar Swagger primero (sin autenticación si está configurado así)
-if (enableSwagger && !requireAuthForSwagger)
+if (enableSwagger)
 {
-    // Swagger sin autenticación: configurar ANTES de Authentication/Authorization
     app.UseSwagger();
     
     var apiVersionDescriptionProvider = app.Services.GetRequiredService<IApiVersionDescriptionProvider>();
@@ -309,52 +301,10 @@ if (enableSwagger && !requireAuthForSwagger)
 }
 
 // Authentication y Authorization para los controladores
-// IMPORTANTE: UseAuthentication y UseAuthorization NO bloquean rutas por defecto
-// Solo se aplican cuando hay [Authorize] en los controladores
+// Nota: Swagger está configurado arriba, así que no requiere autenticación
+// Los controladores usarán [Authorize] cuando sea necesario
 app.UseAuthentication();
 app.UseAuthorization();
-
-if (enableSwagger && requireAuthForSwagger)
-{
-    // Swagger con autenticación: configurar DESPUÉS de Authentication/Authorization
-    app.Use(async (context, next) =>
-    {
-        // Verificar si la ruta es Swagger o la raíz (donde está SwaggerUI)
-        if (context.Request.Path.StartsWithSegments("/swagger") || 
-            context.Request.Path == "/" || 
-            string.IsNullOrEmpty(context.Request.Path.Value) || 
-            context.Request.Path.Value == "/")
-        {
-            if (!context.User.Identity?.IsAuthenticated ?? true)
-            {
-                context.Response.StatusCode = StatusCodes.Status401Unauthorized;
-                context.Response.ContentType = "application/json";
-                await context.Response.WriteAsJsonAsync(new { 
-                    error = "Unauthorized", 
-                    message = "Swagger requires authentication. Please provide a valid JWT token in the Authorization header." 
-                });
-                return;
-            }
-        }
-        await next();
-    });
-    
-    app.UseSwagger();
-    
-    var apiVersionDescriptionProvider = app.Services.GetRequiredService<IApiVersionDescriptionProvider>();
-    
-    app.UseSwaggerUI(options =>
-    {
-        foreach (var description in apiVersionDescriptionProvider.ApiVersionDescriptions)
-        {
-            options.SwaggerEndpoint($"/swagger/{description.GroupName}/swagger.json", 
-                $"Gresst API {description.GroupName.ToUpperInvariant()}");
-        }
-        
-        options.RoutePrefix = string.Empty; // Swagger at root
-        options.ConfigObject.AdditionalItems.Add("persistAuthorization", "true");
-    });
-}
 
 app.MapControllers();
 
