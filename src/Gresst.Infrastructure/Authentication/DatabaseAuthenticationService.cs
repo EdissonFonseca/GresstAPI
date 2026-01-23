@@ -96,10 +96,9 @@ public class DatabaseAuthenticationService : IAuthenticationService
 
     public async Task<(bool,string)> IsUserAuthorizedForInterfaceAsync(string interfaz, string email, string token, CancellationToken cancellationToken = default)
     {
-        var usuario = await
-            (from u in _context.Usuarios
-            where u.Correo == email
-            select u).FirstOrDefaultAsync(cancellationToken);
+        var usuario = await _context.Usuarios
+            .Include(u => u.IdCuentaNavigation)
+            .FirstOrDefaultAsync(u => u.Correo == email, cancellationToken);
         if (usuario != null)
         {
             var cuenta = await (
@@ -126,6 +125,14 @@ public class DatabaseAuthenticationService : IAuthenticationService
             select u).FirstOrDefaultAsync(cancellationToken);
         if (user != null)
         {
+            // Cargar la navegación si no está cargada
+            if (user.IdCuentaNavigation == null)
+            {
+                await _context.Entry(user)
+                    .Reference(u => u.IdCuentaNavigation)
+                    .LoadAsync(cancellationToken);
+            }
+            
             var (accessToken, jwtId) = GenerateJwtToken(user);
             return (true, accessToken);
         }
@@ -434,10 +441,10 @@ public class DatabaseAuthenticationService : IAuthenticationService
         {
             new Claim(JwtRegisteredClaimNames.Jti, jwtId),
             new Claim(ClaimTypes.NameIdentifier, usuario.IdUsuario.ToString()),
-            new Claim(ClaimTypes.Name, usuario.Nombre),
-            new Claim(ClaimTypes.Email, usuario.Correo),
+            new Claim(ClaimTypes.Name, usuario.Nombre ?? ""),
+            new Claim(ClaimTypes.Email, usuario.Correo ?? ""),
             new Claim("AccountId", usuario.IdCuenta.ToString()),
-            new Claim("AccountPersonId", usuario.IdCuentaNavigation.IdPersona),
+            new Claim("AccountPersonId", usuario.IdCuentaNavigation?.IdPersona ?? ""),
             new Claim("PersonId", usuario.IdPersona ?? ""),
         };
 

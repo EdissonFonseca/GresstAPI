@@ -164,10 +164,13 @@ public class AuthenticationController : ControllerBase
     /// Unauthorized or HTTP 400 Bad Request response.</returns>
     [AllowAnonymous]
     [HttpPost("authenticateforinterface")]
-    public async Task<ActionResult> AuthenticateForInterface(LoginRequest login, CancellationToken cancellationToken)
+    [ProducesResponseType(200)]
+    [ProducesResponseType(400)]
+    [ProducesResponseType(401)]
+    public async Task<ActionResult> AuthenticateForInterface([FromBody] LoginRequest login, CancellationToken cancellationToken)
     {
-        if (login == null)
-            return BadRequest();
+        if (login == null || !ModelState.IsValid)
+            return BadRequest(ModelState);
 
         var  authService = _authFactory.GetAuthenticationService();
         var (result, token) = await authService.IsUserAuthorizedForInterfaceAsync(login.Interface, login.Username, login.Token, cancellationToken);

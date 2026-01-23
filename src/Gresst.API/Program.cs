@@ -216,9 +216,12 @@ app.UseExceptionHandler(errorApp =>
             var logger = context.RequestServices.GetRequiredService<ILoggerFactory>()
                 .CreateLogger("GlobalException");
 
-            logger.LogError(exceptionHandlerPathFeature.Error,
-                "Unhandled exception while processing {Path}",
-                context.Request.Path);
+            var exception = exceptionHandlerPathFeature.Error;
+            logger.LogError(exception,
+                "Unhandled exception while processing {Path}. Exception: {ExceptionMessage}. StackTrace: {StackTrace}",
+                context.Request.Path,
+                exception.Message,
+                exception.StackTrace);
         }
 
         context.Response.StatusCode = StatusCodes.Status500InternalServerError;
