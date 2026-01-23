@@ -79,7 +79,11 @@ builder.Services.AddAuthentication(options =>
     };
 });
 
-builder.Services.AddAuthorization();
+builder.Services.AddAuthorization(options =>
+{
+    // Configurar política por defecto: permitir acceso anónimo (los controladores usarán [Authorize] explícitamente)
+    options.FallbackPolicy = null; // No requerir autenticación por defecto
+});
 
 // Authentication Services - Dual provider (Database + External)
 builder.Services.AddHttpClient<ExternalAuthenticationService>();
@@ -284,6 +288,7 @@ var requireAuthForSwagger = app.Environment.IsProduction()
     ? true  // Producción: hardcoded a true, ignora cualquier configuración por seguridad
     : app.Configuration.GetValue<bool>("Swagger:RequireAuth", false);  // Desarrollo: respetar configuración
 
+// Configurar Swagger primero (sin autenticación si está configurado así)
 if (enableSwagger && !requireAuthForSwagger)
 {
     // Swagger sin autenticación: configurar ANTES de Authentication/Authorization
@@ -304,6 +309,8 @@ if (enableSwagger && !requireAuthForSwagger)
 }
 
 // Authentication y Authorization para los controladores
+// IMPORTANTE: UseAuthentication y UseAuthorization NO bloquean rutas por defecto
+// Solo se aplican cuando hay [Authorize] en los controladores
 app.UseAuthentication();
 app.UseAuthorization();
 
