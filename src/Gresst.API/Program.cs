@@ -65,16 +65,21 @@ builder.Services.AddAuthentication(options =>
 })
 .AddJwtBearer(options =>
 {
-    options.RequireHttpsMetadata = builder.Environment.IsProduction();
+    options.RequireHttpsMetadata = false; // Simplificado: no requerir HTTPS metadata
     options.SaveToken = true;
+    
+    var jwtIssuer = builder.Configuration["Authentication:JwtIssuer"];
+    var jwtAudience = builder.Configuration["Authentication:JwtAudience"];
+    
     options.TokenValidationParameters = new TokenValidationParameters
     {
         ValidateIssuerSigningKey = true,
         IssuerSigningKey = new SymmetricSecurityKey(key),
-        ValidateIssuer = builder.Environment.IsProduction(),
-        ValidateAudience = builder.Environment.IsProduction(),
-        ValidIssuer = builder.Configuration["Authentication:JwtIssuer"],
-        ValidAudience = builder.Configuration["Authentication:JwtAudience"],
+        // Solo validar Issuer/Audience si están configurados
+        ValidateIssuer = !string.IsNullOrEmpty(jwtIssuer),
+        ValidateAudience = !string.IsNullOrEmpty(jwtAudience),
+        ValidIssuer = jwtIssuer,
+        ValidAudience = jwtAudience,
         ClockSkew = TimeSpan.Zero
     };
 });
@@ -248,7 +253,7 @@ var app = builder.Build();
 // Configure the HTTP request pipeline
 app.UseSerilogRequestLogging();
 
-// Exception handler: en desarrollo usa el middleware de desarrollo, en producción un handler simple
+// Exception handler
 if (app.Environment.IsDevelopment())
 {
     app.UseDeveloperExceptionPage();
@@ -259,6 +264,15 @@ else
     {
         errorApp.Run(async context =>
         {
+            var exceptionHandlerPathFeature = context.Features.Get<IExceptionHandlerPathFeature>();
+            if (exceptionHandlerPathFeature?.Error != null)
+            {
+                var logger = context.RequestServices.GetRequiredService<ILoggerFactory>()
+                    .CreateLogger("GlobalException");
+                logger.LogError(exceptionHandlerPathFeature.Error, 
+                    "Unhandled exception: {Path}", context.Request.Path);
+            }
+            
             context.Response.StatusCode = StatusCodes.Status500InternalServerError;
             context.Response.ContentType = "application/json";
             await context.Response.WriteAsJsonAsync(new { error = "An unexpected error occurred." });
