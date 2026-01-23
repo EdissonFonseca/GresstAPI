@@ -12,9 +12,11 @@ using Gresst.Infrastructure.Repositories;
 using Gresst.Infrastructure.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Diagnostics;
+using Microsoft.AspNetCore.Server.Kestrel.Core;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Serilog;
+using System.Runtime.InteropServices;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -186,6 +188,22 @@ builder.Services.AddCors(options =>
     });
 });
 
+// Detectar si estamos en Windows
+var isWindows = RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
+
+// Configurar Kestrel: solo HTTPS en Windows, solo HTTP en Mac
+if (!isWindows)
+{
+    // En Mac, forzar solo HTTP eliminando HTTPS de las URLs
+    builder.WebHost.ConfigureKestrel(options =>
+    {
+        // Limpiar todas las configuraciones y solo escuchar en HTTP
+        options.ListenLocalhost(49847, listenOptions =>
+        {
+            listenOptions.Protocols = HttpProtocols.Http1AndHttp2;
+        });
+    });
+}
 
 var app = builder.Build();
 
@@ -231,12 +249,12 @@ app.UseExceptionHandler(errorApp =>
     });
 });
 
-// HTTPS redirection
-// NOTA: Para usar HTTPS, primero genera el certificado ejecutando: ./setup-https-cert.sh
-// O manualmente: dotnet dev-certs https --trust
-// Si hay problemas con el keychain, desbloquéalo primero:
-// security unlock-keychain ~/Library/Keychains/login.keychain-db
-app.UseHttpsRedirection();
+// HTTPS redirection solo en Windows
+if (isWindows)
+{
+    app.UseHttpsRedirection();
+}
+
 app.UseCors("AllowAll");
 app.UseAuthentication();
 app.UseAuthorization();
