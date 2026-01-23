@@ -275,42 +275,60 @@ if (app.Environment.IsProduction() || isWindows)
 }
 
 app.UseCors("AllowAll");
-app.UseAuthentication();
-app.UseAuthorization();
 
-// Configuración de Swagger (configurable y protegido)
+// Configuración de Swagger (debe ir ANTES de Authentication/Authorization cuando no requiere auth)
 var enableSwagger = app.Configuration.GetValue<bool>("Swagger:Enabled", true);
 // Solo requerir auth si está explícitamente configurado como true
 // En producción, por defecto requiere auth, pero puede ser sobrescrito por configuración
 var requireAuthForSwagger = app.Configuration.GetValue<bool>("Swagger:RequireAuth", app.Environment.IsProduction());
 
-if (enableSwagger)
+if (enableSwagger && !requireAuthForSwagger)
 {
-    // Proteger Swagger con autenticación si está configurado
-    if (requireAuthForSwagger)
+    // Swagger sin autenticación: configurar ANTES de Authentication/Authorization
+    app.UseSwagger();
+    
+    var apiVersionDescriptionProvider = app.Services.GetRequiredService<IApiVersionDescriptionProvider>();
+    
+    app.UseSwaggerUI(options =>
     {
-        app.Use(async (context, next) =>
+        foreach (var description in apiVersionDescriptionProvider.ApiVersionDescriptions)
         {
-            // Verificar si la ruta es Swagger o la raíz (donde está SwaggerUI)
-            if (context.Request.Path.StartsWithSegments("/swagger") || 
-                context.Request.Path == "/" || 
-                string.IsNullOrEmpty(context.Request.Path.Value) || 
-                context.Request.Path.Value == "/")
+            options.SwaggerEndpoint($"/swagger/{description.GroupName}/swagger.json", 
+                $"Gresst API {description.GroupName.ToUpperInvariant()}");
+        }
+        
+        options.RoutePrefix = string.Empty; // Swagger at root
+    });
+}
+
+// Authentication y Authorization para los controladores
+app.UseAuthentication();
+app.UseAuthorization();
+
+if (enableSwagger && requireAuthForSwagger)
+{
+    // Swagger con autenticación: configurar DESPUÉS de Authentication/Authorization
+    app.Use(async (context, next) =>
+    {
+        // Verificar si la ruta es Swagger o la raíz (donde está SwaggerUI)
+        if (context.Request.Path.StartsWithSegments("/swagger") || 
+            context.Request.Path == "/" || 
+            string.IsNullOrEmpty(context.Request.Path.Value) || 
+            context.Request.Path.Value == "/")
+        {
+            if (!context.User.Identity?.IsAuthenticated ?? true)
             {
-                if (!context.User.Identity?.IsAuthenticated ?? true)
-                {
-                    context.Response.StatusCode = StatusCodes.Status401Unauthorized;
-                    context.Response.ContentType = "application/json";
-                    await context.Response.WriteAsJsonAsync(new { 
-                        error = "Unauthorized", 
-                        message = "Swagger requires authentication. Please provide a valid JWT token in the Authorization header." 
-                    });
-                    return;
-                }
+                context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+                context.Response.ContentType = "application/json";
+                await context.Response.WriteAsJsonAsync(new { 
+                    error = "Unauthorized", 
+                    message = "Swagger requires authentication. Please provide a valid JWT token in the Authorization header." 
+                });
+                return;
             }
-            await next();
-        });
-    }
+        }
+        await next();
+    });
     
     app.UseSwagger();
     
@@ -325,12 +343,7 @@ if (enableSwagger)
         }
         
         options.RoutePrefix = string.Empty; // Swagger at root
-        
-        // Configurar autenticación en SwaggerUI si está protegido
-        if (requireAuthForSwagger)
-        {
-            options.ConfigObject.AdditionalItems.Add("persistAuthorization", "true");
-        }
+        options.ConfigObject.AdditionalItems.Add("persistAuthorization", "true");
     });
 }
 
