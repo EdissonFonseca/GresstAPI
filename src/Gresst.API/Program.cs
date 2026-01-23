@@ -248,29 +248,23 @@ var app = builder.Build();
 // Configure the HTTP request pipeline
 app.UseSerilogRequestLogging();
 
-app.UseExceptionHandler(errorApp =>
+// Exception handler: en desarrollo usa el middleware de desarrollo, en producción un handler simple
+if (app.Environment.IsDevelopment())
 {
-    errorApp.Run(async context =>
+    app.UseDeveloperExceptionPage();
+}
+else
+{
+    app.UseExceptionHandler(errorApp =>
     {
-        var exceptionHandlerPathFeature = context.Features.Get<IExceptionHandlerPathFeature>();
-        if (exceptionHandlerPathFeature is not null)
+        errorApp.Run(async context =>
         {
-            var logger = context.RequestServices.GetRequiredService<ILoggerFactory>()
-                .CreateLogger("GlobalException");
-
-            var exception = exceptionHandlerPathFeature.Error;
-            logger.LogError(exception,
-                "Unhandled exception while processing {Path}. Exception: {ExceptionMessage}. StackTrace: {StackTrace}",
-                context.Request.Path,
-                exception.Message,
-                exception.StackTrace);
-        }
-
-        context.Response.StatusCode = StatusCodes.Status500InternalServerError;
-        context.Response.ContentType = "application/json";
-        await context.Response.WriteAsJsonAsync(new { error = "An unexpected error occurred." });
+            context.Response.StatusCode = StatusCodes.Status500InternalServerError;
+            context.Response.ContentType = "application/json";
+            await context.Response.WriteAsJsonAsync(new { error = "An unexpected error occurred." });
+        });
     });
-});
+}
 
 // HTTPS redirection: siempre en producción, condicional en desarrollo
 if (app.Environment.IsProduction() || isWindows)
@@ -301,8 +295,6 @@ if (enableSwagger)
 }
 
 // Authentication y Authorization para los controladores
-// Nota: Swagger está configurado arriba, así que no requiere autenticación
-// Los controladores usarán [Authorize] cuando sea necesario
 app.UseAuthentication();
 app.UseAuthorization();
 
