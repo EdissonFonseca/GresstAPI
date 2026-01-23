@@ -186,6 +186,7 @@ builder.Services.AddCors(options =>
     });
 });
 
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline
@@ -230,7 +231,12 @@ app.UseExceptionHandler(errorApp =>
     });
 });
 
-// app.UseHttpsRedirection(); // Comentado para desarrollo sin certificado HTTPS
+// HTTPS redirection
+// NOTA: Para usar HTTPS, primero genera el certificado ejecutando: ./setup-https-cert.sh
+// O manualmente: dotnet dev-certs https --trust
+// Si hay problemas con el keychain, desbloquéalo primero:
+// security unlock-keychain ~/Library/Keychains/login.keychain-db
+app.UseHttpsRedirection();
 app.UseCors("AllowAll");
 app.UseAuthentication();
 app.UseAuthorization();
