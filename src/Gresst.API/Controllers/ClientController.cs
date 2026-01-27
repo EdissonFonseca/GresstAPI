@@ -1,7 +1,14 @@
 ﻿using Asp.Versioning;
+using Azure;
 using Gresst.Application.DTOs;
 using Gresst.Application.Services;
+using Gresst.Domain.Common;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Mvc;
+using Serilog.Core;
+using System.Net;
+using System.Resources;
+using System.Text.Json.Serialization;
 
 namespace Gresst.API.Controllers
 {
@@ -26,12 +33,18 @@ namespace Gresst.API.Controllers
         /// Get all contacts for the account person
         /// </summary>
         [HttpGet("get")]
-        [ProducesResponseType(typeof(IEnumerable<PersonContactDto>), 200)]
-        public async Task<ActionResult<IEnumerable<PersonContactDto>>> Get(CancellationToken cancellationToken)
+        [ProducesResponseType(404)]
+        [ProducesResponseType(typeof(IEnumerable<ClientDto>), 200)]
+        public async Task<ActionResult<IEnumerable<ClientDto>>> Get(CancellationToken cancellationToken)
         {
             try
             {
                 var clients = await _clientService.GetAllAsync(cancellationToken);
+                foreach (var c in clients)
+                {
+                    c.IdPersona = GuidStringConverter.ToString(c.Id);
+                    c.Nombre = c.Name;
+                }
                 return Ok(clients);
             }
             catch (Exception ex)
@@ -39,6 +52,41 @@ namespace Gresst.API.Controllers
                 _logger.LogError(ex, "Error getting clients");
                 return StatusCode(500, "Error retrieving clients");
             }
+        }
+
+        [HttpGet("get/{id}")]
+        [ProducesResponseType(404)]
+        [ProducesResponseType(typeof(ClientDto), 200)]
+        public async Task<ActionResult<ClientDto>> Get(string id, CancellationToken cancellationToken)
+        {
+            try
+            {
+                var guid = GuidStringConverter.ToGuid(id);  
+                var client = await _clientService.GetByIdAsync(guid, cancellationToken);
+                if (client != null)
+                {
+                    client.IdPersona = GuidStringConverter.ToString(client.Id);
+                    client.Nombre = client.Name;
+                }
+
+                return Ok(client);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting clients");
+                return StatusCode(500, "Error retrieving clients");
+            }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="cliente"></param>
+        /// <returns></returns>
+        [HttpPost("post")]
+        public async Task<ActionResult> Post([FromBody] ClientDto cliente)
+        {
+            return Created();
         }
     }
 }
