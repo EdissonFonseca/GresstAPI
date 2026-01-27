@@ -24,13 +24,13 @@ public class WasteService : IWasteService
         _unitOfWork = unitOfWork;
     }
 
-    public async Task<WasteDto> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
+    public async Task<WasteDto> GetByIdAsync(string id, CancellationToken cancellationToken = default)
     {
         var waste = await _wasteRepository.GetByIdAsync(id, cancellationToken);
         if (waste == null)
             throw new KeyNotFoundException($"Waste with ID {id} not found");
 
-        return await MapToDto(waste);
+        return await MapToDto(waste, cancellationToken);
     }
 
     public async Task<IEnumerable<WasteDto>> GetAllAsync(CancellationToken cancellationToken = default)
@@ -40,7 +40,7 @@ public class WasteService : IWasteService
         
         foreach (var waste in wastes)
         {
-            dtos.Add(await MapToDto(waste));
+            dtos.Add(await MapToDto(waste, cancellationToken));
         }
         
         return dtos;
@@ -53,7 +53,7 @@ public class WasteService : IWasteService
         
         foreach (var waste in wastes)
         {
-            dtos.Add(await MapToDto(waste));
+            dtos.Add(await MapToDto(waste, cancellationToken));
         }
         
         return dtos;
@@ -69,7 +69,7 @@ public class WasteService : IWasteService
         
         foreach (var waste in wastes)
         {
-            dtos.Add(await MapToDto(waste));
+            dtos.Add(await MapToDto(waste, cancellationToken));
         }
         
         return dtos;
@@ -82,7 +82,7 @@ public class WasteService : IWasteService
         
         foreach (var waste in wastes)
         {
-            dtos.Add(await MapToDto(waste));
+            dtos.Add(await MapToDto(waste, cancellationToken));
         }
         
         return dtos;
@@ -112,7 +112,7 @@ public class WasteService : IWasteService
         await _wasteRepository.AddAsync(waste, cancellationToken);
         await _unitOfWork.SaveChangesAsync(cancellationToken);
 
-        return await MapToDto(waste);
+        return await MapToDto(waste, cancellationToken);
     }
 
     public async Task<WasteDto> UpdateAsync(UpdateWasteDto dto, CancellationToken cancellationToken = default)
@@ -139,10 +139,10 @@ public class WasteService : IWasteService
         await _wasteRepository.UpdateAsync(waste, cancellationToken);
         await _unitOfWork.SaveChangesAsync(cancellationToken);
 
-        return await MapToDto(waste);
+        return await MapToDto(waste, cancellationToken);
     }
 
-    public async Task DeleteAsync(Guid id, CancellationToken cancellationToken = default)
+    public async Task DeleteAsync(string id, CancellationToken cancellationToken = default)
     {
         var waste = await _wasteRepository.GetByIdAsync(id, cancellationToken);
         if (waste == null)
@@ -154,7 +154,7 @@ public class WasteService : IWasteService
 
     public async Task PublishToWasteBankAsync(Guid wasteId, string description, decimal? price, CancellationToken cancellationToken = default)
     {
-        var waste = await _wasteRepository.GetByIdAsync(wasteId, cancellationToken);
+        var waste = await _wasteRepository.GetByIdAsync(wasteId.ToString(), cancellationToken);
         if (waste == null)
             throw new KeyNotFoundException($"Waste with ID {wasteId} not found");
 
@@ -168,7 +168,7 @@ public class WasteService : IWasteService
 
     public async Task RemoveFromWasteBankAsync(Guid wasteId, CancellationToken cancellationToken = default)
     {
-        var waste = await _wasteRepository.GetByIdAsync(wasteId, cancellationToken);
+        var waste = await _wasteRepository.GetByIdAsync(wasteId.ToString(), cancellationToken);
         if (waste == null)
             throw new KeyNotFoundException($"Waste with ID {wasteId} not found");
 
@@ -180,7 +180,7 @@ public class WasteService : IWasteService
         await _unitOfWork.SaveChangesAsync(cancellationToken);
     }
 
-    private async Task<WasteDto> MapToDto(Waste waste)
+    private async Task<WasteDto> MapToDto(Waste waste, CancellationToken cancellationToken = default)
     {
         // Temporary: Get related entities with null safety
         WasteClass? wasteType = null;
@@ -188,8 +188,8 @@ public class WasteService : IWasteService
         
         try
         {
-            wasteType = await _wasteTypeRepository.GetByIdAsync(waste.WasteClassId);
-            generator = await _personRepository.GetByIdAsync(waste.GeneratorId);
+            wasteType = await _wasteTypeRepository.GetByIdAsync(waste.WasteClassId.ToString(), cancellationToken);
+            generator = await _personRepository.GetByIdAsync(waste.GeneratorId.ToString(), cancellationToken);
         }
         catch
         {

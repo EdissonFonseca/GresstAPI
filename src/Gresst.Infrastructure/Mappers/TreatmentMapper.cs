@@ -20,10 +20,10 @@ public class TreatmentMapper : MapperBase<DomainTreatment, DbTreatment>
 
         return new DomainTreatment
         {
-            // IDs - Conversión de long a Guid
+            // IDs - Domain BaseEntity uses string
             Id = dbEntity.IdTratamiento != 0 
-                ? GuidLongConverter.ToGuid(dbEntity.IdTratamiento) 
-                : Guid.NewGuid(),
+                ? GuidLongConverter.ToGuid(dbEntity.IdTratamiento).ToString() 
+                : string.Empty,
             
             // Basic Info
             Code = dbEntity.IdTratamiento.ToString(), // Usar ID como código si no hay código específico
@@ -48,7 +48,7 @@ public class TreatmentMapper : MapperBase<DomainTreatment, DbTreatment>
             ResultingWasteClasses = null,
             
             // Audit fields
-            AccountId = Guid.Empty, // Tratamiento no tiene IdCuenta directo
+            AccountId = string.Empty, // Tratamiento no tiene IdCuenta directo
             CreatedAt = dbEntity.FechaCreacion,
             UpdatedAt = dbEntity.FechaUltimaModificacion,
             CreatedBy = dbEntity.IdUsuarioCreacion.ToString(),
@@ -68,8 +68,8 @@ public class TreatmentMapper : MapperBase<DomainTreatment, DbTreatment>
         return new DbTreatment
         {
             // IDs - Conversión de Guid a long
-            IdTratamiento = domainEntity.Id != Guid.Empty 
-                ? GuidLongConverter.ToLong(domainEntity.Id) 
+            IdTratamiento = !string.IsNullOrEmpty(domainEntity.Id) && Guid.TryParse(domainEntity.Id, out var trGuid)
+                ? GuidLongConverter.ToLong(trGuid) 
                 : 0,
             
             // Basic Info

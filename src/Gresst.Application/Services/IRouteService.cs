@@ -4,7 +4,7 @@ namespace Gresst.Application.Services;
 
 public interface IRouteService
 {
-    Task<RouteDto?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default);
+    Task<RouteDto?> GetByIdAsync(string id, CancellationToken cancellationToken = default);
     Task<IEnumerable<RouteDto>> GetAllAsync(CancellationToken cancellationToken = default);
     Task<IEnumerable<RouteDto>> GetActiveAsync(CancellationToken cancellationToken = default);
     Task<IEnumerable<RouteDto>> GetByTypeAsync(string routeType, CancellationToken cancellationToken = default);

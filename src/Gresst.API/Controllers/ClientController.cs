@@ -1,8 +1,7 @@
-﻿using Asp.Versioning;
+using Asp.Versioning;
 using Azure;
 using Gresst.Application.DTOs;
 using Gresst.Application.Services;
-using Gresst.Domain.Common;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Mvc;
 using Serilog.Core;
@@ -42,8 +41,9 @@ namespace Gresst.API.Controllers
                 var clients = await _clientService.GetAllAsync(cancellationToken);
                 foreach (var c in clients)
                 {
-                    c.IdPersona = GuidStringConverter.ToString(c.Id);
-                    c.Nombre = c.Name;
+                    // Id ya es el IdPersona (string de BD); no convertir con Guid
+                    c.IdPersona = c.Id ?? string.Empty;
+                    c.Nombre = c.Name ?? string.Empty;
                 }
                 return Ok(clients);
             }
@@ -61,12 +61,12 @@ namespace Gresst.API.Controllers
         {
             try
             {
-                var guid = GuidStringConverter.ToGuid(id);  
-                var client = await _clientService.GetByIdAsync(guid, cancellationToken);
+                // id es string (IdPersona de BD); pasar tal cual al servicio
+                var client = await _clientService.GetByIdAsync(id, cancellationToken);
                 if (client != null)
                 {
-                    client.IdPersona = GuidStringConverter.ToString(client.Id);
-                    client.Nombre = client.Name;
+                    client.IdPersona = client.Id ?? string.Empty;
+                    client.Nombre = client.Name ?? string.Empty;
                 }
 
                 return Ok(client);

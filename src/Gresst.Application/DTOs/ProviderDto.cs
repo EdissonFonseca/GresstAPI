@@ -5,13 +5,13 @@ namespace Gresst.Application.DTOs;
 /// </summary>
 public class ProviderDto
 {
-    public Guid Id { get; set; }
+    public string Id { get; set; } = string.Empty;
     public string Name { get; set; } = string.Empty;
     public string? DocumentNumber { get; set; }
     public string? Email { get; set; }
     public string? Phone { get; set; }
     public string? Address { get; set; }
-    public Guid AccountId { get; set; }
+    public string AccountId { get; set; } = string.Empty;
     
     // Capabilities
     public bool IsGenerator { get; set; }
@@ -47,7 +47,7 @@ public class CreateProviderDto
 
 public class UpdateProviderDto
 {
-    public Guid Id { get; set; }
+    public string Id { get; set; } = string.Empty;
     public string? Name { get; set; }
     public string? DocumentNumber { get; set; }
     public string? Email { get; set; }

@@ -57,7 +57,7 @@ public class FacilityController : ControllerBase
     [ProducesResponseType(404)]
     public async Task<ActionResult<FacilityDto>> GetById(Guid id, CancellationToken cancellationToken)
     {
-        var facility = await _facilityService.GetByIdAsync(id, cancellationToken);
+        var facility = await _facilityService.GetByIdAsync(id.ToString(), cancellationToken);
         
         if (facility == null)
             return NotFound(new { message = "Facility not found or you don't have access" });
@@ -170,7 +170,7 @@ public class FacilityController : ControllerBase
     [ProducesResponseType(404)]
     public async Task<ActionResult<FacilityDto>> Update(Guid id, [FromBody] UpdateFacilityDto dto, CancellationToken cancellationToken)
     {
-        if (id != dto.Id)
+        if (id.ToString() != dto.Id)
             return BadRequest(new { message = "ID mismatch" });
 
         if (!ModelState.IsValid)
@@ -192,7 +192,7 @@ public class FacilityController : ControllerBase
     [ProducesResponseType(404)]
     public async Task<ActionResult> Delete(Guid id, CancellationToken cancellationToken)
     {
-        var success = await _facilityService.DeleteAsync(id, cancellationToken);
+        var success = await _facilityService.DeleteAsync(id.ToString(), cancellationToken);
         
         if (!success)
             return NotFound(new { message = "Facility not found or you don't have access" });

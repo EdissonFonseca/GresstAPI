@@ -2,7 +2,7 @@ namespace Gresst.Application.DTOs;
 
 public class WasteClassDto
 {
-    public Guid Id { get; set; }
+    public string Id { get; set; } = string.Empty;
     public string Code { get; set; } = string.Empty;
     public string Name { get; set; } = string.Empty;
     public string? Description { get; set; }
@@ -32,7 +32,7 @@ public class CreateWasteClassDto
 
 public class UpdateWasteClassDto
 {
-    public Guid Id { get; set; }
+    public string Id { get; set; } = string.Empty;
     public string? Name { get; set; }
     public string? Description { get; set; }
     public Guid? ClassificationId { get; set; }
@@ -45,7 +45,7 @@ public class UpdateWasteClassDto
 
 public class PersonWasteClassDto
 {
-    public Guid Id { get; set; }
+    public string Id { get; set; } = string.Empty;
     public Guid PersonId { get; set; }
     public string? PersonName { get; set; }
     public Guid WasteClassId { get; set; }

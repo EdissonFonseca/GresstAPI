@@ -19,10 +19,10 @@ public class FacilityWasteClassMapper : MapperBase<FacilityWasteClass, DepositoT
             throw new ArgumentNullException(nameof(dbEntity));
 
         // Get AccountId from related Facility (Deposito has IdCuenta)
-        var accountId = Guid.Empty;
+        var accountId = string.Empty;
         if (dbEntity.IdDepositoNavigation?.IdCuenta.HasValue == true)
         {
-            accountId = GuidLongConverter.ToGuid(dbEntity.IdDepositoNavigation.IdCuenta.Value);
+            accountId = dbEntity.IdDepositoNavigation.IdCuenta.Value.ToString();
         }
 
         // Convert int IdTipoResiduo to Guid (using GuidLongConverter pattern)
@@ -30,8 +30,8 @@ public class FacilityWasteClassMapper : MapperBase<FacilityWasteClass, DepositoT
 
         return new FacilityWasteClass
         {
-            // IDs (composite key - generate a Guid for domain)
-            Id = Guid.NewGuid(),
+            // IDs - Domain BaseEntity uses string
+            Id = Guid.NewGuid().ToString(),
             AccountId = accountId,
             
             // Relations

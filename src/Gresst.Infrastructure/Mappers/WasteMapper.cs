@@ -20,9 +20,9 @@ public class WasteMapper : MapperBase<Waste, Residuo>
 
         return new Waste
         {
-            // IDs
-            Id = GuidLongConverter.ToGuid(dbEntity.IdResiduo),
-            AccountId = Guid.NewGuid(), // Se obtiene del usuario actual
+            // IDs - Domain BaseEntity uses string
+            Id = GuidLongConverter.ToGuid(dbEntity.IdResiduo).ToString(),
+            AccountId = string.Empty, // Se obtiene del usuario actual en DbContext
             
             // Basic Info
             Code = dbEntity.Referencia ?? dbEntity.IdResiduo.ToString(),
@@ -73,7 +73,7 @@ public class WasteMapper : MapperBase<Waste, Residuo>
         return new Residuo
         {
             // IDs
-            IdResiduo = GuidLongConverter.ToLong(domainEntity.Id),
+            IdResiduo = string.IsNullOrEmpty(domainEntity.Id) ? 0 : GuidLongConverter.ToLong(Guid.Parse(domainEntity.Id)),
             IdMaterial = GuidLongConverter.ToLong(domainEntity.WasteClassId),
             
             // Owner

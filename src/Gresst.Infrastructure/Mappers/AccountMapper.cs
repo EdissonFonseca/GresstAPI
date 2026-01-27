@@ -21,9 +21,9 @@ public class AccountMapper : MapperBase<Account, Cuentum>
 
         return new Account
         {
-            // IDs
-            Id = GuidLongConverter.ToGuid(dbEntity.IdCuenta),
-            AccountId = GuidLongConverter.ToGuid(dbEntity.IdCuenta), // Self-reference
+            // IDs - Domain uses string for BaseEntity.Id/AccountId
+            Id = dbEntity.IdCuenta.ToString(),
+            AccountId = dbEntity.IdCuenta.ToString(),
             
             // Basic Info
             Name = dbEntity.Nombre,
@@ -54,8 +54,8 @@ public class AccountMapper : MapperBase<Account, Cuentum>
 
         return new Cuentum
         {
-            // IDs
-            IdCuenta = GuidLongConverter.ToLong(domainEntity.Id),
+            // IDs - Domain Id is string, BD uses long
+            IdCuenta = string.IsNullOrEmpty(domainEntity.Id) ? 0 : long.Parse(domainEntity.Id),
             
             // Basic Info
             Nombre = domainEntity.Name,

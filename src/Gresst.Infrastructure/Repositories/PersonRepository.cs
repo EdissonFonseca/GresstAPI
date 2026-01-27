@@ -24,10 +24,9 @@ public class PersonRepository : IPersonRepository
         _currentUserService = currentUserService;
     }
 
-    public async Task<Person?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
+    public async Task<Person?> GetByIdAsync(string id, CancellationToken cancellationToken = default)
     {
-        var idString = GuidStringConverter.ToString(id);
-        var dbEntity = await _context.Personas.FindAsync(new object[] { idString }, cancellationToken);
+        var dbEntity = await _context.Personas.FindAsync(new object[] { id }, cancellationToken);
         
         return dbEntity != null ? _mapper.ToDomain(dbEntity) : null;
     }
@@ -35,7 +34,7 @@ public class PersonRepository : IPersonRepository
     public async Task<IEnumerable<Person>> GetAllAsync(CancellationToken cancellationToken = default)
     {
         var accountId = _currentUserService.GetCurrentAccountId();
-        var accountIdLong = GuidLongConverter.ToLong(accountId);
+        var accountIdLong = string.IsNullOrEmpty(accountId) ? (long?)null : long.Parse(accountId);
         
         var dbEntities = await _context.Personas
             .Where(p => p.Activo && p.IdCuenta == accountIdLong)
@@ -57,24 +56,24 @@ public class PersonRepository : IPersonRepository
         // Set audit fields
         dbEntity.FechaCreacion = DateTime.UtcNow;
         dbEntity.IdUsuarioCreacion = GetCurrentUserIdAsLong();
-        dbEntity.IdCuenta = GuidLongConverter.ToLong(_currentUserService.GetCurrentAccountId());
+        var accountId = _currentUserService.GetCurrentAccountId();
+        dbEntity.IdCuenta = string.IsNullOrEmpty(accountId) ? null : long.Parse(accountId);
         
         // Generate IdPersona if empty
         if (string.IsNullOrEmpty(dbEntity.IdPersona))
         {
-            dbEntity.IdPersona = Guid.NewGuid().ToString().Replace("-", "").Substring(0, 40);
+            dbEntity.IdPersona = Guid.NewGuid().ToString("N")[..40];
         }
         
         await _context.Personas.AddAsync(dbEntity, cancellationToken);
         
-        entity.Id = GuidStringConverter.ToGuid(dbEntity.IdPersona);
+        entity.Id = dbEntity.IdPersona;
         return entity;
     }
 
     public Task UpdateAsync(Person entity, CancellationToken cancellationToken = default)
     {
-        var idString = GuidStringConverter.ToString(entity.Id);
-        var dbEntity = _context.Personas.Find(idString);
+        var dbEntity = _context.Personas.Find(entity.Id);
         
         if (dbEntity == null)
             throw new KeyNotFoundException($"Person with ID {entity.Id} not found");
@@ -90,8 +89,7 @@ public class PersonRepository : IPersonRepository
 
     public Task DeleteAsync(Person entity, CancellationToken cancellationToken = default)
     {
-        var idString = GuidStringConverter.ToString(entity.Id);
-        var dbEntity = _context.Personas.Find(idString);
+        var dbEntity = _context.Personas.Find(entity.Id);
         
         if (dbEntity == null)
             throw new KeyNotFoundException($"Person with ID {entity.Id} not found");
@@ -108,7 +106,7 @@ public class PersonRepository : IPersonRepository
     public async Task<int> CountAsync(Expression<Func<Person, bool>>? predicate = null, CancellationToken cancellationToken = default)
     {
         var accountId = _currentUserService.GetCurrentAccountId();
-        var accountIdLong = GuidLongConverter.ToLong(accountId);
+        var accountIdLong = string.IsNullOrEmpty(accountId) ? (long?)null : long.Parse(accountId);
         
         if (predicate == null)
         {
@@ -134,7 +132,7 @@ public class PersonRepository : IPersonRepository
     public async Task<IEnumerable<Person>> GetByRoleAsync(string roleCode, CancellationToken cancellationToken = default)
     {
         var accountId = _currentUserService.GetCurrentAccountId();
-        var accountIdLong = GuidLongConverter.ToLong(accountId);
+        var accountIdLong = string.IsNullOrEmpty(accountId) ? (long?)null : long.Parse(accountId);
         
         var dbEntities = await _context.Personas
             .Where(p => p.Activo && 
@@ -145,10 +143,9 @@ public class PersonRepository : IPersonRepository
         return dbEntities.Select(_mapper.ToDomain).ToList();
     }
 
-    public async Task<Person?> GetByIdAndRoleAsync(Guid id, string roleCode, CancellationToken cancellationToken = default)
+    public async Task<Person?> GetByIdAndRoleAsync(string id, string roleCode, CancellationToken cancellationToken = default)
     {
-        var idString = GuidStringConverter.ToString(id);
-        var dbEntity = await _context.Personas.FindAsync(new object[] { idString }, cancellationToken);
+        var dbEntity = await _context.Personas.FindAsync(new object[] { id }, cancellationToken);
         
         if (dbEntity == null || dbEntity.IdRol != roleCode)
             return null;
@@ -156,10 +153,9 @@ public class PersonRepository : IPersonRepository
         return _mapper.ToDomain(dbEntity);
     }
 
-    public async Task SetPersonRoleAsync(Guid personId, string roleCode, CancellationToken cancellationToken = default)
+    public async Task SetPersonRoleAsync(string personId, string roleCode, CancellationToken cancellationToken = default)
     {
-        var idString = GuidStringConverter.ToString(personId);
-        var dbEntity = await _context.Personas.FindAsync(new object[] { idString }, cancellationToken);
+        var dbEntity = await _context.Personas.FindAsync(new object[] { personId }, cancellationToken);
         
         if (dbEntity != null)
         {
@@ -173,7 +169,7 @@ public class PersonRepository : IPersonRepository
     public async Task<IEnumerable<Person>> GetClientsAsync(CancellationToken cancellationToken = default)
     {
         var accountId = _currentUserService.GetCurrentAccountId();
-        var accountIdLong = GuidLongConverter.ToLong(accountId);
+        var accountIdLong = string.IsNullOrEmpty(accountId) ? (long?)null : long.Parse(accountId);
         var personId = _currentUserService.GetCurrentAccountPersonId();
         var personIdString = GuidStringConverter.ToString(personId);
 

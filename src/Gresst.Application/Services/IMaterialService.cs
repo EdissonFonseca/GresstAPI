@@ -8,7 +8,7 @@ public interface IMaterialService
     Task<IEnumerable<MaterialDto>> GetAllAsync(CancellationToken cancellationToken = default);
     
     // GetById verifica que el usuario tenga acceso
-    Task<MaterialDto?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default);
+    Task<MaterialDto?> GetByIdAsync(string id, CancellationToken cancellationToken = default);
     
     Task<IEnumerable<MaterialDto>> GetByWasteClassAsync(Guid wasteTypeId, CancellationToken cancellationToken = default);
     Task<IEnumerable<MaterialDto>> GetByCategoryAsync(string category, CancellationToken cancellationToken = default);
@@ -31,7 +31,7 @@ public interface IMaterialService
     
     Task<MaterialDto> CreateAsync(CreateMaterialDto dto, CancellationToken cancellationToken = default);
     Task<MaterialDto?> UpdateAsync(UpdateMaterialDto dto, CancellationToken cancellationToken = default);
-    Task<bool> DeleteAsync(Guid id, CancellationToken cancellationToken = default);
+    Task<bool> DeleteAsync(string id, CancellationToken cancellationToken = default);
     
     // Admin puede ver todos los materiales (sin filtrar por usuario)
     Task<IEnumerable<MaterialDto>> GetAllForAdminAsync(CancellationToken cancellationToken = default);

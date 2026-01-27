@@ -2,7 +2,7 @@ namespace Gresst.Application.DTOs;
 
 public class BalanceDto
 {
-    public Guid Id { get; set; }
+    public string Id { get; set; } = string.Empty;
     public Guid? PersonId { get; set; }
     public string? PersonName { get; set; }
     public Guid? FacilityId { get; set; }

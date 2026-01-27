@@ -27,9 +27,10 @@ public class WasteClassRepository : IRepository<WasteClass>
         _currentUserService = currentUserService;
     }
 
-    public async Task<WasteClass?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
+    public async Task<WasteClass?> GetByIdAsync(string id, CancellationToken cancellationToken = default)
     {
-        var idInt = (int)GuidLongConverter.ToLong(id);
+        if (string.IsNullOrEmpty(id) || !int.TryParse(id, out var idInt))
+            return null;
         var dbEntity = await _context.TipoResiduos.FindAsync(new object[] { idInt }, cancellationToken);
         
         return dbEntity != null ? _mapper.ToDomain(dbEntity) : null;
@@ -64,14 +65,14 @@ public class WasteClassRepository : IRepository<WasteClass>
         await _context.TipoResiduos.AddAsync(dbEntity, cancellationToken);
         
         // Update domain entity with generated ID
-        entity.Id = GuidLongConverter.ToGuid(dbEntity.IdTipoResiduo);
+        entity.Id = dbEntity.IdTipoResiduo.ToString();
         
         return entity;
     }
 
     public Task UpdateAsync(WasteClass entity, CancellationToken cancellationToken = default)
     {
-        var idInt = (int)GuidLongConverter.ToLong(entity.Id);
+        var idInt = string.IsNullOrEmpty(entity.Id) ? 0 : int.Parse(entity.Id);
         var dbEntity = _context.TipoResiduos.Find(idInt);
         
         if (dbEntity == null)
@@ -89,7 +90,7 @@ public class WasteClassRepository : IRepository<WasteClass>
 
     public Task DeleteAsync(WasteClass entity, CancellationToken cancellationToken = default)
     {
-        var idInt = (int)GuidLongConverter.ToLong(entity.Id);
+        var idInt = string.IsNullOrEmpty(entity.Id) ? 0 : int.Parse(entity.Id);
         var dbEntity = _context.TipoResiduos.Find(idInt);
         
         if (dbEntity == null)

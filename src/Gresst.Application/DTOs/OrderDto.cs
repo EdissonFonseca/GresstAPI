@@ -4,7 +4,7 @@ namespace Gresst.Application.DTOs;
 
 public class OrderDto
 {
-    public Guid Id { get; set; }
+    public string Id { get; set; } = string.Empty;
     public string OrderNumber { get; set; } = string.Empty;
     public string Type { get; set; } = string.Empty;
     public string Status { get; set; } = string.Empty;
@@ -22,7 +22,7 @@ public class OrderDto
 
 public class OrderItemDto
 {
-    public Guid Id { get; set; }
+    public string Id { get; set; } = string.Empty;
     public Guid? WasteId { get; set; }
     public Guid? WasteClassId { get; set; }
     public string WasteClassName { get; set; } = string.Empty;

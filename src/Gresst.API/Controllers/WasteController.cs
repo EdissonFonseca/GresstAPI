@@ -36,7 +36,7 @@ public class WasteController : ControllerBase
     {
         try
         {
-            var waste = await _wasteService.GetByIdAsync(id, cancellationToken);
+            var waste = await _wasteService.GetByIdAsync(id.ToString(), cancellationToken);
             return Ok(waste);
         }
         catch (KeyNotFoundException ex)
@@ -98,7 +98,7 @@ public class WasteController : ControllerBase
     [HttpPut("{id}")]
     public async Task<ActionResult<WasteDto>> Update(Guid id, [FromBody] UpdateWasteDto dto, CancellationToken cancellationToken)
     {
-        if (id != dto.Id)
+        if (id.ToString() != dto.Id)
             return BadRequest("ID mismatch");
 
         try
@@ -120,7 +120,7 @@ public class WasteController : ControllerBase
     {
         try
         {
-            await _wasteService.DeleteAsync(id, cancellationToken);
+            await _wasteService.DeleteAsync(id.ToString(), cancellationToken);
             return NoContent();
         }
         catch (KeyNotFoundException ex)

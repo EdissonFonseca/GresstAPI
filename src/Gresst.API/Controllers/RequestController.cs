@@ -115,7 +115,7 @@ public class RequestController : ControllerBase
         if (_requestService == null)
             return StatusCode(503, new { message = "Request service is not available" });
 
-        var request = await _requestService.GetByIdAsync(id, cancellationToken);
+        var request = await _requestService.GetByIdAsync(id.ToString(), cancellationToken);
         
         if (request == null)
             return NotFound(new { message = "Request not found or you don't have access" });
@@ -245,7 +245,7 @@ public class RequestController : ControllerBase
         if (_requestService == null)
             return StatusCode(503, new { message = "Request service is not available" });
 
-        if (id != dto.Id)
+        if (id.ToString() != dto.Id)
             return BadRequest(new { message = "ID mismatch" });
 
         if (!ModelState.IsValid)

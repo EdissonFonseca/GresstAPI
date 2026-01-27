@@ -62,7 +62,7 @@ public class OrderController : ControllerBase
         if (_orderService == null)
             return StatusCode(503, new { message = "Order service is not available" });
 
-        var order = await _orderService.GetByIdAsync(id, cancellationToken);
+        var order = await _orderService.GetByIdAsync(id.ToString(), cancellationToken);
         
         if (order == null)
             return NotFound(new { message = "Order not found" });

@@ -4,7 +4,7 @@ namespace Gresst.Application.Services;
 
 public interface IOrderService
 {
-    Task<OrderDto> GetByIdAsync(Guid id, CancellationToken cancellationToken = default);
+    Task<OrderDto> GetByIdAsync(string id, CancellationToken cancellationToken = default);
     Task<IEnumerable<OrderDto>> GetAllAsync(CancellationToken cancellationToken = default);
     Task<IEnumerable<OrderDto>> GetByProviderAsync(Guid providerId, CancellationToken cancellationToken = default);
     Task<IEnumerable<OrderDto>> GetByClientAsync(Guid clientId, CancellationToken cancellationToken = default);

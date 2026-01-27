@@ -23,12 +23,12 @@ public class DataSegmentationService : IDataSegmentationService
         _currentUserService = currentUserService;
     }
 
-    // Facilities
-    public async Task<bool> UserHasAccessToFacilityAsync(Guid facilityId, CancellationToken cancellationToken = default)
+    // Facilities - facility Id is string (BaseEntity.Id)
+    public async Task<bool> UserHasAccessToFacilityAsync(string facilityId, CancellationToken cancellationToken = default)
     {
         var userId = _currentUserService.GetCurrentUserId();
         var userIdLong = GuidLongConverter.ToLong(userId);
-        var facilityIdLong = GuidLongConverter.ToLong(facilityId);
+        var facilityIdLong = string.IsNullOrEmpty(facilityId) ? 0L : long.Parse(facilityId);
 
         // Admin tiene acceso a todo
         if (await CurrentUserIsAdminAsync(cancellationToken))
@@ -41,7 +41,7 @@ public class DataSegmentationService : IDataSegmentationService
         return hasAccess;
     }
 
-    public async Task<IEnumerable<Guid>> GetUserFacilityIdsAsync(CancellationToken cancellationToken = default)
+    public async Task<IEnumerable<string>> GetUserFacilityIdsAsync(CancellationToken cancellationToken = default)
     {
         var userId = _currentUserService.GetCurrentUserId();
         var userIdLong = GuidLongConverter.ToLong(userId);
@@ -53,7 +53,7 @@ public class DataSegmentationService : IDataSegmentationService
                 .Select(d => d.IdDeposito)
                 .ToListAsync(cancellationToken);
             
-            return allFacilities.Select(GuidLongConverter.ToGuid);
+            return allFacilities.Select(x => x.ToString());
         }
 
         // Usuario normal solo ve sus facilities asignados
@@ -62,7 +62,7 @@ public class DataSegmentationService : IDataSegmentationService
             .Select(ud => ud.IdDeposito)
             .ToListAsync(cancellationToken);
 
-        return facilityIds.Select(GuidLongConverter.ToGuid);
+        return facilityIds.Select(x => x.ToString());
     }
 
     public async Task<bool> AssignFacilityToUserAsync(Guid userId, Guid facilityId, CancellationToken cancellationToken = default)
@@ -109,12 +109,12 @@ public class DataSegmentationService : IDataSegmentationService
         return true;
     }
 
-    // Vehicles
-    public async Task<bool> UserHasAccessToVehicleAsync(Guid vehicleId, CancellationToken cancellationToken = default)
+    // Vehicles - vehicle Id is string
+    public async Task<bool> UserHasAccessToVehicleAsync(string vehicleId, CancellationToken cancellationToken = default)
     {
         var userId = _currentUserService.GetCurrentUserId();
         var userIdLong = GuidLongConverter.ToLong(userId);
-        var vehicleIdString = GuidStringConverter.ToString(vehicleId);
+        var vehicleIdString = vehicleId ?? string.Empty;
 
         // Admin tiene acceso a todo
         if (await CurrentUserIsAdminAsync(cancellationToken))
@@ -127,7 +127,7 @@ public class DataSegmentationService : IDataSegmentationService
         return hasAccess;
     }
 
-    public async Task<IEnumerable<Guid>> GetUserVehicleIdsAsync(CancellationToken cancellationToken = default)
+    public async Task<IEnumerable<string>> GetUserVehicleIdsAsync(CancellationToken cancellationToken = default)
     {
         var userId = _currentUserService.GetCurrentUserId();
         var userIdLong = GuidLongConverter.ToLong(userId);
@@ -139,7 +139,7 @@ public class DataSegmentationService : IDataSegmentationService
                 .Select(v => v.IdVehiculo)
                 .ToListAsync(cancellationToken);
             
-            return allVehicles.Select(GuidStringConverter.ToGuid);
+            return allVehicles.Where(x => x != null).Select(x => x!).ToList();
         }
 
         // Usuario normal solo ve sus vehículos asignados
@@ -148,7 +148,7 @@ public class DataSegmentationService : IDataSegmentationService
             .Select(uv => uv.IdVehiculo)
             .ToListAsync(cancellationToken);
 
-        return vehicleIds.Select(GuidStringConverter.ToGuid);
+        return vehicleIds.Where(x => x != null).Select(x => x!).ToList();
     }
 
     public async Task<bool> AssignVehicleToUserAsync(Guid userId, Guid vehicleId, CancellationToken cancellationToken = default)
@@ -194,12 +194,12 @@ public class DataSegmentationService : IDataSegmentationService
         return true;
     }
 
-    // Materials
-    public async Task<bool> UserHasAccessToMaterialAsync(Guid materialId, CancellationToken cancellationToken = default)
+    // Materials - material Id is string (BD uses long)
+    public async Task<bool> UserHasAccessToMaterialAsync(string materialId, CancellationToken cancellationToken = default)
     {
         var userId = _currentUserService.GetCurrentUserId();
         var userIdLong = GuidLongConverter.ToLong(userId);
-        var materialIdLong = GuidLongConverter.ToLong(materialId);
+        var materialIdLong = string.IsNullOrEmpty(materialId) ? 0L : long.Parse(materialId);
 
         // Admin tiene acceso a todo
         if (await CurrentUserIsAdminAsync(cancellationToken))
@@ -218,7 +218,7 @@ public class DataSegmentationService : IDataSegmentationService
         return material.IdUsuarioCreacion == userIdLong;
     }
 
-    public async Task<IEnumerable<Guid>> GetUserMaterialIdsAsync(CancellationToken cancellationToken = default)
+    public async Task<IEnumerable<string>> GetUserMaterialIdsAsync(CancellationToken cancellationToken = default)
     {
         var userId = _currentUserService.GetCurrentUserId();
         var userIdLong = GuidLongConverter.ToLong(userId);
@@ -231,7 +231,7 @@ public class DataSegmentationService : IDataSegmentationService
                 .Select(m => m.IdMaterial)
                 .ToListAsync(cancellationToken);
             
-            return allMaterials.Select(GuidLongConverter.ToGuid);
+            return allMaterials.Select(x => x.ToString()).ToList();
         }
 
         // Usuario normal: materiales públicos + materiales que creó
@@ -240,7 +240,7 @@ public class DataSegmentationService : IDataSegmentationService
             .Select(m => m.IdMaterial)
             .ToListAsync(cancellationToken);
 
-        return materialIds.Select(GuidLongConverter.ToGuid);
+        return materialIds.Select(x => x.ToString()).ToList();
     }
 
     public async Task<bool> AssignMaterialToUserAsync(Guid userId, Guid materialId, CancellationToken cancellationToken = default)

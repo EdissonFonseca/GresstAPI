@@ -375,8 +375,8 @@ public class DatabaseAuthenticationService : IAuthenticationService
 
         return new UserDto
         {
-            Id = GuidLongConverter.ToGuid(user.IdUsuario),
-            AccountId = GuidLongConverter.ToGuid(user.IdCuenta),
+            Id = GuidLongConverter.ToGuid(user.IdUsuario).ToString(),
+            AccountId = user.IdCuenta.ToString(),
             Name = user.Nombre,
             Email = user.Correo,
             Status = user.IdEstado,
@@ -393,8 +393,8 @@ public class DatabaseAuthenticationService : IAuthenticationService
 
         return new UserDto
         {
-            Id = GuidLongConverter.ToGuid(user.IdUsuario),
-            AccountId = GuidLongConverter.ToGuid(user.IdCuenta),
+            Id = GuidLongConverter.ToGuid(user.IdUsuario).ToString(),
+            AccountId = user.IdCuenta.ToString(),
             Name = user.Nombre,
             Email = user.Correo,
             Status = user.IdEstado,

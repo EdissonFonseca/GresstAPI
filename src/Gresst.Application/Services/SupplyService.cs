@@ -29,7 +29,7 @@ public class SupplyService : ISupplyService
         return supplies.Select(MapToDto).ToList();
     }
 
-    public async Task<SupplyDto?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
+    public async Task<SupplyDto?> GetByIdAsync(string id, CancellationToken cancellationToken = default)
     {
         var supply = await _supplyRepository.GetByIdAsync(id, cancellationToken);
         if (supply == null)
@@ -60,7 +60,7 @@ public class SupplyService : ISupplyService
     {
         var supply = new Supply
         {
-            Id = Guid.NewGuid(),
+            Id = string.Empty,
             Code = dto.Code,
             Name = dto.Name,
             Description = dto.Description,
@@ -112,7 +112,7 @@ public class SupplyService : ISupplyService
         return MapToDto(supply);
     }
 
-    public async Task<bool> DeleteAsync(Guid id, CancellationToken cancellationToken = default)
+    public async Task<bool> DeleteAsync(string id, CancellationToken cancellationToken = default)
     {
         var supply = await _supplyRepository.GetByIdAsync(id, cancellationToken);
         if (supply == null)

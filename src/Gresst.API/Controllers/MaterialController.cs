@@ -57,7 +57,7 @@ public class MaterialController : ControllerBase
     [ProducesResponseType(404)]
     public async Task<ActionResult<MaterialDto>> GetById(Guid id, CancellationToken cancellationToken)
     {
-        var material = await _materialService.GetByIdAsync(id, cancellationToken);
+        var material = await _materialService.GetByIdAsync(id.ToString(), cancellationToken);
         
         if (material == null)
             return NotFound(new { message = "Material not found or you don't have access" });
@@ -161,7 +161,7 @@ public class MaterialController : ControllerBase
     [ProducesResponseType(404)]
     public async Task<ActionResult<MaterialDto>> Update(Guid id, [FromBody] UpdateMaterialDto dto, CancellationToken cancellationToken)
     {
-        if (id != dto.Id)
+        if (id.ToString() != dto.Id)
             return BadRequest(new { message = "ID mismatch" });
 
         if (!ModelState.IsValid)
@@ -183,7 +183,7 @@ public class MaterialController : ControllerBase
     [ProducesResponseType(404)]
     public async Task<ActionResult> Delete(Guid id, CancellationToken cancellationToken)
     {
-        var success = await _materialService.DeleteAsync(id, cancellationToken);
+        var success = await _materialService.DeleteAsync(id.ToString(), cancellationToken);
         
         if (!success)
             return NotFound(new { message = "Material not found or you don't have access" });

@@ -22,10 +22,8 @@ public class PersonMapper : MapperBase<Person, Persona>
             return new Person
             {
                 // IDs
-                Id = GuidStringConverter.ToGuid(dbEntity.IdPersona),
-                AccountId = dbEntity.IdCuenta.HasValue
-                    ? GuidLongConverter.ToGuid(dbEntity.IdCuenta.Value)
-                    : Guid.Empty,
+                Id = dbEntity.IdPersona ?? string.Empty,
+                AccountId = dbEntity.IdCuenta?.ToString() ?? string.Empty,
 
                 // Basic Info
                 Name = dbEntity.Nombre ?? string.Empty,
@@ -69,10 +67,8 @@ public class PersonMapper : MapperBase<Person, Persona>
         return new Persona
         {
             // IDs
-            IdPersona = GuidStringConverter.ToString(domainEntity.Id),
-            IdCuenta = domainEntity.AccountId != Guid.Empty 
-                ? GuidLongConverter.ToLong(domainEntity.AccountId) 
-                : null,
+            IdPersona = domainEntity.Id,
+            IdCuenta = string.IsNullOrEmpty(domainEntity.AccountId) ? null : long.Parse(domainEntity.AccountId),
             
             // Basic Info
             Nombre = domainEntity.Name,

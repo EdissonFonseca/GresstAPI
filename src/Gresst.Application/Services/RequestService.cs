@@ -27,7 +27,7 @@ public class RequestService : IRequestService
         _currentUserService = currentUserService;
     }
 
-    public async Task<RequestDto> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
+    public async Task<RequestDto> GetByIdAsync(string id, CancellationToken cancellationToken = default)
     {
         var request = await _requestRepository.GetByIdAsync(id, cancellationToken);
         if (request == null)
@@ -160,7 +160,7 @@ public class RequestService : IRequestService
 
     public async Task<RequestDto> ApproveAsync(Guid id, decimal? agreedCost, CancellationToken cancellationToken = default)
     {
-        var request = await _requestRepository.GetByIdAsync(id, cancellationToken);
+        var request = await _requestRepository.GetByIdAsync(id.ToString(), cancellationToken);
         if (request == null)
             return null!;
 
@@ -180,7 +180,7 @@ public class RequestService : IRequestService
 
     public async Task<RequestDto> RejectAsync(Guid id, string reason, CancellationToken cancellationToken = default)
     {
-        var request = await _requestRepository.GetByIdAsync(id, cancellationToken);
+        var request = await _requestRepository.GetByIdAsync(id.ToString(), cancellationToken);
         if (request == null)
             return null!;
 
@@ -198,7 +198,7 @@ public class RequestService : IRequestService
 
     public async Task CancelAsync(Guid id, CancellationToken cancellationToken = default)
     {
-        var request = await _requestRepository.GetByIdAsync(id, cancellationToken);
+        var request = await _requestRepository.GetByIdAsync(id.ToString(), cancellationToken);
         if (request == null)
             return;
 

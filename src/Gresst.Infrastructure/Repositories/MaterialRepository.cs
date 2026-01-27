@@ -28,9 +28,10 @@ public class MaterialRepository : IRepository<Material>
         _currentUserService = currentUserService;
     }
 
-    public async Task<Material?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
+    public async Task<Material?> GetByIdAsync(string id, CancellationToken cancellationToken = default)
     {
-        var idLong = GuidLongConverter.ToLong(id);
+        if (string.IsNullOrEmpty(id) || !long.TryParse(id, out var idLong))
+            return null;
         var dbEntity = await _context.Materials.FindAsync(new object[] { idLong }, cancellationToken);
         
         return dbEntity != null ? _mapper.ToDomain(dbEntity) : null;
@@ -40,7 +41,7 @@ public class MaterialRepository : IRepository<Material>
     {
         var accountId = _currentUserService.GetCurrentAccountId();
         var accountPersonId = _currentUserService.GetCurrentAccountPersonId();
-        var accountIdLong = GuidLongConverter.ToLong(accountId);
+        var accountIdLong = string.IsNullOrEmpty(accountId) ? 0L : long.Parse(accountId);
         var accountPersonIdString = GuidStringConverter.ToString(accountPersonId);
 
         var dbEntities = await (
@@ -102,13 +103,13 @@ public class MaterialRepository : IRepository<Material>
         await _context.Materials.AddAsync(dbEntity, cancellationToken);
         
         // Return domain entity with generated ID
-        entity.Id = GuidLongConverter.ToGuid(dbEntity.IdMaterial);
+        entity.Id = dbEntity.IdMaterial.ToString();
         return entity;
     }
 
     public Task UpdateAsync(Material entity, CancellationToken cancellationToken = default)
     {
-        var idLong = GuidLongConverter.ToLong(entity.Id);
+        var idLong = string.IsNullOrEmpty(entity.Id) ? 0L : long.Parse(entity.Id);
         var dbEntity = _context.Materials.Find(idLong);
         
         if (dbEntity == null)
@@ -126,7 +127,7 @@ public class MaterialRepository : IRepository<Material>
 
     public Task DeleteAsync(Material entity, CancellationToken cancellationToken = default)
     {
-        var idLong = GuidLongConverter.ToLong(entity.Id);
+        var idLong = string.IsNullOrEmpty(entity.Id) ? 0L : long.Parse(entity.Id);
         var dbEntity = _context.Materials.Find(idLong);
         
         if (dbEntity == null)

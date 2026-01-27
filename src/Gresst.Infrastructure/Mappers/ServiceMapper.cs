@@ -20,9 +20,9 @@ public class ServiceMapper : MapperBase<Service, Servicio>
 
         return new Service
         {
-            // IDs
-            Id = GuidLongConverter.ToGuid(dbEntity.IdServicio),
-            AccountId = Guid.Empty, // Servicio is not account-specific in BD
+            // IDs - Domain BaseEntity uses string
+            Id = GuidLongConverter.ToGuid(dbEntity.IdServicio).ToString(),
+            AccountId = string.Empty, // Servicio is not account-specific in BD
             
             // Basic Info
             Name = dbEntity.Nombre ?? string.Empty,
@@ -48,7 +48,7 @@ public class ServiceMapper : MapperBase<Service, Servicio>
         return new Servicio
         {
             // IDs
-            IdServicio = GuidLongConverter.ToLong(domainEntity.Id),
+            IdServicio = string.IsNullOrEmpty(domainEntity.Id) ? 0 : GuidLongConverter.ToLong(Guid.Parse(domainEntity.Id)),
             
             // Basic Info
             Nombre = domainEntity.Name,

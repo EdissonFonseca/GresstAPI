@@ -27,9 +27,10 @@ public class SupplyRepository : IRepository<Supply>
         _currentUserService = currentUserService;
     }
 
-    public async Task<Supply?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
+    public async Task<Supply?> GetByIdAsync(string id, CancellationToken cancellationToken = default)
     {
-        var idLong = GuidLongConverter.ToLong(id);
+        if (string.IsNullOrEmpty(id) || !long.TryParse(id, out var idLong))
+            return null;
         var dbEntity = await _context.Insumos.FindAsync(new object[] { idLong }, cancellationToken);
         
         return dbEntity != null ? _mapper.ToDomain(dbEntity) : null;
@@ -40,7 +41,7 @@ public class SupplyRepository : IRepository<Supply>
         // Insumo puede ser público o privado, filtrar por Activo
         // Los insumos públicos son visibles para todos, los privados solo para la cuenta que los creó
         var accountId = _currentUserService.GetCurrentAccountId();
-        var accountIdLong = GuidLongConverter.ToLong(accountId);
+        var accountIdLong = string.IsNullOrEmpty(accountId) ? 0L : long.Parse(accountId);
         
         var dbEntities = await _context.Insumos
             .Where(i => i.Activo && (i.Publico || i.IdUsuarioCreacion == accountIdLong))
@@ -69,14 +70,14 @@ public class SupplyRepository : IRepository<Supply>
         await _context.Insumos.AddAsync(dbEntity, cancellationToken);
         
         // Update domain entity with generated ID
-        entity.Id = GuidLongConverter.ToGuid(dbEntity.IdInsumo);
+        entity.Id = dbEntity.IdInsumo.ToString();
         
         return entity;
     }
 
     public Task UpdateAsync(Supply entity, CancellationToken cancellationToken = default)
     {
-        var idLong = GuidLongConverter.ToLong(entity.Id);
+        var idLong = string.IsNullOrEmpty(entity.Id) ? 0L : long.Parse(entity.Id);
         var dbEntity = _context.Insumos.Find(idLong);
         
         if (dbEntity == null)
@@ -94,7 +95,7 @@ public class SupplyRepository : IRepository<Supply>
 
     public Task DeleteAsync(Supply entity, CancellationToken cancellationToken = default)
     {
-        var idLong = GuidLongConverter.ToLong(entity.Id);
+        var idLong = string.IsNullOrEmpty(entity.Id) ? 0L : long.Parse(entity.Id);
         var dbEntity = _context.Insumos.Find(idLong);
         
         if (dbEntity == null)
@@ -112,7 +113,7 @@ public class SupplyRepository : IRepository<Supply>
     public async Task<int> CountAsync(Expression<Func<Supply, bool>>? predicate = null, CancellationToken cancellationToken = default)
     {
         var accountId = _currentUserService.GetCurrentAccountId();
-        var accountIdLong = GuidLongConverter.ToLong(accountId);
+        var accountIdLong = string.IsNullOrEmpty(accountId) ? 0L : long.Parse(accountId);
         
         if (predicate == null)
         {

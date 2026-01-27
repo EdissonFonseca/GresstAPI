@@ -1,5 +1,6 @@
 using Gresst.Domain.Entities;
 using Gresst.Domain.Interfaces;
+using Gresst.Infrastructure.Common;
 using Gresst.Infrastructure.Data;
 using Gresst.Infrastructure.Mappers;
 using Microsoft.EntityFrameworkCore;
@@ -26,9 +27,10 @@ public class FacilityRepository : IRepository<Facility>
         _currentUserService = currentUserService;
     }
 
-    public async Task<Facility?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
+    public async Task<Facility?> GetByIdAsync(string id, CancellationToken cancellationToken = default)
     {
-        var idLong = ConvertGuidToLong(id);
+        if (string.IsNullOrEmpty(id) || !long.TryParse(id, out var idLong))
+            return null;
         var dbEntity = await _context.Depositos
             .Include(d => d.IdPersonaNavigation)
             .Include(d => d.IdSuperiorNavigation) // Parent facility
@@ -40,7 +42,7 @@ public class FacilityRepository : IRepository<Facility>
     public async Task<IEnumerable<Facility>> GetAllAsync(CancellationToken cancellationToken = default)
     {
         var accountId = _currentUserService.GetCurrentAccountId();
-        var accountIdLong = ConvertGuidToLong(accountId);
+        var accountIdLong = string.IsNullOrEmpty(accountId) ? 0L : long.Parse(accountId);
         
         var dbEntities = await _context.Depositos
             .Where(d => d.Activo && d.IdCuenta == accountIdLong)
@@ -66,18 +68,18 @@ public class FacilityRepository : IRepository<Facility>
         // Set audit fields
         dbEntity.FechaCreacion = DateTime.UtcNow;
         dbEntity.IdUsuarioCreacion = GetCurrentUserIdAsLong();
-        dbEntity.IdCuenta = ConvertGuidToLong(_currentUserService.GetCurrentAccountId());
+        dbEntity.IdCuenta = string.IsNullOrEmpty(_currentUserService.GetCurrentAccountId()) ? null : long.Parse(_currentUserService.GetCurrentAccountId());
         
         await _context.Depositos.AddAsync(dbEntity, cancellationToken);
         
         // Return domain entity with generated ID
-        entity.Id = new Guid(dbEntity.IdDeposito.ToString().PadLeft(32, '0'));
+        entity.Id = dbEntity.IdDeposito.ToString();
         return entity;
     }
 
     public Task UpdateAsync(Facility entity, CancellationToken cancellationToken = default)
     {
-        var idLong = ConvertGuidToLong(entity.Id);
+        var idLong = string.IsNullOrEmpty(entity.Id) ? 0L : long.Parse(entity.Id);
         var dbEntity = _context.Depositos.Find(idLong);
         
         if (dbEntity == null)
@@ -95,7 +97,7 @@ public class FacilityRepository : IRepository<Facility>
 
     public Task DeleteAsync(Facility entity, CancellationToken cancellationToken = default)
     {
-        var idLong = ConvertGuidToLong(entity.Id);
+        var idLong = string.IsNullOrEmpty(entity.Id) ? 0L : long.Parse(entity.Id);
         var dbEntity = _context.Depositos.Find(idLong);
         
         if (dbEntity == null)
@@ -113,7 +115,7 @@ public class FacilityRepository : IRepository<Facility>
     public async Task<int> CountAsync(Expression<Func<Facility, bool>>? predicate = null, CancellationToken cancellationToken = default)
     {
         var accountId = _currentUserService.GetCurrentAccountId();
-        var accountIdLong = ConvertGuidToLong(accountId);
+        var accountIdLong = string.IsNullOrEmpty(accountId) ? 0L : long.Parse(accountId);
         
         if (predicate == null)
         {
@@ -126,21 +128,10 @@ public class FacilityRepository : IRepository<Facility>
         return all.Count(predicate.Compile());
     }
 
-    // Helper methods para conversión de tipos
-    private long ConvertGuidToLong(Guid guid)
-    {
-        if (guid == Guid.Empty) return 0;
-        
-        var guidString = guid.ToString().Replace("-", "");
-        var numericPart = new string(guidString.Where(char.IsDigit).Take(18).ToArray());
-        
-        return long.TryParse(numericPart, out var result) ? result : 0;
-    }
-
     private long GetCurrentUserIdAsLong()
     {
         var userId = _currentUserService.GetCurrentUserId();
-        return ConvertGuidToLong(userId);
+        return GuidLongConverter.ToLong(userId);
     }
 }
 

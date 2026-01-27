@@ -70,7 +70,7 @@ public class ServiceController : ControllerBase
     [ProducesResponseType(404)]
     public async Task<ActionResult<ServiceDto>> UpdateService(Guid id, [FromBody] UpdateServiceDto dto, CancellationToken cancellationToken)
     {
-        if (id != dto.Id)
+        if (id.ToString() != dto.Id)
             return BadRequest(new { message = "ID mismatch" });
 
         if (!ModelState.IsValid)

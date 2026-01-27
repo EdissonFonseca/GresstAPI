@@ -20,11 +20,11 @@ public class CurrentUserService : ICurrentUserService
         return GuidStringConverter.ToGuid(userId);
     }
 
-    public Guid GetCurrentAccountId()
+    public string GetCurrentAccountId()
     {
-        // AccountId comes from JWT token claim (set during login)
+        // AccountId comes from JWT token claim (set during login) - keep as string for BaseEntity.AccountId
         var accountId = _httpContextAccessor.HttpContext?.User?.FindFirstValue("AccountId");
-        return GuidStringConverter.ToGuid(accountId);
+        return accountId ?? string.Empty;
     }
 
     public string GetCurrentUsername()

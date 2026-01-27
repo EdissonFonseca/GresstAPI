@@ -20,9 +20,9 @@ public class FacilityMaterialMapper : MapperBase<FacilityMaterial, PersonaMateri
 
         return new FacilityMaterial
         {
-            // IDs (composite key - generate a Guid for domain)
-            Id = Guid.NewGuid(),
-            AccountId = GuidLongConverter.ToGuid(dbEntity.IdCuenta),
+            // IDs - Domain BaseEntity uses string
+            Id = Guid.NewGuid().ToString(),
+            AccountId = dbEntity.IdCuenta.ToString(),
             
             // Relations
             PersonId = GuidStringConverter.ToGuid(dbEntity.IdPersona),
@@ -60,7 +60,7 @@ public class FacilityMaterialMapper : MapperBase<FacilityMaterial, PersonaMateri
             IdPersona = GuidStringConverter.ToString(domainEntity.PersonId),
             IdMaterial = GuidLongConverter.ToLong(domainEntity.MaterialId),
             IdDeposito = GuidLongConverter.ToLong(domainEntity.FacilityId),
-            IdCuenta = GuidLongConverter.ToLong(domainEntity.AccountId),
+            IdCuenta = long.TryParse(domainEntity.AccountId, out var fmAc) ? fmAc : 0,
             
             // Properties
             PrecioServicio = domainEntity.ServicePrice,

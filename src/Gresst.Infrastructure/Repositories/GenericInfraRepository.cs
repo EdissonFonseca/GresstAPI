@@ -19,7 +19,7 @@ public class GenericInfraRepository<T> : IRepository<T> where T : BaseEntity
         _context = context;
     }
 
-    public virtual async Task<T?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
+    public virtual async Task<T?> GetByIdAsync(string id, CancellationToken cancellationToken = default)
     {
         // Temporary implementation - returns null
         // Real implementation needs mapper

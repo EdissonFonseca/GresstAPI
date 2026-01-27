@@ -67,7 +67,7 @@ public class SupplyController : ControllerBase
     [ProducesResponseType(404)]
     public async Task<ActionResult<SupplyDto>> GetById(Guid id, CancellationToken cancellationToken)
     {
-        var supply = await _supplyService.GetByIdAsync(id, cancellationToken);
+        var supply = await _supplyService.GetByIdAsync(id.ToString(), cancellationToken);
         
         if (supply == null)
             return NotFound(new { message = "Supply not found" });
@@ -127,7 +127,7 @@ public class SupplyController : ControllerBase
     [ProducesResponseType(404)]
     public async Task<ActionResult<SupplyDto>> Update(Guid id, [FromBody] UpdateSupplyDto dto, CancellationToken cancellationToken)
     {
-        if (id != dto.Id)
+        if (id.ToString() != dto.Id)
             return BadRequest(new { message = "ID mismatch" });
 
         if (!ModelState.IsValid)
@@ -149,7 +149,7 @@ public class SupplyController : ControllerBase
     [ProducesResponseType(404)]
     public async Task<ActionResult> Delete(Guid id, CancellationToken cancellationToken)
     {
-        var success = await _supplyService.DeleteAsync(id, cancellationToken);
+        var success = await _supplyService.DeleteAsync(id.ToString(), cancellationToken);
         
         if (!success)
             return NotFound(new { message = "Supply not found" });

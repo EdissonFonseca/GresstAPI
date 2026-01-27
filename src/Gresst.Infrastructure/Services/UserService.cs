@@ -61,7 +61,7 @@ public class UserService : IUserService
 
     public async Task<UserDto> CreateUserAsync(CreateUserDto dto, CancellationToken cancellationToken = default)
     {
-        var accountIdLong = GuidLongConverter.ToLong(dto.AccountId);
+        var accountIdLong = long.TryParse(dto.AccountId, out var acLong) ? acLong : 0;
 
         var usuario = new Data.Entities.Usuario
         {
@@ -169,8 +169,8 @@ public class UserService : IUserService
 
         return new UserDto
         {
-            Id = GuidLongConverter.ToGuid(usuario.IdUsuario),
-            AccountId = GuidLongConverter.ToGuid(usuario.IdCuenta),
+            Id = GuidLongConverter.ToGuid(usuario.IdUsuario).ToString(),
+            AccountId = usuario.IdCuenta.ToString(),
             Name = usuario.Nombre,
             LastName = usuario.Apellido,
             Email = usuario.Correo,

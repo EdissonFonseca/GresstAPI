@@ -6,7 +6,7 @@ namespace Gresst.Domain.Interfaces;
 public interface ICurrentUserService
 {
     Guid GetCurrentUserId();
-    Guid GetCurrentAccountId();
+    string GetCurrentAccountId();
     string GetCurrentUsername();
     Guid GetCurrentPersonId();
     Guid GetCurrentAccountPersonId();

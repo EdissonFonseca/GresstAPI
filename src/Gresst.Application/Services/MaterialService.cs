@@ -69,7 +69,7 @@ public class MaterialService : IMaterialService
     /// <summary>
     /// Get material by ID - VERIFIES user has access
     /// </summary>
-    public async Task<MaterialDto?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
+    public async Task<MaterialDto?> GetByIdAsync(string id, CancellationToken cancellationToken = default)
     {
         // Verificar acceso del usuario
         if (!await _segmentationService.UserHasAccessToMaterialAsync(id, cancellationToken))
@@ -148,7 +148,7 @@ public class MaterialService : IMaterialService
             pm => pm.PersonId == accountPersonId && pm.IsActive,
             cancellationToken);
         
-        var materialIds = personMaterials.Select(pm => pm.MaterialId).Distinct().ToList();
+        var materialIds = personMaterials.Select(pm => pm.MaterialId.ToString()).Distinct().ToList();
         var materials = await _materialRepository.FindAsync(
             m => materialIds.Contains(m.Id),
             cancellationToken);
@@ -174,7 +174,7 @@ public class MaterialService : IMaterialService
             pm => pm.PersonId == providerId && pm.IsActive,
             cancellationToken);
         
-        var materialIds = personMaterials.Select(pm => pm.MaterialId).Distinct().ToList();
+        var materialIds = personMaterials.Select(pm => pm.MaterialId.ToString()).Distinct().ToList();
         var materials = await _materialRepository.FindAsync(
             m => materialIds.Contains(m.Id),
             cancellationToken);
@@ -199,7 +199,7 @@ public class MaterialService : IMaterialService
             pm => pm.PersonId == clientId && pm.IsActive,
             cancellationToken);
         
-        var materialIds = personMaterials.Select(pm => pm.MaterialId).Distinct().ToList();
+        var materialIds = personMaterials.Select(pm => pm.MaterialId.ToString()).Distinct().ToList();
         var materials = await _materialRepository.FindAsync(
             m => materialIds.Contains(m.Id),
             cancellationToken);
@@ -224,7 +224,7 @@ public class MaterialService : IMaterialService
             fm => fm.FacilityId == facilityId && fm.IsActive,
             cancellationToken);
         
-        var materialIds = facilityMaterials.Select(fm => fm.MaterialId).Distinct().ToList();
+        var materialIds = facilityMaterials.Select(fm => fm.MaterialId.ToString()).Distinct().ToList();
         var materials = await _materialRepository.FindAsync(
             m => materialIds.Contains(m.Id),
             cancellationToken);
@@ -238,14 +238,14 @@ public class MaterialService : IMaterialService
     public async Task<MaterialDto> CreateFacilityMaterialAsync(Guid facilityId, CreateMaterialDto dto, CancellationToken cancellationToken = default)
     {
         // Verify facility exists and get its owner
-        var facility = await _facilityRepository.GetByIdAsync(facilityId, cancellationToken);
+        var facility = await _facilityRepository.GetByIdAsync(facilityId.ToString(), cancellationToken);
         if (facility == null)
             throw new InvalidOperationException("Facility not found");
 
         // Create the material
         var material = new Material
         {
-            Id = Guid.NewGuid(),
+            Id = string.Empty,
             Code = dto.Code,
             Name = dto.Name,
             Description = dto.Description,
@@ -258,14 +258,15 @@ public class MaterialService : IMaterialService
         };
 
         await _materialRepository.AddAsync(material, cancellationToken);
+        await _unitOfWork.SaveChangesAsync(cancellationToken);
 
-        // Create FacilityMaterial relationship
+        // Create FacilityMaterial relationship (material.Id is now set by DbContext)
         var facilityMaterial = new FacilityMaterial
         {
-            Id = Guid.NewGuid(),
+            Id = string.Empty,
             PersonId = facility.PersonId,
             FacilityId = facilityId,
-            MaterialId = material.Id,
+            MaterialId = Guid.Parse(material.Id),
             ServicePrice = dto.ServicePrice,
             PurchasePrice = dto.PurchasePrice,
             Weight = dto.Weight,
@@ -290,7 +291,7 @@ public class MaterialService : IMaterialService
         // Create the material
         var material = new Material
         {
-            Id = Guid.NewGuid(),
+            Id = string.Empty,
             Code = dto.Code,
             Name = dto.Name,
             Description = dto.Description,
@@ -303,13 +304,14 @@ public class MaterialService : IMaterialService
         };
 
         await _materialRepository.AddAsync(material, cancellationToken);
+        await _unitOfWork.SaveChangesAsync(cancellationToken);
 
-        // Create PersonMaterial relationship
+        // Create PersonMaterial relationship (material.Id is now set by DbContext)
         var personMaterial = new PersonMaterial
         {
-            Id = Guid.NewGuid(),
+            Id = string.Empty,
             PersonId = personId,
-            MaterialId = material.Id,
+            MaterialId = Guid.Parse(material.Id),
             Name = dto.Name,
             ServicePrice = dto.ServicePrice,
             PurchasePrice = dto.PurchasePrice,
@@ -370,7 +372,7 @@ public class MaterialService : IMaterialService
         return MapToDto(material);
     }
 
-    public async Task<bool> DeleteAsync(Guid id, CancellationToken cancellationToken = default)
+    public async Task<bool> DeleteAsync(string id, CancellationToken cancellationToken = default)
     {
         // Verificar acceso del usuario
         if (!await _segmentationService.UserHasAccessToMaterialAsync(id, cancellationToken))

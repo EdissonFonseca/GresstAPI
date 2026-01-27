@@ -29,9 +29,10 @@ public class RouteRepository : IRepository<DomainRoute>
         _currentUserService = currentUserService;
     }
 
-    public async Task<DomainRoute?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
+    public async Task<DomainRoute?> GetByIdAsync(string id, CancellationToken cancellationToken = default)
     {
-        var idLong = GuidLongConverter.ToLong(id);
+        if (string.IsNullOrEmpty(id) || !long.TryParse(id, out var idLong))
+            return null;
         var dbEntity = await _context.Ruta
             .Include(r => r.IdVehiculoNavigation)
             .Include(r => r.IdResponsableNavigation)
@@ -54,7 +55,7 @@ public class RouteRepository : IRepository<DomainRoute>
     public async Task<IEnumerable<DomainRoute>> GetAllAsync(CancellationToken cancellationToken = default)
     {
         var accountId = _currentUserService.GetCurrentAccountId();
-        var accountIdLong = GuidLongConverter.ToLong(accountId);
+        var accountIdLong = string.IsNullOrEmpty(accountId) ? 0L : long.Parse(accountId);
         
         var dbEntities = await _context.Ruta
             .Where(r => r.IdCuenta == accountIdLong)
@@ -88,13 +89,13 @@ public class RouteRepository : IRepository<DomainRoute>
         // Set audit fields
         dbEntity.FechaCreacion = DateTime.UtcNow;
         dbEntity.IdUsuarioCreacion = GuidLongConverter.ToLong(_currentUserService.GetCurrentUserId());
-        dbEntity.IdCuenta = GuidLongConverter.ToLong(_currentUserService.GetCurrentAccountId());
+        dbEntity.IdCuenta = string.IsNullOrEmpty(_currentUserService.GetCurrentAccountId()) ? 0L : long.Parse(_currentUserService.GetCurrentAccountId());
         dbEntity.Activo = true;
 
         await _context.Ruta.AddAsync(dbEntity, cancellationToken);
         
         // Update domain entity with generated ID
-        entity.Id = GuidLongConverter.ToGuid(dbEntity.IdRuta);
+        entity.Id = dbEntity.IdRuta.ToString();
         
         return entity;
     }
@@ -104,7 +105,7 @@ public class RouteRepository : IRepository<DomainRoute>
         // Note: Vehicle should be loaded before calling UpdateAsync if VehicleId is provided
         // The service layer will handle this
         
-        var idLong = GuidLongConverter.ToLong(entity.Id);
+        var idLong = string.IsNullOrEmpty(entity.Id) ? 0L : long.Parse(entity.Id);
         var dbEntity = await _context.Ruta.FindAsync(new object[] { idLong }, cancellationToken);
         
         if (dbEntity == null)
@@ -121,7 +122,7 @@ public class RouteRepository : IRepository<DomainRoute>
 
     public Task DeleteAsync(DomainRoute entity, CancellationToken cancellationToken = default)
     {
-        var idLong = GuidLongConverter.ToLong(entity.Id);
+        var idLong = string.IsNullOrEmpty(entity.Id) ? 0L : long.Parse(entity.Id);
         var dbEntity = _context.Ruta.Find(idLong);
         
         if (dbEntity == null)
@@ -139,7 +140,7 @@ public class RouteRepository : IRepository<DomainRoute>
     public async Task<int> CountAsync(Expression<Func<DomainRoute, bool>>? predicate = null, CancellationToken cancellationToken = default)
     {
         var accountId = _currentUserService.GetCurrentAccountId();
-        var accountIdLong = GuidLongConverter.ToLong(accountId);
+        var accountIdLong = string.IsNullOrEmpty(accountId) ? 0L : long.Parse(accountId);
         
         if (predicate == null)
         {

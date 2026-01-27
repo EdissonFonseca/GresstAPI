@@ -27,7 +27,7 @@ public class FacilityMaterialRepository : IRepository<FacilityMaterial>
         _currentUserService = currentUserService;
     }
 
-    public async Task<FacilityMaterial?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
+    public async Task<FacilityMaterial?> GetByIdAsync(string id, CancellationToken cancellationToken = default)
     {
         // FacilityMaterial has composite key, so we need to find by MaterialId and FacilityId
         // This is a limitation - we'd need both to find it properly
@@ -39,7 +39,7 @@ public class FacilityMaterialRepository : IRepository<FacilityMaterial>
     public async Task<IEnumerable<FacilityMaterial>> GetAllAsync(CancellationToken cancellationToken = default)
     {
         var accountId = _currentUserService.GetCurrentAccountId();
-        var accountIdLong = GuidLongConverter.ToLong(accountId);
+        var accountIdLong = string.IsNullOrEmpty(accountId) ? 0L : long.Parse(accountId);
         
         var dbEntities = await _context.PersonaMaterialDepositos
             .Where(pmd => pmd.Activo && pmd.IdCuenta == accountIdLong)
@@ -54,7 +54,7 @@ public class FacilityMaterialRepository : IRepository<FacilityMaterial>
     public async Task<IEnumerable<FacilityMaterial>> FindAsync(Expression<Func<FacilityMaterial, bool>> predicate, CancellationToken cancellationToken = default)
     {
         var accountId = _currentUserService.GetCurrentAccountId();
-        var accountIdLong = GuidLongConverter.ToLong(accountId);
+        var accountIdLong = string.IsNullOrEmpty(accountId) ? 0L : long.Parse(accountId);
         
         var dbEntities = await _context.PersonaMaterialDepositos
             .Where(pmd => pmd.Activo && pmd.IdCuenta == accountIdLong)
@@ -74,7 +74,7 @@ public class FacilityMaterialRepository : IRepository<FacilityMaterial>
         // Set audit fields
         dbEntity.FechaCreacion = DateTime.UtcNow;
         dbEntity.IdUsuarioCreacion = GetCurrentUserIdAsLong();
-        dbEntity.IdCuenta = GuidLongConverter.ToLong(entity.AccountId);
+        dbEntity.IdCuenta = string.IsNullOrEmpty(entity.AccountId) ? 0L : long.Parse(entity.AccountId);
         dbEntity.Activo = entity.IsHandled;
         
         await _context.PersonaMaterialDepositos.AddAsync(dbEntity, cancellationToken);
@@ -88,7 +88,7 @@ public class FacilityMaterialRepository : IRepository<FacilityMaterial>
             .FirstOrDefault(pmd => pmd.IdPersona == GuidStringConverter.ToString(entity.PersonId) 
                 && pmd.IdMaterial == GuidLongConverter.ToLong(entity.MaterialId)
                 && pmd.IdDeposito == GuidLongConverter.ToLong(entity.FacilityId)
-                && pmd.IdCuenta == GuidLongConverter.ToLong(entity.AccountId));
+                && pmd.IdCuenta == (string.IsNullOrEmpty(entity.AccountId) ? 0L : long.Parse(entity.AccountId)));
         
         if (dbEntity == null)
             throw new KeyNotFoundException($"FacilityMaterial not found");
@@ -108,7 +108,7 @@ public class FacilityMaterialRepository : IRepository<FacilityMaterial>
             .FirstOrDefault(pmd => pmd.IdPersona == GuidStringConverter.ToString(entity.PersonId) 
                 && pmd.IdMaterial == GuidLongConverter.ToLong(entity.MaterialId)
                 && pmd.IdDeposito == GuidLongConverter.ToLong(entity.FacilityId)
-                && pmd.IdCuenta == GuidLongConverter.ToLong(entity.AccountId));
+                && pmd.IdCuenta == (string.IsNullOrEmpty(entity.AccountId) ? 0L : long.Parse(entity.AccountId)));
         
         if (dbEntity == null)
             throw new KeyNotFoundException($"FacilityMaterial not found");
@@ -125,7 +125,7 @@ public class FacilityMaterialRepository : IRepository<FacilityMaterial>
     public async Task<int> CountAsync(Expression<Func<FacilityMaterial, bool>>? predicate = null, CancellationToken cancellationToken = default)
     {
         var accountId = _currentUserService.GetCurrentAccountId();
-        var accountIdLong = GuidLongConverter.ToLong(accountId);
+        var accountIdLong = string.IsNullOrEmpty(accountId) ? 0L : long.Parse(accountId);
         
         if (predicate == null)
         {

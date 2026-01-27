@@ -2,7 +2,7 @@ namespace Gresst.Application.DTOs;
 
 public class PackagingDto
 {
-    public Guid Id { get; set; }
+    public string Id { get; set; } = string.Empty;
     public string Code { get; set; } = string.Empty;
     public string Name { get; set; } = string.Empty;
     public string? Description { get; set; }
@@ -38,7 +38,7 @@ public class CreatePackagingDto
 
 public class UpdatePackagingDto
 {
-    public Guid Id { get; set; }
+    public string Id { get; set; } = string.Empty;
     public string? Name { get; set; }
     public string? Description { get; set; }
     public string? PackagingType { get; set; }

@@ -20,10 +20,10 @@ public class PackagingMapper : MapperBase<DomainPackaging, DbPackaging>
 
         return new DomainPackaging
         {
-            // IDs - Conversión de tipos
+            // IDs - Domain BaseEntity uses string
             Id = dbEntity.IdEmbalaje != 0 
-                ? GuidLongConverter.ToGuid(dbEntity.IdEmbalaje) 
-                : Guid.NewGuid(),
+                ? GuidLongConverter.ToGuid(dbEntity.IdEmbalaje).ToString() 
+                : string.Empty,
             
             // Basic Info
             Code = dbEntity.IdEmbalaje.ToString(), // Usar ID como código si no hay código específico
@@ -45,7 +45,7 @@ public class PackagingMapper : MapperBase<DomainPackaging, DbPackaging>
             UNPackagingCode = null,
             
             // Audit fields
-            AccountId = Guid.Empty, // Embalaje no tiene IdCuenta directo
+            AccountId = string.Empty, // Embalaje no tiene IdCuenta directo
             CreatedAt = dbEntity.FechaCreacion,
             UpdatedAt = dbEntity.FechaUltimaModificacion,
             CreatedBy = dbEntity.IdUsuarioCreacion.ToString(),
@@ -65,8 +65,8 @@ public class PackagingMapper : MapperBase<DomainPackaging, DbPackaging>
         return new DbPackaging
         {
             // IDs - Conversión de Guid a long
-            IdEmbalaje = domainEntity.Id != Guid.Empty 
-                ? GuidLongConverter.ToLong(domainEntity.Id) 
+            IdEmbalaje = !string.IsNullOrEmpty(domainEntity.Id) && Guid.TryParse(domainEntity.Id, out var pkgGuid)
+                ? GuidLongConverter.ToLong(pkgGuid) 
                 : 0,
             
             // Parent packaging (hierarchical structure)

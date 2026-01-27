@@ -70,7 +70,7 @@ public class TreatmentController : ControllerBase
     [ProducesResponseType(404)]
     public async Task<ActionResult<TreatmentDto>> UpdateTreatment(Guid id, [FromBody] UpdateTreatmentDto dto, CancellationToken cancellationToken)
     {
-        if (id != dto.Id)
+        if (id.ToString() != dto.Id)
             return BadRequest(new { message = "ID mismatch" });
 
         if (!ModelState.IsValid)

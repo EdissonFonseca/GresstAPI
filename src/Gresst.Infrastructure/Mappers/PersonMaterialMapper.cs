@@ -21,8 +21,8 @@ public class PersonMaterialMapper : MapperBase<PersonMaterial, PersonaMaterial>
         return new PersonMaterial
         {
             // IDs
-            Id = Guid.NewGuid(), // PersonMaterial doesn't have a single ID in BD, it's a composite key
-            AccountId = GuidLongConverter.ToGuid(dbEntity.IdCuenta),
+            Id = Guid.NewGuid().ToString(), // PersonMaterial doesn't have a single ID in BD, it's a composite key
+            AccountId = dbEntity.IdCuenta.ToString(),
             
             // Relations
             PersonId = GuidStringConverter.ToGuid(dbEntity.IdPersona),
@@ -63,7 +63,7 @@ public class PersonMaterialMapper : MapperBase<PersonMaterial, PersonaMaterial>
             // IDs (composite key)
             IdPersona = GuidStringConverter.ToString(domainEntity.PersonId),
             IdMaterial = GuidLongConverter.ToLong(domainEntity.MaterialId),
-            IdCuenta = GuidLongConverter.ToLong(domainEntity.AccountId),
+            IdCuenta = long.TryParse(domainEntity.AccountId, out var pmAc) ? pmAc : 0,
             
             // Properties
             Nombre = domainEntity.Name,

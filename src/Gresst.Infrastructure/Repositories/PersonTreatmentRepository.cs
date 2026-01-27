@@ -27,7 +27,7 @@ public class PersonTreatmentRepository : IRepository<PersonTreatment>
         _currentUserService = currentUserService;
     }
 
-    public async Task<PersonTreatment?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
+    public async Task<PersonTreatment?> GetByIdAsync(string id, CancellationToken cancellationToken = default)
     {
         // PersonTreatment has composite key, so GetByIdAsync needs to be adapted
         await Task.CompletedTask;
@@ -37,7 +37,7 @@ public class PersonTreatmentRepository : IRepository<PersonTreatment>
     public async Task<IEnumerable<PersonTreatment>> GetAllAsync(CancellationToken cancellationToken = default)
     {
         var accountId = _currentUserService.GetCurrentAccountId();
-        var accountIdLong = GuidLongConverter.ToLong(accountId);
+        var accountIdLong = string.IsNullOrEmpty(accountId) ? 0L : long.Parse(accountId);
 
         var dbEntities = await _context.PersonaTratamientos
             .Where(pt => pt.Activo && pt.IdCuenta == accountIdLong)
@@ -58,7 +58,7 @@ public class PersonTreatmentRepository : IRepository<PersonTreatment>
     {
         var dbEntity = _mapper.ToDatabase(entity);
         
-        dbEntity.IdCuenta = GuidLongConverter.ToLong(_currentUserService.GetCurrentAccountId());
+        dbEntity.IdCuenta = string.IsNullOrEmpty(_currentUserService.GetCurrentAccountId()) ? 0L : long.Parse(_currentUserService.GetCurrentAccountId());
         dbEntity.FechaCreacion = DateTime.UtcNow;
         dbEntity.IdUsuarioCreacion = GuidLongConverter.ToLong(_currentUserService.GetCurrentUserId());
         dbEntity.Activo = true;
@@ -70,7 +70,7 @@ public class PersonTreatmentRepository : IRepository<PersonTreatment>
 
     public Task UpdateAsync(PersonTreatment entity, CancellationToken cancellationToken = default)
     {
-        var accountIdLong = GuidLongConverter.ToLong(_currentUserService.GetCurrentAccountId());
+        var accountIdLong = string.IsNullOrEmpty(_currentUserService.GetCurrentAccountId()) ? 0L : long.Parse(_currentUserService.GetCurrentAccountId());
         var personIdString = GuidStringConverter.ToString(entity.PersonId);
         var treatmentIdLong = GuidLongConverter.ToLong(entity.TreatmentId);
 
@@ -90,7 +90,7 @@ public class PersonTreatmentRepository : IRepository<PersonTreatment>
 
     public Task DeleteAsync(PersonTreatment entity, CancellationToken cancellationToken = default)
     {
-        var accountIdLong = GuidLongConverter.ToLong(_currentUserService.GetCurrentAccountId());
+        var accountIdLong = string.IsNullOrEmpty(_currentUserService.GetCurrentAccountId()) ? 0L : long.Parse(_currentUserService.GetCurrentAccountId());
         var personIdString = GuidStringConverter.ToString(entity.PersonId);
         var treatmentIdLong = GuidLongConverter.ToLong(entity.TreatmentId);
 
@@ -111,7 +111,7 @@ public class PersonTreatmentRepository : IRepository<PersonTreatment>
     public async Task<int> CountAsync(Expression<Func<PersonTreatment, bool>>? predicate = null, CancellationToken cancellationToken = default)
     {
         var accountId = _currentUserService.GetCurrentAccountId();
-        var accountIdLong = GuidLongConverter.ToLong(accountId);
+        var accountIdLong = string.IsNullOrEmpty(accountId) ? 0L : long.Parse(accountId);
         
         if (predicate == null)
         {

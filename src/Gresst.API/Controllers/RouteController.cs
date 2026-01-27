@@ -71,7 +71,7 @@ public class RouteController : ControllerBase
     [ProducesResponseType(404)]
     public async Task<ActionResult<RouteDto>> GetById(Guid id, CancellationToken cancellationToken)
     {
-        var route = await _routeService.GetByIdAsync(id, cancellationToken);
+        var route = await _routeService.GetByIdAsync(id.ToString(), cancellationToken);
         
         if (route == null)
             return NotFound(new { message = "Route not found" });
@@ -132,7 +132,7 @@ public class RouteController : ControllerBase
     [ProducesResponseType(404)]
     public async Task<ActionResult<RouteDto>> Update(Guid id, [FromBody] UpdateRouteDto dto, CancellationToken cancellationToken)
     {
-        if (id != dto.Id)
+        if (id.ToString() != dto.Id)
             return BadRequest(new { message = "ID mismatch" });
 
         if (!ModelState.IsValid)

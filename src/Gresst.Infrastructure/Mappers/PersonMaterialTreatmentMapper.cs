@@ -21,8 +21,8 @@ public class PersonMaterialTreatmentMapper : MapperBase<PersonMaterialTreatment,
         return new PersonMaterialTreatment
         {
             // IDs (composite key - generate a Guid for domain)
-            Id = Guid.NewGuid(),
-            AccountId = GuidLongConverter.ToGuid(dbEntity.IdCuenta),
+            Id = Guid.NewGuid().ToString(),
+            AccountId = dbEntity.IdCuenta.ToString(),
             
             // Relations
             PersonId = GuidStringConverter.ToGuid(dbEntity.IdPersona),
@@ -52,7 +52,7 @@ public class PersonMaterialTreatmentMapper : MapperBase<PersonMaterialTreatment,
             IdPersona = GuidStringConverter.ToString(domainEntity.PersonId),
             IdMaterial = GuidLongConverter.ToLong(domainEntity.MaterialId),
             IdTratamiento = GuidLongConverter.ToLong(domainEntity.TreatmentId),
-            IdCuenta = GuidLongConverter.ToLong(domainEntity.AccountId),
+            IdCuenta = long.TryParse(domainEntity.AccountId, out var pmtAc) ? pmtAc : 0,
             
             // Status
             Activo = domainEntity.IsActive,

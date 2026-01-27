@@ -8,8 +8,8 @@ namespace Gresst.Domain.Interfaces;
 public interface IPersonRepository : IRepository<Person>
 {
     Task<IEnumerable<Person>> GetByRoleAsync(string roleCode, CancellationToken cancellationToken = default);
-    Task<Person?> GetByIdAndRoleAsync(Guid id, string roleCode, CancellationToken cancellationToken = default);
-    Task SetPersonRoleAsync(Guid personId, string roleCode, CancellationToken cancellationToken = default);
+    Task<Person?> GetByIdAndRoleAsync(string id, string roleCode, CancellationToken cancellationToken = default);
+    Task SetPersonRoleAsync(string personId, string roleCode, CancellationToken cancellationToken = default);
     Task<IEnumerable<Person>> GetClientsAsync(CancellationToken cancellationToken = default);
 }
 

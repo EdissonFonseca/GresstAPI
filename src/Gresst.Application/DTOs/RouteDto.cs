@@ -2,7 +2,7 @@ namespace Gresst.Application.DTOs;
 
 public class RouteDto
 {
-    public Guid Id { get; set; }
+    public string Id { get; set; } = string.Empty;
     public string Code { get; set; } = string.Empty;
     public string Name { get; set; } = string.Empty;
     public string? Description { get; set; }
@@ -20,7 +20,7 @@ public class RouteDto
 
 public class RouteStopDto
 {
-    public Guid Id { get; set; }
+    public string Id { get; set; } = string.Empty;
     public int Sequence { get; set; }
     public Guid? LocationId { get; set; }
     public string? LocationName { get; set; }
@@ -64,7 +64,7 @@ public class CreateRouteStopDto
 
 public class UpdateRouteDto
 {
-    public Guid Id { get; set; }
+    public string Id { get; set; } = string.Empty;
     public string? Name { get; set; }
     public string? Description { get; set; }
     public string? RouteType { get; set; }

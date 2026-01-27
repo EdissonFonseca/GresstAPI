@@ -30,7 +30,7 @@ public class ProviderService : IProviderService
         return persons.Select(MapToDto).ToList();
     }
 
-    public async Task<ProviderDto?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
+    public async Task<ProviderDto?> GetByIdAsync(string id, CancellationToken cancellationToken = default)
     {
         var person = await _personRepository.GetByIdAndRoleAsync(id, PROVIDER_ROLE_CODE, cancellationToken);
         if (person == null)
@@ -50,7 +50,7 @@ public class ProviderService : IProviderService
     {
         var person = new Person
         {
-            Id = Guid.NewGuid(),
+            Id = string.Empty,
             Name = dto.Name,
             DocumentNumber = dto.DocumentNumber,
             Email = dto.Email,
@@ -119,7 +119,7 @@ public class ProviderService : IProviderService
         return updatedPerson != null ? MapToDto(updatedPerson) : null;
     }
 
-    public async Task<bool> DeleteAsync(Guid id, CancellationToken cancellationToken = default)
+    public async Task<bool> DeleteAsync(string id, CancellationToken cancellationToken = default)
     {
         // Verificar que sea proveedor
         var person = await _personRepository.GetByIdAndRoleAsync(id, PROVIDER_ROLE_CODE, cancellationToken);

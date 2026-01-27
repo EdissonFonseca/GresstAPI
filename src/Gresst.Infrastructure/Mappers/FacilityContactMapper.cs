@@ -19,16 +19,16 @@ public class FacilityContactMapper : MapperBase<FacilityContact, DepositoContact
             throw new ArgumentNullException(nameof(dbEntity));
 
         // Get AccountId from related Facility (Deposito has IdCuenta)
-        var accountId = Guid.Empty;
+        var accountId = string.Empty;
         if (dbEntity.IdDepositoNavigation?.IdCuenta.HasValue == true)
         {
-            accountId = GuidLongConverter.ToGuid(dbEntity.IdDepositoNavigation.IdCuenta.Value);
+            accountId = dbEntity.IdDepositoNavigation.IdCuenta.Value.ToString();
         }
 
         return new FacilityContact
         {
-            // IDs (composite key - generate a Guid for domain)
-            Id = Guid.NewGuid(),
+            // IDs - Domain BaseEntity uses string
+            Id = Guid.NewGuid().ToString(),
             AccountId = accountId,
             
             // Relations

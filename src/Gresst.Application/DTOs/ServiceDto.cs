@@ -2,7 +2,7 @@ namespace Gresst.Application.DTOs;
 
 public class ServiceDto
 {
-    public Guid Id { get; set; }
+    public string Id { get; set; } = string.Empty;
     public string Name { get; set; } = string.Empty;
     public string? Description { get; set; }
     public string? CategoryCode { get; set; }
@@ -20,7 +20,7 @@ public class CreateServiceDto
 
 public class UpdateServiceDto
 {
-    public Guid Id { get; set; }
+    public string Id { get; set; } = string.Empty;
     public string? Name { get; set; }
     public string? Description { get; set; }
     public string? CategoryCode { get; set; }
@@ -29,7 +29,7 @@ public class UpdateServiceDto
 
 public class PersonServiceDto
 {
-    public Guid Id { get; set; }
+    public string Id { get; set; } = string.Empty;
     public Guid PersonId { get; set; }
     public string? PersonName { get; set; }
     public Guid ServiceId { get; set; }

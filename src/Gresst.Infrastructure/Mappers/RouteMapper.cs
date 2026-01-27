@@ -35,10 +35,10 @@ public class RouteMapper : MapperBase<DomainRoute, DbRoute>
 
         return new DomainRoute
         {
-            // IDs - Conversión de long a Guid
+            // IDs - Domain BaseEntity uses string
             Id = dbEntity.IdRuta != 0 
-                ? GuidLongConverter.ToGuid(dbEntity.IdRuta) 
-                : Guid.NewGuid(),
+                ? GuidLongConverter.ToGuid(dbEntity.IdRuta).ToString() 
+                : string.Empty,
             
             // Basic Info
             Code = dbEntity.IdRuta.ToString(), // Usar ID como código si no hay código específico
@@ -61,7 +61,7 @@ public class RouteMapper : MapperBase<DomainRoute, DbRoute>
             IsActive = dbEntity.Activo,
             
             // Audit fields
-            AccountId = GuidLongConverter.ToGuid(dbEntity.IdCuenta),
+            AccountId = dbEntity.IdCuenta.ToString(),
             CreatedAt = dbEntity.FechaCreacion,
             UpdatedAt = dbEntity.FechaUltimaModificacion,
             CreatedBy = dbEntity.IdUsuarioCreacion.ToString(),
@@ -97,8 +97,8 @@ public class RouteMapper : MapperBase<DomainRoute, DbRoute>
         return new DbRoute
         {
             // IDs - Conversión de Guid a long
-            IdRuta = domainEntity.Id != Guid.Empty 
-                ? GuidLongConverter.ToLong(domainEntity.Id) 
+            IdRuta = !string.IsNullOrEmpty(domainEntity.Id) && Guid.TryParse(domainEntity.Id, out var routeGuid)
+                ? GuidLongConverter.ToLong(routeGuid) 
                 : 0,
             
             // Basic Info
@@ -119,7 +119,7 @@ public class RouteMapper : MapperBase<DomainRoute, DbRoute>
             
             // Properties
             Activo = domainEntity.IsActive,
-            IdCuenta = GuidLongConverter.ToLong(domainEntity.AccountId),
+            IdCuenta = long.TryParse(domainEntity.AccountId, out var accountLong) ? accountLong : 0,
             
             // Audit
             IdUsuarioCreacion = !string.IsNullOrEmpty(domainEntity.CreatedBy) 
@@ -144,7 +144,7 @@ public class RouteMapper : MapperBase<DomainRoute, DbRoute>
         dbEntity.Activo = domainEntity.IsActive;
         
         // Update VehicleId if provided
-        if (domainEntity.VehicleId.HasValue && domainEntity.VehicleId.Value != Guid.Empty && 
+        if (domainEntity.VehicleId.HasValue && domainEntity.VehicleId.Value != Guid.Empty &&
             domainEntity.Vehicle != null && !string.IsNullOrEmpty(domainEntity.Vehicle.LicensePlate))
         {
             // Use the LicensePlate from the loaded Vehicle entity

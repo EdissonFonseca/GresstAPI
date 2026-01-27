@@ -23,8 +23,8 @@ public class RouteStopMapper : MapperBase<DomainRouteStop, DbRouteStop>
         return new DomainRouteStop
         {
             // IDs (composite key - generate a Guid for domain)
-            Id = Guid.NewGuid(),
-            AccountId = Guid.Empty, // RutaDeposito doesn't have AccountId directly
+            Id = Guid.NewGuid().ToString(),
+            AccountId = string.Empty, // RutaDeposito doesn't have AccountId directly
             
             // Route
             RouteId = GuidLongConverter.ToGuid(dbEntity.IdRuta),

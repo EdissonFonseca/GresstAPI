@@ -8,7 +8,7 @@ public interface IVehicleService
     Task<IEnumerable<VehicleDto>> GetAllAsync(CancellationToken cancellationToken = default);
     
     // GetById verifica que el usuario tenga acceso
-    Task<VehicleDto?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default);
+    Task<VehicleDto?> GetByIdAsync(string id, CancellationToken cancellationToken = default);
     
     Task<IEnumerable<VehicleDto>> GetByPersonAsync(Guid personId, CancellationToken cancellationToken = default);
     
@@ -26,7 +26,7 @@ public interface IVehicleService
     
     Task<VehicleDto> CreateAsync(CreateVehicleDto dto, CancellationToken cancellationToken = default);
     Task<VehicleDto?> UpdateAsync(UpdateVehicleDto dto, CancellationToken cancellationToken = default);
-    Task<bool> DeleteAsync(Guid id, CancellationToken cancellationToken = default);
+    Task<bool> DeleteAsync(string id, CancellationToken cancellationToken = default);
     
     // Admin puede ver todos los vehículos (sin filtrar por usuario)
     Task<IEnumerable<VehicleDto>> GetAllForAdminAsync(CancellationToken cancellationToken = default);

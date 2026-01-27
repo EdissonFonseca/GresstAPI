@@ -60,7 +60,7 @@ public class FacilityService : IFacilityService
     /// <summary>
     /// Get facility by ID - VERIFIES user has access
     /// </summary>
-    public async Task<FacilityDto?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
+    public async Task<FacilityDto?> GetByIdAsync(string id, CancellationToken cancellationToken = default)
     {
         // Verificar acceso del usuario
         if (!await _segmentationService.UserHasAccessToFacilityAsync(id, cancellationToken))
@@ -87,7 +87,7 @@ public class FacilityService : IFacilityService
     /// <summary>
     /// Get facilities by account - also filtered by user
     /// </summary>
-    public async Task<IEnumerable<FacilityDto>> GetAllByAccountAsync(Guid accountId, CancellationToken cancellationToken = default)
+    public async Task<IEnumerable<FacilityDto>> GetAllByAccountAsync(string accountId, CancellationToken cancellationToken = default)
     {
         // Obtener IDs de facilities asignados al usuario actual
         var userFacilityIds = await _segmentationService.GetUserFacilityIdsAsync(cancellationToken);
@@ -173,7 +173,7 @@ public class FacilityService : IFacilityService
 
         var facility = new Facility
         {
-            Id = Guid.NewGuid(),
+            Id = string.Empty,
             Code = dto.Code,
             Name = dto.Name,
             Description = dto.Description,
@@ -286,7 +286,7 @@ public class FacilityService : IFacilityService
         return MapToDto(facility);
     }
 
-    public async Task<bool> DeleteAsync(Guid id, CancellationToken cancellationToken = default)
+    public async Task<bool> DeleteAsync(string id, CancellationToken cancellationToken = default)
     {
         // Verificar acceso del usuario
         if (!await _segmentationService.UserHasAccessToFacilityAsync(id, cancellationToken))

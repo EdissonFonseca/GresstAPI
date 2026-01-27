@@ -322,7 +322,7 @@ public class PersonController : ControllerBase
     {
         // Verify the facility belongs to the person
         var facilities = await GetPersonFacilities(personId, cancellationToken);
-        var facility = facilities.Value?.FirstOrDefault(f => f.Id == facilityId);
+        var facility = facilities.Value?.FirstOrDefault(f => f.Id == facilityId.ToString());
         
         if (facility == null)
             return NotFound(new { message = "Facility not found or does not belong to this person" });
@@ -340,7 +340,7 @@ public class PersonController : ControllerBase
     {
         // First verify the facility belongs to the person
         var facilities = await GetPersonFacilities(personId, cancellationToken);
-        var facility = facilities.Value?.FirstOrDefault(f => f.Id == facilityId);
+        var facility = facilities.Value?.FirstOrDefault(f => f.Id == facilityId.ToString());
         
         if (facility == null)
             return NotFound(new { message = "Facility not found or does not belong to this person" });
@@ -364,7 +364,7 @@ public class PersonController : ControllerBase
 
         // First verify the facility belongs to the person
         var facilities = await GetPersonFacilities(personId, cancellationToken);
-        var facility = facilities.Value?.FirstOrDefault(f => f.Id == facilityId);
+        var facility = facilities.Value?.FirstOrDefault(f => f.Id == facilityId.ToString());
         
         if (facility == null)
             return NotFound(new { message = "Facility not found or does not belong to this person" });

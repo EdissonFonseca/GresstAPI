@@ -41,7 +41,7 @@ public class TreatmentService : ITreatmentService
 
     public async Task<TreatmentDto?> GetTreatmentByIdAsync(Guid id, CancellationToken cancellationToken = default)
     {
-        var treatment = await _treatmentRepository.GetByIdAsync(id, cancellationToken);
+        var treatment = await _treatmentRepository.GetByIdAsync(id.ToString(), cancellationToken);
         if (treatment == null)
             return null;
 
@@ -52,7 +52,7 @@ public class TreatmentService : ITreatmentService
     {
         var treatment = new Treatment
         {
-            Id = Guid.NewGuid(),
+            Id = string.Empty,
             Code = dto.Code,
             Name = dto.Name,
             Description = dto.Description,
@@ -110,7 +110,7 @@ public class TreatmentService : ITreatmentService
 
     public async Task<bool> DeleteTreatmentAsync(Guid id, CancellationToken cancellationToken = default)
     {
-        var treatment = await _treatmentRepository.GetByIdAsync(id, cancellationToken);
+        var treatment = await _treatmentRepository.GetByIdAsync(id.ToString(), cancellationToken);
         if (treatment == null)
             return false;
 
@@ -191,7 +191,7 @@ public class TreatmentService : ITreatmentService
     {
         var personTreatment = new PersonTreatment
         {
-            Id = Guid.NewGuid(),
+            Id = string.Empty,
             PersonId = personId,
             TreatmentId = dto.TreatmentId,
             IsManaged = dto.IsManaged,
@@ -263,7 +263,7 @@ public class TreatmentService : ITreatmentService
             ApplicableWasteClasses = treatment.ApplicableWasteClasses,
             ProducesNewWaste = treatment.ProducesNewWaste,
             ResultingWasteClasses = treatment.ResultingWasteClasses,
-            WasteClassId = treatment.WasteClass?.Id,
+            WasteClassId = string.IsNullOrEmpty(treatment.WasteClass?.Id) ? null : Guid.Parse(treatment.WasteClass.Id),
             WasteClassName = treatment.WasteClass?.Name,
             IsActive = treatment.IsActive,
             CreatedAt = treatment.CreatedAt,

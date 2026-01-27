@@ -64,7 +64,7 @@ public class ManagementService : IManagementService
         
         await _unitOfWork.SaveChangesAsync(cancellationToken);
 
-        return await MapToDto(management);
+        return await MapToDto(management, cancellationToken);
     }
 
     public async Task<IEnumerable<ManagementDto>> GetWasteHistoryAsync(Guid wasteId, CancellationToken cancellationToken = default)
@@ -74,7 +74,7 @@ public class ManagementService : IManagementService
         
         foreach (var management in managements.OrderBy(m => m.ExecutedAt))
         {
-            dtos.Add(await MapToDto(management));
+            dtos.Add(await MapToDto(management, cancellationToken));
         }
         
         return dtos;
@@ -89,7 +89,7 @@ public class ManagementService : IManagementService
         var dto = new CreateManagementDto
         {
             Type = ManagementType.Generate,
-            WasteId = waste.Id,
+            WasteId = Guid.Parse(waste.Id),
             Quantity = wasteDto.Quantity,
             Unit = wasteDto.Unit,
             ExecutedById = wasteDto.GeneratorId,
@@ -137,7 +137,7 @@ public class ManagementService : IManagementService
 
     public async Task<ManagementDto> ReceiveWasteAsync(Guid wasteId, Guid receiverId, Guid facilityId, CancellationToken cancellationToken = default)
     {
-        var waste = await _wasteRepository.GetByIdAsync(wasteId, cancellationToken);
+        var waste = await _wasteRepository.GetByIdAsync(wasteId.ToString(), cancellationToken);
         if (waste == null)
             throw new KeyNotFoundException($"Waste with ID {wasteId} not found");
 
@@ -192,7 +192,7 @@ public class ManagementService : IManagementService
     public async Task<ManagementDto> TransformWasteAsync(TransformWasteDto dto, CancellationToken cancellationToken = default)
     {
         // Create new waste for result
-        var sourceWaste = await _wasteRepository.GetByIdAsync(dto.SourceWasteId, cancellationToken);
+        var sourceWaste = await _wasteRepository.GetByIdAsync(dto.SourceWasteId.ToString(), cancellationToken);
         if (sourceWaste == null)
             throw new KeyNotFoundException($"Source waste with ID {dto.SourceWasteId} not found");
 
@@ -218,7 +218,7 @@ public class ManagementService : IManagementService
             SourceWasteId = dto.SourceWasteId,
             SourceQuantity = dto.SourceQuantity,
             SourceUnit = UnitOfMeasure.Kilogram,
-            ResultWasteId = newWaste.Id,
+            ResultWasteId = Guid.Parse(newWaste.Id),
             ResultQuantity = dto.ResultQuantity,
             ResultUnit = UnitOfMeasure.Kilogram,
             TreatmentId = dto.TreatmentId,
@@ -247,7 +247,7 @@ public class ManagementService : IManagementService
 
     public async Task<ManagementDto> ClassifyWasteAsync(Guid wasteId, Guid wasteTypeId, Guid classifiedById, CancellationToken cancellationToken = default)
     {
-        var waste = await _wasteRepository.GetByIdAsync(wasteId, cancellationToken);
+        var waste = await _wasteRepository.GetByIdAsync(wasteId.ToString(), cancellationToken);
         if (waste == null)
             throw new KeyNotFoundException($"Waste with ID {wasteId} not found");
 
@@ -269,7 +269,7 @@ public class ManagementService : IManagementService
 
     public async Task<ManagementDto> SellWasteAsync(Guid wasteId, Guid buyerId, decimal price, CancellationToken cancellationToken = default)
     {
-        var waste = await _wasteRepository.GetByIdAsync(wasteId, cancellationToken);
+        var waste = await _wasteRepository.GetByIdAsync(wasteId.ToString(), cancellationToken);
         if (waste == null)
             throw new KeyNotFoundException($"Waste with ID {wasteId} not found");
 
@@ -291,7 +291,7 @@ public class ManagementService : IManagementService
 
     public async Task<ManagementDto> DeliverToThirdPartyAsync(Guid wasteId, Guid recipientId, string notes, CancellationToken cancellationToken = default)
     {
-        var waste = await _wasteRepository.GetByIdAsync(wasteId, cancellationToken);
+        var waste = await _wasteRepository.GetByIdAsync(wasteId.ToString(), cancellationToken);
         if (waste == null)
             throw new KeyNotFoundException($"Waste with ID {wasteId} not found");
 
@@ -313,7 +313,7 @@ public class ManagementService : IManagementService
 
     private async Task UpdateWasteStatus(Guid wasteId, ManagementType type, Guid? locationId, Guid? facilityId, CancellationToken cancellationToken)
     {
-        var waste = await _wasteRepository.GetByIdAsync(wasteId, cancellationToken);
+        var waste = await _wasteRepository.GetByIdAsync(wasteId.ToString(), cancellationToken);
         if (waste == null) return;
 
         waste.Status = type switch
@@ -338,15 +338,15 @@ public class ManagementService : IManagementService
         await _wasteRepository.UpdateAsync(waste, cancellationToken);
     }
 
-    private async Task<ManagementDto> MapToDto(Management management)
+    private async Task<ManagementDto> MapToDto(Management management, CancellationToken cancellationToken = default)
     {
         Waste? waste = null;
         Person? executedBy = null;
         
         try
         {
-            waste = await _wasteRepository.GetByIdAsync(management.WasteId);
-            executedBy = await _personRepository.GetByIdAsync(management.ExecutedById);
+            waste = await _wasteRepository.GetByIdAsync(management.WasteId.ToString(), cancellationToken);
+            executedBy = await _personRepository.GetByIdAsync(management.ExecutedById.ToString(), cancellationToken);
         }
         catch
         {

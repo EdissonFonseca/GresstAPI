@@ -29,7 +29,7 @@ public class PackagingService : IPackagingService
         return packagings.Select(MapToDto).ToList();
     }
 
-    public async Task<PackagingDto?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
+    public async Task<PackagingDto?> GetByIdAsync(string id, CancellationToken cancellationToken = default)
     {
         var packaging = await _packagingRepository.GetByIdAsync(id, cancellationToken);
         if (packaging == null)
@@ -51,7 +51,7 @@ public class PackagingService : IPackagingService
     {
         var packaging = new Packaging
         {
-            Id = Guid.NewGuid(),
+            Id = string.Empty,
             Code = dto.Code,
             Name = dto.Name,
             Description = dto.Description,
@@ -105,7 +105,7 @@ public class PackagingService : IPackagingService
         return MapToDto(packaging);
     }
 
-    public async Task<bool> DeleteAsync(Guid id, CancellationToken cancellationToken = default)
+    public async Task<bool> DeleteAsync(string id, CancellationToken cancellationToken = default)
     {
         var packaging = await _packagingRepository.GetByIdAsync(id, cancellationToken);
         if (packaging == null)

@@ -55,7 +55,7 @@ public class VehicleController : ControllerBase
     [ProducesResponseType(404)]
     public async Task<ActionResult<VehicleDto>> GetById(Guid id, CancellationToken cancellationToken)
     {
-        var vehicle = await _vehicleService.GetByIdAsync(id, cancellationToken);
+        var vehicle = await _vehicleService.GetByIdAsync(id.ToString(), cancellationToken);
         
         if (vehicle == null)
             return NotFound(new { message = "Vehicle not found or you don't have access" });
@@ -133,7 +133,7 @@ public class VehicleController : ControllerBase
     [ProducesResponseType(404)]
     public async Task<ActionResult<VehicleDto>> Update(Guid id, [FromBody] UpdateVehicleDto dto, CancellationToken cancellationToken)
     {
-        if (id != dto.Id)
+        if (id.ToString() != dto.Id)
             return BadRequest(new { message = "ID mismatch" });
 
         if (!ModelState.IsValid)
@@ -155,7 +155,7 @@ public class VehicleController : ControllerBase
     [ProducesResponseType(404)]
     public async Task<ActionResult> Delete(Guid id, CancellationToken cancellationToken)
     {
-        var success = await _vehicleService.DeleteAsync(id, cancellationToken);
+        var success = await _vehicleService.DeleteAsync(id.ToString(), cancellationToken);
         
         if (!success)
             return NotFound(new { message = "Vehicle not found or you don't have access" });

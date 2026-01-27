@@ -20,13 +20,12 @@ public class MaterialTransformationMapper : MapperBase<MaterialTransformation, M
             throw new ArgumentNullException(nameof(dbEntity));
 
         // Get AccountId from related Material (Material doesn't have IdCuenta directly, use default)
-        // In practice, AccountId should come from the Material's account context
-        var accountId = Guid.Empty;
+        var accountId = string.Empty;
 
         return new MaterialTransformation
         {
-            // IDs (composite key - generate a Guid for domain)
-            Id = Guid.NewGuid(),
+            // IDs - Domain BaseEntity uses string
+            Id = Guid.NewGuid().ToString(),
             AccountId = accountId,
             
             // Relations

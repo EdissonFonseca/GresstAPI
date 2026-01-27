@@ -19,10 +19,9 @@ public class MaterialMapper : MapperBase<DomainMaterial, DbMaterial>
 
         return new DomainMaterial
         {
-            // IDs - Conversión de tipos
-            Id = dbEntity.IdMaterial != 0 
-                ? GuidLongConverter.ToGuid(dbEntity.IdMaterial) 
-                : Guid.NewGuid(),
+            // IDs - Domain uses string for BaseEntity.Id/AccountId
+            Id = dbEntity.IdMaterial.ToString(),
+            AccountId = string.Empty,
             
             // Basic Info
             Code = dbEntity.Referencia ?? dbEntity.IdMaterial.ToString(),
@@ -60,10 +59,8 @@ public class MaterialMapper : MapperBase<DomainMaterial, DbMaterial>
 
         return new DbMaterial
         {
-            // IDs - Conversión de Guid a long
-            IdMaterial = domainEntity.Id != Guid.Empty 
-                ? GuidLongConverter.ToLong(domainEntity.Id) 
-                : 0,
+            // IDs - Domain Id is string, BD uses long
+            IdMaterial = string.IsNullOrEmpty(domainEntity.Id) ? 0 : long.Parse(domainEntity.Id),
             
             // Basic Info
             Nombre = domainEntity.Name,

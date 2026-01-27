@@ -21,8 +21,8 @@ public class PersonTreatmentMapper : MapperBase<PersonTreatment, PersonaTratamie
         return new PersonTreatment
         {
             // IDs (composite key - generate a Guid for domain)
-            Id = Guid.NewGuid(),
-            AccountId = GuidLongConverter.ToGuid(dbEntity.IdCuenta),
+            Id = Guid.NewGuid().ToString(),
+            AccountId = dbEntity.IdCuenta.ToString(),
             
             // Relations
             PersonId = GuidStringConverter.ToGuid(dbEntity.IdPersona),
@@ -54,7 +54,7 @@ public class PersonTreatmentMapper : MapperBase<PersonTreatment, PersonaTratamie
             // IDs (composite key)
             IdPersona = GuidStringConverter.ToString(domainEntity.PersonId),
             IdTratamiento = GuidLongConverter.ToLong(domainEntity.TreatmentId),
-            IdCuenta = GuidLongConverter.ToLong(domainEntity.AccountId),
+            IdCuenta = long.TryParse(domainEntity.AccountId, out var ptAc) ? ptAc : 0,
             
             // Properties
             Manejado = domainEntity.IsManaged,

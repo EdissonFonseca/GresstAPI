@@ -41,7 +41,7 @@ public class WasteClassService : IWasteClassService
 
     public async Task<WasteClassDto?> GetWasteClassByIdAsync(Guid id, CancellationToken cancellationToken = default)
     {
-        var wasteClass = await _wasteClassRepository.GetByIdAsync(id, cancellationToken);
+        var wasteClass = await _wasteClassRepository.GetByIdAsync(id.ToString(), cancellationToken);
         if (wasteClass == null)
             return null;
 
@@ -52,7 +52,7 @@ public class WasteClassService : IWasteClassService
     {
         var wasteClass = new WasteClass
         {
-            Id = Guid.NewGuid(),
+            Id = string.Empty,
             Code = dto.Code,
             Name = dto.Name,
             Description = dto.Description,
@@ -104,7 +104,7 @@ public class WasteClassService : IWasteClassService
 
     public async Task<bool> DeleteWasteClassAsync(Guid id, CancellationToken cancellationToken = default)
     {
-        var wasteClass = await _wasteClassRepository.GetByIdAsync(id, cancellationToken);
+        var wasteClass = await _wasteClassRepository.GetByIdAsync(id.ToString(), cancellationToken);
         if (wasteClass == null)
             return false;
 
@@ -185,7 +185,7 @@ public class WasteClassService : IWasteClassService
     {
         var personWasteClass = new PersonWasteClass
         {
-            Id = Guid.NewGuid(),
+            Id = string.Empty,
             PersonId = personId,
             WasteClassId = dto.WasteClassId,
             CreatedAt = DateTime.UtcNow,

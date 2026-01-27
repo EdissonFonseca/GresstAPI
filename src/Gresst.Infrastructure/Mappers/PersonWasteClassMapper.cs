@@ -24,8 +24,8 @@ public class PersonWasteClassMapper : MapperBase<PersonWasteClass, PersonaTipoRe
         return new PersonWasteClass
         {
             // IDs (composite key - generate a Guid for domain)
-            Id = Guid.NewGuid(),
-            AccountId = GuidLongConverter.ToGuid(dbEntity.IdCuenta),
+            Id = Guid.NewGuid().ToString(),
+            AccountId = dbEntity.IdCuenta.ToString(),
             
             // Relations
             PersonId = GuidStringConverter.ToGuid(dbEntity.IdPersona),
@@ -57,7 +57,7 @@ public class PersonWasteClassMapper : MapperBase<PersonWasteClass, PersonaTipoRe
             // IDs (composite key)
             IdPersona = GuidStringConverter.ToString(domainEntity.PersonId),
             IdTipoResiduo = wasteClassIdInt,
-            IdCuenta = GuidLongConverter.ToLong(domainEntity.AccountId),
+            IdCuenta = long.TryParse(domainEntity.AccountId, out var pwcAc) ? pwcAc : 0,
             
             // Audit
             FechaCreacion = domainEntity.CreatedAt,

@@ -19,9 +19,9 @@ public class ManagementMapper : MapperBase<Management, Gestion>
 
         return new Management
         {
-            // IDs
-            Id = ConvertLongToGuid(dbEntity.IdMovimiento),
-            AccountId = Guid.NewGuid(), // Se obtiene del usuario actual
+            // IDs - Domain BaseEntity uses string
+            Id = ConvertLongToGuid(dbEntity.IdMovimiento).ToString(),
+            AccountId = string.Empty, // Se obtiene del usuario actual en DbContext
             
             // Basic Info
             Code = $"MGT-{dbEntity.IdMovimiento}",
@@ -86,7 +86,7 @@ public class ManagementMapper : MapperBase<Management, Gestion>
         return new Gestion
         {
             // IDs
-            IdMovimiento = ConvertGuidToLong(domainEntity.Id),
+            IdMovimiento = string.IsNullOrEmpty(domainEntity.Id) ? 0 : ConvertGuidToLong(Guid.Parse(domainEntity.Id)),
             IdResiduo = ConvertGuidToLong(domainEntity.WasteId),
             
             // Service Type

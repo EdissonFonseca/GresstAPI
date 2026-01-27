@@ -20,10 +20,10 @@ public class WasteClassMapper : MapperBase<DomainWasteClass, DbWasteClass>
 
         return new DomainWasteClass
         {
-            // IDs - Conversión de int a Guid
+            // IDs - Domain BaseEntity uses string
             Id = dbEntity.IdTipoResiduo != 0 
-                ? GuidLongConverter.ToGuid(dbEntity.IdTipoResiduo) 
-                : Guid.NewGuid(),
+                ? GuidLongConverter.ToGuid(dbEntity.IdTipoResiduo).ToString() 
+                : string.Empty,
             
             // Basic Info
             Code = dbEntity.IdTipoResiduo.ToString(), // Usar ID como código si no hay código específico
@@ -42,7 +42,7 @@ public class WasteClassMapper : MapperBase<DomainWasteClass, DbWasteClass>
             TreatmentId = null,
             
             // Audit fields
-            AccountId = Guid.Empty, // TipoResiduo no tiene IdCuenta directo
+            AccountId = string.Empty, // TipoResiduo no tiene IdCuenta directo
             CreatedAt = dbEntity.FechaCreacion,
             UpdatedAt = dbEntity.FechaUltimaModificacion,
             CreatedBy = dbEntity.IdUsuarioCreacion.ToString(),
@@ -62,8 +62,8 @@ public class WasteClassMapper : MapperBase<DomainWasteClass, DbWasteClass>
         return new DbWasteClass
         {
             // IDs - Conversión de Guid a int
-            IdTipoResiduo = domainEntity.Id != Guid.Empty 
-                ? (int)GuidLongConverter.ToLong(domainEntity.Id) 
+            IdTipoResiduo = !string.IsNullOrEmpty(domainEntity.Id) && Guid.TryParse(domainEntity.Id, out var wcGuid)
+                ? (int)GuidLongConverter.ToLong(wcGuid) 
                 : 0,
             
             // Basic Info

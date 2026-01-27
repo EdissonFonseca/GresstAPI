@@ -19,9 +19,9 @@ public class FacilityMapper : MapperBase<Facility, Deposito>
 
         return new Facility
         {
-            // IDs - Conversión de tipos
-            Id = dbEntity.IdDeposito != 0 ? new Guid(dbEntity.IdDeposito.ToString().PadLeft(32, '0')) : Guid.NewGuid(),
-            AccountId = dbEntity.IdCuenta.HasValue ? new Guid(dbEntity.IdCuenta.Value.ToString().PadLeft(32, '0')) : Guid.Empty,
+            // IDs - Domain uses string for BaseEntity.Id/AccountId
+            Id = dbEntity.IdDeposito.ToString(),
+            AccountId = dbEntity.IdCuenta?.ToString() ?? string.Empty,
             
             // Basic Info
             Code = dbEntity.IdDeposito.ToString(),
@@ -80,9 +80,7 @@ public class FacilityMapper : MapperBase<Facility, Deposito>
         
         return new Facility
         {
-            Id = parentDbEntity.IdDeposito != 0 
-                ? new Guid(parentDbEntity.IdDeposito.ToString().PadLeft(32, '0')) 
-                : Guid.NewGuid(),
+            Id = parentDbEntity.IdDeposito.ToString(),
             Name = parentDbEntity.Nombre ?? string.Empty,
             Code = parentDbEntity.IdDeposito.ToString(),
             // Only map essential fields to avoid deep recursion
@@ -100,9 +98,9 @@ public class FacilityMapper : MapperBase<Facility, Deposito>
 
         return new Deposito
         {
-            // IDs - Conversión de Guid a long/string
-            IdDeposito = domainEntity.Id != Guid.Empty ? long.Parse(domainEntity.Id.ToString().Replace("-", "").Substring(0, 18)) : 0,
-            IdCuenta = domainEntity.AccountId != Guid.Empty ? long.Parse(domainEntity.AccountId.ToString().Replace("-", "").Substring(0, 18)) : null,
+            // IDs - Domain Id/AccountId are string, BD uses long
+            IdDeposito = string.IsNullOrEmpty(domainEntity.Id) ? 0 : long.Parse(domainEntity.Id),
+            IdCuenta = string.IsNullOrEmpty(domainEntity.AccountId) ? null : long.Parse(domainEntity.AccountId),
             
             // Basic Info
             Nombre = domainEntity.Name,

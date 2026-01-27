@@ -4,7 +4,7 @@ namespace Gresst.Application.DTOs;
 
 public class ManagementDto
 {
-    public Guid Id { get; set; }
+    public string Id { get; set; } = string.Empty;
     public string Code { get; set; } = string.Empty;
     public string Type { get; set; } = string.Empty;
     public DateTime ExecutedAt { get; set; }

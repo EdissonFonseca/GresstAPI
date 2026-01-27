@@ -1,5 +1,6 @@
 using Gresst.Domain.Entities;
 using Gresst.Domain.Interfaces;
+using Gresst.Infrastructure.Common;
 using Gresst.Infrastructure.Data;
 using Gresst.Infrastructure.Mappers;
 using Microsoft.EntityFrameworkCore;
@@ -26,7 +27,7 @@ public class PersonMaterialRepository : IRepository<PersonMaterial>
         _currentUserService = currentUserService;
     }
 
-    public async Task<PersonMaterial?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
+    public async Task<PersonMaterial?> GetByIdAsync(string id, CancellationToken cancellationToken = default)
     {
         // PersonMaterial has composite key, so we need to find by MaterialId
         // This is a limitation - we'd need MaterialId to find it properly
@@ -38,7 +39,7 @@ public class PersonMaterialRepository : IRepository<PersonMaterial>
     public async Task<IEnumerable<PersonMaterial>> GetAllAsync(CancellationToken cancellationToken = default)
     {
         var accountId = _currentUserService.GetCurrentAccountId();
-        var accountIdLong = ConvertGuidToLong(accountId);
+        var accountIdLong = string.IsNullOrEmpty(accountId) ? 0L : long.Parse(accountId);
         
         var dbEntities = await _context.PersonaMaterials
             .Where(pm => pm.Activo && pm.IdCuenta == accountIdLong)
@@ -52,7 +53,7 @@ public class PersonMaterialRepository : IRepository<PersonMaterial>
     public async Task<IEnumerable<PersonMaterial>> FindAsync(Expression<Func<PersonMaterial, bool>> predicate, CancellationToken cancellationToken = default)
     {
         var accountId = _currentUserService.GetCurrentAccountId();
-        var accountIdLong = ConvertGuidToLong(accountId);
+        var accountIdLong = string.IsNullOrEmpty(accountId) ? 0L : long.Parse(accountId);
         
         var dbEntities = await _context.PersonaMaterials
             .Where(pm => pm.Activo && pm.IdCuenta == accountIdLong)
@@ -71,7 +72,7 @@ public class PersonMaterialRepository : IRepository<PersonMaterial>
         // Set audit fields
         dbEntity.FechaCreacion = DateTime.UtcNow;
         dbEntity.IdUsuarioCreacion = GetCurrentUserIdAsLong();
-        dbEntity.IdCuenta = ConvertGuidToLong(_currentUserService.GetCurrentAccountId());
+        dbEntity.IdCuenta = string.IsNullOrEmpty(_currentUserService.GetCurrentAccountId()) ? 0L : long.Parse(_currentUserService.GetCurrentAccountId());
         dbEntity.Activo = true;
         
         await _context.PersonaMaterials.AddAsync(dbEntity, cancellationToken);
@@ -84,7 +85,7 @@ public class PersonMaterialRepository : IRepository<PersonMaterial>
         var dbEntity = _context.PersonaMaterials
             .FirstOrDefault(pm => pm.IdPersona == ConvertGuidToString(entity.PersonId) 
                 && pm.IdMaterial == ConvertGuidToLong(entity.MaterialId)
-                && pm.IdCuenta == ConvertGuidToLong(entity.AccountId));
+                && pm.IdCuenta == (string.IsNullOrEmpty(entity.AccountId) ? 0L : long.Parse(entity.AccountId)));
         
         if (dbEntity == null)
             throw new KeyNotFoundException($"PersonMaterial not found");
@@ -103,7 +104,7 @@ public class PersonMaterialRepository : IRepository<PersonMaterial>
         var dbEntity = _context.PersonaMaterials
             .FirstOrDefault(pm => pm.IdPersona == ConvertGuidToString(entity.PersonId) 
                 && pm.IdMaterial == ConvertGuidToLong(entity.MaterialId)
-                && pm.IdCuenta == ConvertGuidToLong(entity.AccountId));
+                && pm.IdCuenta == (string.IsNullOrEmpty(entity.AccountId) ? 0L : long.Parse(entity.AccountId)));
         
         if (dbEntity == null)
             throw new KeyNotFoundException($"PersonMaterial not found");
@@ -120,7 +121,7 @@ public class PersonMaterialRepository : IRepository<PersonMaterial>
     public async Task<int> CountAsync(Expression<Func<PersonMaterial, bool>>? predicate = null, CancellationToken cancellationToken = default)
     {
         var accountId = _currentUserService.GetCurrentAccountId();
-        var accountIdLong = ConvertGuidToLong(accountId);
+        var accountIdLong = string.IsNullOrEmpty(accountId) ? 0L : long.Parse(accountId);
         
         if (predicate == null)
         {
@@ -163,7 +164,7 @@ public class PersonMaterialRepository : IRepository<PersonMaterial>
     private long GetCurrentUserIdAsLong()
     {
         var userId = _currentUserService.GetCurrentUserId();
-        return ConvertGuidToLong(userId);
+        return GuidLongConverter.ToLong(userId);
     }
 }
 

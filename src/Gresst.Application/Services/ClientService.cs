@@ -30,7 +30,7 @@ public class ClientService : IClientService
         return persons.Select(MapToDto).ToList();
     }
 
-    public async Task<ClientDto?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
+    public async Task<ClientDto?> GetByIdAsync(string id, CancellationToken cancellationToken = default)
     {
         var person = await _personRepository.GetByIdAndRoleAsync(id, CLIENT_ROLE_CODE, cancellationToken);
         if (person == null)
@@ -50,7 +50,8 @@ public class ClientService : IClientService
     {
         var person = new Person
         {
-            Id = Guid.NewGuid(),
+            Id = string.Empty,
+            AccountId = string.Empty,
             Name = dto.Name,
             DocumentNumber = dto.DocumentNumber,
             Email = dto.Email,
@@ -119,7 +120,7 @@ public class ClientService : IClientService
         return updatedPerson != null ? MapToDto(updatedPerson) : null;
     }
 
-    public async Task<bool> DeleteAsync(Guid id, CancellationToken cancellationToken = default)
+    public async Task<bool> DeleteAsync(string id, CancellationToken cancellationToken = default)
     {
         // Verificar que sea cliente
         var person = await _personRepository.GetByIdAndRoleAsync(id, CLIENT_ROLE_CODE, cancellationToken);

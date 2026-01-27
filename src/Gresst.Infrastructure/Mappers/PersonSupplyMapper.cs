@@ -21,8 +21,8 @@ public class PersonSupplyMapper : MapperBase<PersonSupply, PersonaInsumo>
         return new PersonSupply
         {
             // IDs (composite key - generate a Guid for domain)
-            Id = Guid.NewGuid(),
-            AccountId = GuidLongConverter.ToGuid(dbEntity.IdCuenta),
+            Id = Guid.NewGuid().ToString(),
+            AccountId = dbEntity.IdCuenta.ToString(),
             
             // Relations
             PersonId = GuidStringConverter.ToGuid(dbEntity.IdPersona),
@@ -53,7 +53,7 @@ public class PersonSupplyMapper : MapperBase<PersonSupply, PersonaInsumo>
             // IDs (composite key)
             IdPersona = GuidStringConverter.ToString(domainEntity.PersonId),
             IdInsumo = GuidLongConverter.ToLong(domainEntity.SupplyId),
-            IdCuenta = GuidLongConverter.ToLong(domainEntity.AccountId),
+            IdCuenta = long.TryParse(domainEntity.AccountId, out var psAc) ? psAc : 0,
             
             // Properties
             Precio = domainEntity.Price,

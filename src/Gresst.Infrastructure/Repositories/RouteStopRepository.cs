@@ -28,7 +28,7 @@ public class RouteStopRepository : IRepository<DomainRouteStop>
         _currentUserService = currentUserService;
     }
 
-    public async Task<DomainRouteStop?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
+    public async Task<DomainRouteStop?> GetByIdAsync(string id, CancellationToken cancellationToken = default)
     {
         // RouteStop has composite key, so GetByIdAsync needs to be adapted
         await Task.CompletedTask;
@@ -38,7 +38,7 @@ public class RouteStopRepository : IRepository<DomainRouteStop>
     public async Task<IEnumerable<DomainRouteStop>> GetAllAsync(CancellationToken cancellationToken = default)
     {
         var accountId = _currentUserService.GetCurrentAccountId();
-        var accountIdLong = GuidLongConverter.ToLong(accountId);
+        var accountIdLong = string.IsNullOrEmpty(accountId) ? 0L : long.Parse(accountId);
         
         // Get all route stops for routes in this account
         var dbEntities = await _context.RutaDepositos
@@ -114,7 +114,7 @@ public class RouteStopRepository : IRepository<DomainRouteStop>
     public async Task<int> CountAsync(Expression<Func<DomainRouteStop, bool>>? predicate = null, CancellationToken cancellationToken = default)
     {
         var accountId = _currentUserService.GetCurrentAccountId();
-        var accountIdLong = GuidLongConverter.ToLong(accountId);
+        var accountIdLong = string.IsNullOrEmpty(accountId) ? 0L : long.Parse(accountId);
         
         if (predicate == null)
         {

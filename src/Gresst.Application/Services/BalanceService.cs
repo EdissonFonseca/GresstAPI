@@ -84,7 +84,7 @@ public class BalanceService : IBalanceService
 
     public async Task UpdateBalanceAsync(Guid wasteId, string operation, decimal quantity, CancellationToken cancellationToken = default)
     {
-        var waste = await _wasteRepository.GetByIdAsync(wasteId, cancellationToken);
+        var waste = await _wasteRepository.GetByIdAsync(wasteId.ToString(), cancellationToken);
         if (waste == null) return;
 
         // Find or create balance

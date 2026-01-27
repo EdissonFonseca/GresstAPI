@@ -27,9 +27,10 @@ public class TreatmentRepository : IRepository<Treatment>
         _currentUserService = currentUserService;
     }
 
-    public async Task<Treatment?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
+    public async Task<Treatment?> GetByIdAsync(string id, CancellationToken cancellationToken = default)
     {
-        var idLong = GuidLongConverter.ToLong(id);
+        if (string.IsNullOrEmpty(id) || !long.TryParse(id, out var idLong))
+            return null;
         var dbEntity = await _context.Tratamientos
             .Include(t => t.IdServicioNavigation)
             .FirstOrDefaultAsync(t => t.IdTratamiento == idLong, cancellationToken);
@@ -67,14 +68,14 @@ public class TreatmentRepository : IRepository<Treatment>
         await _context.Tratamientos.AddAsync(dbEntity, cancellationToken);
         
         // Update domain entity with generated ID
-        entity.Id = GuidLongConverter.ToGuid(dbEntity.IdTratamiento);
+        entity.Id = dbEntity.IdTratamiento.ToString();
         
         return entity;
     }
 
     public Task UpdateAsync(Treatment entity, CancellationToken cancellationToken = default)
     {
-        var idLong = GuidLongConverter.ToLong(entity.Id);
+        var idLong = string.IsNullOrEmpty(entity.Id) ? 0L : long.Parse(entity.Id);
         var dbEntity = _context.Tratamientos.Find(idLong);
         
         if (dbEntity == null)
@@ -92,7 +93,7 @@ public class TreatmentRepository : IRepository<Treatment>
 
     public Task DeleteAsync(Treatment entity, CancellationToken cancellationToken = default)
     {
-        var idLong = GuidLongConverter.ToLong(entity.Id);
+        var idLong = string.IsNullOrEmpty(entity.Id) ? 0L : long.Parse(entity.Id);
         var dbEntity = _context.Tratamientos.Find(idLong);
         
         if (dbEntity == null)

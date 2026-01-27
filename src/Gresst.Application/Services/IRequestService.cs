@@ -4,7 +4,7 @@ namespace Gresst.Application.Services;
 
 public interface IRequestService
 {
-    Task<RequestDto> GetByIdAsync(Guid id, CancellationToken cancellationToken = default);
+    Task<RequestDto> GetByIdAsync(string id, CancellationToken cancellationToken = default);
     Task<IEnumerable<RequestDto>> GetAllAsync(CancellationToken cancellationToken = default);
     Task<IEnumerable<RequestDto>> GetByRequesterAsync(Guid requesterId, CancellationToken cancellationToken = default);
     Task<IEnumerable<RequestDto>> GetByProviderAsync(Guid providerId, CancellationToken cancellationToken = default);

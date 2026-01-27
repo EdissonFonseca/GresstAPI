@@ -20,9 +20,9 @@ public class SupplyMapper : MapperBase<Supply, Insumo>
 
         return new Supply
         {
-            // IDs
-            Id = GuidLongConverter.ToGuid(dbEntity.IdInsumo),
-            AccountId = Guid.Empty, // Insumo doesn't have AccountId directly, it's public/private
+            // IDs - Domain BaseEntity uses string
+            Id = GuidLongConverter.ToGuid(dbEntity.IdInsumo).ToString(),
+            AccountId = string.Empty, // Insumo doesn't have AccountId directly, it's public/private
             
             // Basic Info
             Code = dbEntity.IdInsumo.ToString(), // Use ID as code if no code field exists
@@ -58,7 +58,7 @@ public class SupplyMapper : MapperBase<Supply, Insumo>
         return new Insumo
         {
             // IDs
-            IdInsumo = GuidLongConverter.ToLong(domainEntity.Id),
+            IdInsumo = string.IsNullOrEmpty(domainEntity.Id) ? 0 : GuidLongConverter.ToLong(Guid.Parse(domainEntity.Id)),
             
             // Basic Info
             Nombre = domainEntity.Name,

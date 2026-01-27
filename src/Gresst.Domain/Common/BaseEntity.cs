@@ -2,8 +2,8 @@ namespace Gresst.Domain.Common;
 
 public abstract class BaseEntity
 {
-    public Guid Id { get; set; }
-    public Guid AccountId { get; set; } // Multitenant support
+    public string Id { get; set; } = string.Empty;
+    public string AccountId { get; set; } = string.Empty; // Multitenant support
     public DateTime CreatedAt { get; set; }
     public DateTime? UpdatedAt { get; set; }
     public string? CreatedBy { get; set; }

@@ -60,7 +60,7 @@ public class VehicleService : IVehicleService
     /// <summary>
     /// Get vehicle by ID - VERIFIES user has access
     /// </summary>
-    public async Task<VehicleDto?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
+    public async Task<VehicleDto?> GetByIdAsync(string id, CancellationToken cancellationToken = default)
     {
         // Verificar acceso del usuario
         if (!await _segmentationService.UserHasAccessToVehicleAsync(id, cancellationToken))
@@ -172,7 +172,7 @@ public class VehicleService : IVehicleService
 
         var vehicle = new Vehicle
         {
-            Id = Guid.NewGuid(),
+            Id = string.Empty,
             LicensePlate = dto.LicensePlate,
             VehicleType = dto.VehicleType,
             Model = dto.Model,
@@ -238,7 +238,7 @@ public class VehicleService : IVehicleService
         return MapToDto(vehicle);
     }
 
-    public async Task<bool> DeleteAsync(Guid id, CancellationToken cancellationToken = default)
+    public async Task<bool> DeleteAsync(string id, CancellationToken cancellationToken = default)
     {
         // Verificar acceso del usuario
         if (!await _segmentationService.UserHasAccessToVehicleAsync(id, cancellationToken))

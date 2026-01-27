@@ -1,5 +1,6 @@
 using Gresst.Domain.Entities;
 using Gresst.Domain.Interfaces;
+using Gresst.Infrastructure.Common;
 using Gresst.Infrastructure.Data;
 using Gresst.Infrastructure.Mappers;
 using Microsoft.EntityFrameworkCore;
@@ -23,9 +24,10 @@ public class ManagementRepository : IRepository<Management>
         _currentUserService = currentUserService;
     }
 
-    public async Task<Management?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
+    public async Task<Management?> GetByIdAsync(string id, CancellationToken cancellationToken = default)
     {
-        var idLong = ConvertGuidToLong(id);
+        if (string.IsNullOrEmpty(id) || !long.TryParse(id, out var idLong))
+            return null;
         var dbEntity = await _context.Gestions
             .Include(g => g.IdResiduoNavigation)
             .Include(g => g.IdResponsableNavigation)
@@ -63,13 +65,13 @@ public class ManagementRepository : IRepository<Management>
         
         await _context.Gestions.AddAsync(dbEntity, cancellationToken);
         
-        entity.Id = ConvertLongToGuid(dbEntity.IdMovimiento);
+        entity.Id = dbEntity.IdMovimiento.ToString();
         return entity;
     }
 
     public Task UpdateAsync(Management entity, CancellationToken cancellationToken = default)
     {
-        var idLong = ConvertGuidToLong(entity.Id);
+        var idLong = string.IsNullOrEmpty(entity.Id) ? 0L : long.Parse(entity.Id);
         var dbEntity = _context.Gestions.Find(idLong);
         
         if (dbEntity == null)
@@ -86,7 +88,7 @@ public class ManagementRepository : IRepository<Management>
 
     public Task DeleteAsync(Management entity, CancellationToken cancellationToken = default)
     {
-        var idLong = ConvertGuidToLong(entity.Id);
+        var idLong = string.IsNullOrEmpty(entity.Id) ? 0L : long.Parse(entity.Id);
         var dbEntity = _context.Gestions.Find(idLong);
         
         if (dbEntity == null)
@@ -106,37 +108,10 @@ public class ManagementRepository : IRepository<Management>
         return all.Count(predicate.Compile());
     }
 
-    // Helper methods
-    private Guid ConvertLongToGuid(long id)
-    {
-        if (id == 0) return Guid.Empty;
-        return new Guid(id.ToString().PadLeft(32, '0'));
-    }
-
-    private Guid ConvertStringToGuid(string id)
-    {
-        if (string.IsNullOrEmpty(id)) return Guid.Empty;
-        
-        if (Guid.TryParse(id, out var guid))
-            return guid;
-        
-        return new Guid(id.PadLeft(32, '0').Substring(0, 32));
-    }
-
-    private long ConvertGuidToLong(Guid guid)
-    {
-        if (guid == Guid.Empty) return 0;
-        
-        var guidString = guid.ToString().Replace("-", "");
-        var numericPart = new string(guidString.Where(char.IsDigit).Take(18).ToArray());
-        
-        return long.TryParse(numericPart, out var result) ? result : 0;
-    }
-
     private long GetCurrentUserIdAsLong()
     {
         var userId = _currentUserService.GetCurrentUserId();
-        return ConvertGuidToLong(userId);
+        return GuidLongConverter.ToLong(userId);
     }
 }
 

@@ -27,9 +27,10 @@ public class ServiceRepository : IRepository<Service>
         _currentUserService = currentUserService;
     }
 
-    public async Task<Service?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
+    public async Task<Service?> GetByIdAsync(string id, CancellationToken cancellationToken = default)
     {
-        var idLong = GuidLongConverter.ToLong(id);
+        if (string.IsNullOrEmpty(id) || !long.TryParse(id, out var idLong))
+            return null;
         var dbEntity = await _context.Servicios.FindAsync(new object[] { idLong }, cancellationToken);
         
         return dbEntity != null ? _mapper.ToDomain(dbEntity) : null;
@@ -65,14 +66,14 @@ public class ServiceRepository : IRepository<Service>
         await _context.Servicios.AddAsync(dbEntity, cancellationToken);
         
         // Update domain entity with generated ID
-        entity.Id = GuidLongConverter.ToGuid(dbEntity.IdServicio);
+        entity.Id = dbEntity.IdServicio.ToString();
         
         return entity;
     }
 
     public Task UpdateAsync(Service entity, CancellationToken cancellationToken = default)
     {
-        var idLong = GuidLongConverter.ToLong(entity.Id);
+        var idLong = string.IsNullOrEmpty(entity.Id) ? 0L : long.Parse(entity.Id);
         var dbEntity = _context.Servicios.Find(idLong);
         
         if (dbEntity == null)
@@ -90,7 +91,7 @@ public class ServiceRepository : IRepository<Service>
 
     public Task DeleteAsync(Service entity, CancellationToken cancellationToken = default)
     {
-        var idLong = GuidLongConverter.ToLong(entity.Id);
+        var idLong = string.IsNullOrEmpty(entity.Id) ? 0L : long.Parse(entity.Id);
         var dbEntity = _context.Servicios.Find(idLong);
         
         if (dbEntity == null)

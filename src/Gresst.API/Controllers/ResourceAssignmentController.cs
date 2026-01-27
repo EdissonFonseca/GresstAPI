@@ -29,8 +29,8 @@ public class ResourceAssignmentController : ControllerBase
     /// Get facilities assigned to a user
     /// </summary>
     [HttpGet("users/{userId}/facilities")]
-    [ProducesResponseType(typeof(IEnumerable<Guid>), 200)]
-    public async Task<ActionResult<IEnumerable<Guid>>> GetUserFacilities(Guid userId, CancellationToken cancellationToken)
+    [ProducesResponseType(typeof(IEnumerable<string>), 200)]
+    public async Task<ActionResult<IEnumerable<string>>> GetUserFacilities(Guid userId, CancellationToken cancellationToken)
     {
         var facilityIds = await _segmentationService.GetUserFacilityIdsAsync(cancellationToken);
         return Ok(facilityIds);
@@ -80,7 +80,7 @@ public class ResourceAssignmentController : ControllerBase
     [ProducesResponseType(typeof(bool), 200)]
     public async Task<ActionResult<bool>> CheckFacilityAccess(Guid userId, Guid facilityId, CancellationToken cancellationToken)
     {
-        var hasAccess = await _segmentationService.UserHasAccessToFacilityAsync(facilityId, cancellationToken);
+        var hasAccess = await _segmentationService.UserHasAccessToFacilityAsync(facilityId.ToString(), cancellationToken);
         return Ok(new { hasAccess });
     }
 
@@ -136,7 +136,7 @@ public class ResourceAssignmentController : ControllerBase
     [ProducesResponseType(typeof(bool), 200)]
     public async Task<ActionResult<bool>> CheckVehicleAccess(Guid userId, Guid vehicleId, CancellationToken cancellationToken)
     {
-        var hasAccess = await _segmentationService.UserHasAccessToVehicleAsync(vehicleId, cancellationToken);
+        var hasAccess = await _segmentationService.UserHasAccessToVehicleAsync(vehicleId.ToString(), cancellationToken);
         return Ok(new { hasAccess });
     }
 }

@@ -41,7 +41,7 @@ public class ServiceService : IServiceService
 
     public async Task<ServiceDto?> GetServiceByIdAsync(Guid id, CancellationToken cancellationToken = default)
     {
-        var service = await _serviceRepository.GetByIdAsync(id, cancellationToken);
+        var service = await _serviceRepository.GetByIdAsync(id.ToString(), cancellationToken);
         if (service == null)
             return null;
 
@@ -52,7 +52,7 @@ public class ServiceService : IServiceService
     {
         var service = new Service
         {
-            Id = Guid.NewGuid(),
+            Id = string.Empty,
             Name = dto.Name,
             Description = dto.Description,
             CategoryCode = dto.CategoryCode,
@@ -91,7 +91,7 @@ public class ServiceService : IServiceService
 
     public async Task<bool> DeleteServiceAsync(Guid id, CancellationToken cancellationToken = default)
     {
-        var service = await _serviceRepository.GetByIdAsync(id, cancellationToken);
+        var service = await _serviceRepository.GetByIdAsync(id.ToString(), cancellationToken);
         if (service == null)
             return false;
 
@@ -172,7 +172,7 @@ public class ServiceService : IServiceService
     {
         var personService = new PersonService
         {
-            Id = Guid.NewGuid(),
+            Id = string.Empty,
             PersonId = personId,
             ServiceId = dto.ServiceId,
             StartDate = dto.StartDate,

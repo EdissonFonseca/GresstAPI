@@ -4,7 +4,7 @@ namespace Gresst.Application.DTOs;
 
 public class WasteDto
 {
-    public Guid Id { get; set; }
+    public string Id { get; set; } = string.Empty;
     public string Code { get; set; } = string.Empty;
     public string? Description { get; set; }
     public Guid WasteClassId { get; set; }
@@ -42,7 +42,7 @@ public class CreateWasteDto
 
 public class UpdateWasteDto
 {
-    public Guid Id { get; set; }
+    public string Id { get; set; } = string.Empty;
     public string? Description { get; set; }
     public decimal? Quantity { get; set; }
     public Guid? CurrentLocationId { get; set; }

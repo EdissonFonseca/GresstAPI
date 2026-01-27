@@ -27,9 +27,10 @@ public class PackagingRepository : IRepository<Packaging>
         _currentUserService = currentUserService;
     }
 
-    public async Task<Packaging?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
+    public async Task<Packaging?> GetByIdAsync(string id, CancellationToken cancellationToken = default)
     {
-        var idLong = GuidLongConverter.ToLong(id);
+        if (string.IsNullOrEmpty(id) || !long.TryParse(id, out var idLong))
+            return null;
         var dbEntity = await _context.Embalajes.FindAsync(new object[] { idLong }, cancellationToken);
         
         return dbEntity != null ? _mapper.ToDomain(dbEntity) : null;
@@ -65,14 +66,14 @@ public class PackagingRepository : IRepository<Packaging>
         await _context.Embalajes.AddAsync(dbEntity, cancellationToken);
         
         // Update domain entity with generated ID
-        entity.Id = GuidLongConverter.ToGuid(dbEntity.IdEmbalaje);
+        entity.Id = dbEntity.IdEmbalaje.ToString();
         
         return entity;
     }
 
     public Task UpdateAsync(Packaging entity, CancellationToken cancellationToken = default)
     {
-        var idLong = GuidLongConverter.ToLong(entity.Id);
+        var idLong = string.IsNullOrEmpty(entity.Id) ? 0L : long.Parse(entity.Id);
         var dbEntity = _context.Embalajes.Find(idLong);
         
         if (dbEntity == null)
@@ -90,7 +91,7 @@ public class PackagingRepository : IRepository<Packaging>
 
     public Task DeleteAsync(Packaging entity, CancellationToken cancellationToken = default)
     {
-        var idLong = GuidLongConverter.ToLong(entity.Id);
+        var idLong = string.IsNullOrEmpty(entity.Id) ? 0L : long.Parse(entity.Id);
         var dbEntity = _context.Embalajes.Find(idLong);
         
         if (dbEntity == null)

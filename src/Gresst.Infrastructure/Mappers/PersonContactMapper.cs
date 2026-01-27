@@ -21,8 +21,8 @@ public class PersonContactMapper : MapperBase<PersonContact, PersonaContacto>
         return new PersonContact
         {
             // IDs (composite key - generate a Guid for domain)
-            Id = Guid.NewGuid(),
-            AccountId = GuidLongConverter.ToGuid(dbEntity.IdCuenta),
+            Id = Guid.NewGuid().ToString(),
+            AccountId = dbEntity.IdCuenta.ToString(),
             
             // Relations
             PersonId = GuidStringConverter.ToGuid(dbEntity.IdPersona),
@@ -76,7 +76,7 @@ public class PersonContactMapper : MapperBase<PersonContact, PersonaContacto>
             IdPersona = GuidStringConverter.ToString(domainEntity.PersonId),
             IdContacto = GuidStringConverter.ToString(domainEntity.ContactId),
             IdRelacion = domainEntity.RelationshipType,
-            IdCuenta = GuidLongConverter.ToLong(domainEntity.AccountId),
+            IdCuenta = long.TryParse(domainEntity.AccountId, out var pcAc) ? pcAc : 0,
             
             // Dates
             FechaInicio = domainEntity.StartDate,

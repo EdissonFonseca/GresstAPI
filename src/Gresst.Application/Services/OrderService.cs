@@ -24,7 +24,7 @@ public class OrderService : IOrderService
         _currentUserService = currentUserService;
     }
 
-    public async Task<OrderDto> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
+    public async Task<OrderDto> GetByIdAsync(string id, CancellationToken cancellationToken = default)
     {
         var order = await _orderRepository.GetByIdAsync(id, cancellationToken);
         if (order == null)
@@ -129,7 +129,7 @@ public class OrderService : IOrderService
             throw new ArgumentException("Order ID is required", nameof(dto));
         }
 
-        var order = await _orderRepository.GetByIdAsync(id, cancellationToken);
+        var order = await _orderRepository.GetByIdAsync(id.ToString(), cancellationToken);
         if (order == null)
             return null!;
 
@@ -199,7 +199,7 @@ public class OrderService : IOrderService
 
     public async Task<OrderDto> ScheduleAsync(Guid id, DateTime scheduledDate, Guid? vehicleId, Guid? routeId, CancellationToken cancellationToken = default)
     {
-        var order = await _orderRepository.GetByIdAsync(id, cancellationToken);
+        var order = await _orderRepository.GetByIdAsync(id.ToString(), cancellationToken);
         if (order == null)
             return null!;
 
@@ -223,7 +223,7 @@ public class OrderService : IOrderService
 
     public async Task<OrderDto> StartAsync(Guid id, CancellationToken cancellationToken = default)
     {
-        var order = await _orderRepository.GetByIdAsync(id, cancellationToken);
+        var order = await _orderRepository.GetByIdAsync(id.ToString(), cancellationToken);
         if (order == null)
             return null!;
 
@@ -240,7 +240,7 @@ public class OrderService : IOrderService
 
     public async Task<OrderDto> CompleteAsync(Guid id, decimal? actualCost, CancellationToken cancellationToken = default)
     {
-        var order = await _orderRepository.GetByIdAsync(id, cancellationToken);
+        var order = await _orderRepository.GetByIdAsync(id.ToString(), cancellationToken);
         if (order == null)
             return null!;
 
@@ -261,7 +261,7 @@ public class OrderService : IOrderService
 
     public async Task CancelAsync(Guid id, string? reason, CancellationToken cancellationToken = default)
     {
-        var order = await _orderRepository.GetByIdAsync(id, cancellationToken);
+        var order = await _orderRepository.GetByIdAsync(id.ToString(), cancellationToken);
         if (order == null)
             return;
 

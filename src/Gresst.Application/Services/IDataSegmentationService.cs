@@ -6,21 +6,21 @@ namespace Gresst.Application.Services;
 /// </summary>
 public interface IDataSegmentationService
 {
-    // Facilities
-    Task<bool> UserHasAccessToFacilityAsync(Guid facilityId, CancellationToken cancellationToken = default);
-    Task<IEnumerable<Guid>> GetUserFacilityIdsAsync(CancellationToken cancellationToken = default);
+    // Facilities - facility Id is string (BaseEntity.Id)
+    Task<bool> UserHasAccessToFacilityAsync(string facilityId, CancellationToken cancellationToken = default);
+    Task<IEnumerable<string>> GetUserFacilityIdsAsync(CancellationToken cancellationToken = default);
     Task<bool> AssignFacilityToUserAsync(Guid userId, Guid facilityId, CancellationToken cancellationToken = default);
     Task<bool> RevokeFacilityFromUserAsync(Guid userId, Guid facilityId, CancellationToken cancellationToken = default);
     
-    // Vehicles
-    Task<bool> UserHasAccessToVehicleAsync(Guid vehicleId, CancellationToken cancellationToken = default);
-    Task<IEnumerable<Guid>> GetUserVehicleIdsAsync(CancellationToken cancellationToken = default);
+    // Vehicles - vehicle Id is string (BaseEntity.Id / IdVehiculo in BD)
+    Task<bool> UserHasAccessToVehicleAsync(string vehicleId, CancellationToken cancellationToken = default);
+    Task<IEnumerable<string>> GetUserVehicleIdsAsync(CancellationToken cancellationToken = default);
     Task<bool> AssignVehicleToUserAsync(Guid userId, Guid vehicleId, CancellationToken cancellationToken = default);
     Task<bool> RevokeVehicleFromUserAsync(Guid userId, Guid vehicleId, CancellationToken cancellationToken = default);
     
-    // Materials
-    Task<bool> UserHasAccessToMaterialAsync(Guid materialId, CancellationToken cancellationToken = default);
-    Task<IEnumerable<Guid>> GetUserMaterialIdsAsync(CancellationToken cancellationToken = default);
+    // Materials - material Id is string (BaseEntity.Id, BD long as string)
+    Task<bool> UserHasAccessToMaterialAsync(string materialId, CancellationToken cancellationToken = default);
+    Task<IEnumerable<string>> GetUserMaterialIdsAsync(CancellationToken cancellationToken = default);
     Task<bool> AssignMaterialToUserAsync(Guid userId, Guid materialId, CancellationToken cancellationToken = default);
     Task<bool> RevokeMaterialFromUserAsync(Guid userId, Guid materialId, CancellationToken cancellationToken = default);
     

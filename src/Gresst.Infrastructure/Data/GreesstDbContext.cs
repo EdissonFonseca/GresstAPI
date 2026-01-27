@@ -82,7 +82,7 @@ public class GreesstDbContext : DbContext
     {
         // Set audit fields
         var entries = ChangeTracker.Entries<BaseEntity>();
-        var currentAccountId = _currentUserService?.GetCurrentAccountId() ?? Guid.Empty;
+        var currentAccountId = _currentUserService?.GetCurrentAccountId() ?? string.Empty;
         var currentUsername = _currentUserService?.GetCurrentUsername() ?? "System";
 
         foreach (var entry in entries)
@@ -90,7 +90,7 @@ public class GreesstDbContext : DbContext
             switch (entry.State)
             {
                 case EntityState.Added:
-                    entry.Entity.Id = Guid.NewGuid();
+                    entry.Entity.Id = Guid.NewGuid().ToString();
                     entry.Entity.AccountId = currentAccountId;
                     entry.Entity.CreatedAt = DateTime.UtcNow;
                     entry.Entity.CreatedBy = currentUsername;

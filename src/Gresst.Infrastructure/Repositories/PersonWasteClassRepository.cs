@@ -27,7 +27,7 @@ public class PersonWasteClassRepository : IRepository<PersonWasteClass>
         _currentUserService = currentUserService;
     }
 
-    public async Task<PersonWasteClass?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
+    public async Task<PersonWasteClass?> GetByIdAsync(string id, CancellationToken cancellationToken = default)
     {
         // PersonWasteClass has composite key, so GetByIdAsync needs to be adapted
         await Task.CompletedTask;
@@ -37,7 +37,7 @@ public class PersonWasteClassRepository : IRepository<PersonWasteClass>
     public async Task<IEnumerable<PersonWasteClass>> GetAllAsync(CancellationToken cancellationToken = default)
     {
         var accountId = _currentUserService.GetCurrentAccountId();
-        var accountIdLong = GuidLongConverter.ToLong(accountId);
+        var accountIdLong = string.IsNullOrEmpty(accountId) ? 0L : long.Parse(accountId);
 
         var dbEntities = await _context.PersonaTipoResiduos
             .Where(pt => pt.IdCuenta == accountIdLong)
@@ -58,7 +58,7 @@ public class PersonWasteClassRepository : IRepository<PersonWasteClass>
     {
         var dbEntity = _mapper.ToDatabase(entity);
         
-        dbEntity.IdCuenta = GuidLongConverter.ToLong(_currentUserService.GetCurrentAccountId());
+        dbEntity.IdCuenta = string.IsNullOrEmpty(_currentUserService.GetCurrentAccountId()) ? 0L : long.Parse(_currentUserService.GetCurrentAccountId());
         dbEntity.FechaCreacion = DateTime.UtcNow;
         dbEntity.IdUsuarioCreacion = GuidLongConverter.ToLong(_currentUserService.GetCurrentUserId());
 
@@ -69,7 +69,7 @@ public class PersonWasteClassRepository : IRepository<PersonWasteClass>
 
     public Task UpdateAsync(PersonWasteClass entity, CancellationToken cancellationToken = default)
     {
-        var accountIdLong = GuidLongConverter.ToLong(_currentUserService.GetCurrentAccountId());
+        var accountIdLong = string.IsNullOrEmpty(_currentUserService.GetCurrentAccountId()) ? 0L : long.Parse(_currentUserService.GetCurrentAccountId());
         var personIdString = GuidStringConverter.ToString(entity.PersonId);
         var wasteClassIdInt = (int)GuidLongConverter.ToLong(entity.WasteClassId);
 
@@ -89,7 +89,7 @@ public class PersonWasteClassRepository : IRepository<PersonWasteClass>
 
     public Task DeleteAsync(PersonWasteClass entity, CancellationToken cancellationToken = default)
     {
-        var accountIdLong = GuidLongConverter.ToLong(_currentUserService.GetCurrentAccountId());
+        var accountIdLong = string.IsNullOrEmpty(_currentUserService.GetCurrentAccountId()) ? 0L : long.Parse(_currentUserService.GetCurrentAccountId());
         var personIdString = GuidStringConverter.ToString(entity.PersonId);
         var wasteClassIdInt = (int)GuidLongConverter.ToLong(entity.WasteClassId);
 
@@ -106,7 +106,7 @@ public class PersonWasteClassRepository : IRepository<PersonWasteClass>
     public async Task<int> CountAsync(Expression<Func<PersonWasteClass, bool>>? predicate = null, CancellationToken cancellationToken = default)
     {
         var accountId = _currentUserService.GetCurrentAccountId();
-        var accountIdLong = GuidLongConverter.ToLong(accountId);
+        var accountIdLong = string.IsNullOrEmpty(accountId) ? 0L : long.Parse(accountId);
         
         if (predicate == null)
         {

@@ -5,7 +5,7 @@ namespace Gresst.Application.DTOs;
 /// </summary>
 public class ProcessDto
 {
-    public Guid Id { get; set; }
+    public string Id { get; set; } = string.Empty;
     public string Name { get; set; } = string.Empty;
     public string? Description { get; set; }
     public string Status { get; set; } = string.Empty;
@@ -23,7 +23,7 @@ public class ProcessDto
 /// </summary>
 public class SubProcessDto
 {
-    public Guid Id { get; set; }
+    public string Id { get; set; } = string.Empty;
     public Guid ProcessId { get; set; }
     public string Name { get; set; } = string.Empty;
     public string? Description { get; set; }
@@ -41,7 +41,7 @@ public class SubProcessDto
 /// </summary>
 public class TaskDto
 {
-    public Guid Id { get; set; }
+    public string Id { get; set; } = string.Empty;
     public Guid? ProcessId { get; set; }
     public Guid? SubProcessId { get; set; }
     public string Name { get; set; } = string.Empty;

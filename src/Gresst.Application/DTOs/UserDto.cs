@@ -5,8 +5,8 @@ namespace Gresst.Application.DTOs;
 /// </summary>
 public class UserDto
 {
-    public Guid Id { get; set; }
-    public Guid AccountId { get; set; }
+    public string Id { get; set; } = string.Empty;
+    public string AccountId { get; set; } = string.Empty;
     public string Name { get; set; } = string.Empty;
     public string? LastName { get; set; }
     public string Email { get; set; } = string.Empty;
@@ -24,7 +24,7 @@ public class UserDto
 /// </summary>
 public class CreateUserDto
 {
-    public Guid AccountId { get; set; }
+    public string AccountId { get; set; } = string.Empty;
     public string Name { get; set; } = string.Empty;
     public string? LastName { get; set; }
     public string Email { get; set; } = string.Empty;

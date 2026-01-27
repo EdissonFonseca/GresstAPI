@@ -1,5 +1,6 @@
-﻿using Gresst.Domain.Entities;
+using Gresst.Domain.Entities;
 using Gresst.Domain.Interfaces;
+using Gresst.Infrastructure.Common;
 using Gresst.Infrastructure.Data;
 using Gresst.Infrastructure.Mappers;
 using Microsoft.EntityFrameworkCore;
@@ -28,9 +29,10 @@ public class AccountRepository : IAccountRepository
     }
 
     // Métodos de IRepository<Account>
-    public async Task<Account?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
+    public async Task<Account?> GetByIdAsync(string id, CancellationToken cancellationToken = default)
     {
-        var idLong = ConvertGuidToLong(id);
+        if (string.IsNullOrEmpty(id) || !long.TryParse(id, out var idLong))
+            return null;
         var dbEntity = await _context.Cuenta
             .Include(c => c.IdPersonaNavigation)
             .Include(c => c.IdUsuarioNavigation)
@@ -66,13 +68,13 @@ public class AccountRepository : IAccountRepository
         
         await _context.Cuenta.AddAsync(dbEntity, cancellationToken);
         
-        entity.Id = ConvertLongToGuid(dbEntity.IdCuenta);
+        entity.Id = dbEntity.IdCuenta.ToString();
         return entity;
     }
 
     public Task UpdateAsync(Account entity, CancellationToken cancellationToken = default)
     {
-        var idLong = ConvertGuidToLong(entity.Id);
+        var idLong = string.IsNullOrEmpty(entity.Id) ? 0L : long.Parse(entity.Id);
         var dbEntity = _context.Cuenta.Find(idLong);
         
         if (dbEntity == null)
@@ -89,7 +91,7 @@ public class AccountRepository : IAccountRepository
 
     public Task DeleteAsync(Account entity, CancellationToken cancellationToken = default)
     {
-        var idLong = ConvertGuidToLong(entity.Id);
+        var idLong = string.IsNullOrEmpty(entity.Id) ? 0L : long.Parse(entity.Id);
         var dbEntity = _context.Cuenta.Find(idLong);
         
         if (dbEntity == null)
@@ -120,7 +122,7 @@ public class AccountRepository : IAccountRepository
     // Métodos específicos de IAccountRepository
     public async Task<Account?> GetByUserIdAsync(Guid userId, CancellationToken cancellationToken = default)
     {
-        var userIdLong = ConvertGuidToLong(userId);
+        var userIdLong = GuidLongConverter.ToLong(userId);
         
         var dbEntity = await _context.Cuenta
             .Include(c => c.IdPersonaNavigation)
@@ -141,48 +143,10 @@ public class AccountRepository : IAccountRepository
         return dbEntity != null ? _mapper.ToDomain(dbEntity) : null;
     }
 
-    // Helper methods
-    private Guid ConvertLongToGuid(long id)
-    {
-        if (id == 0) return Guid.Empty;
-        return new Guid(id.ToString().PadLeft(32, '0'));
-    }
-
-    private Guid ConvertStringToGuid(string id)
-    {
-        if (string.IsNullOrEmpty(id)) return Guid.Empty;
-        
-        if (Guid.TryParse(id, out var guid))
-            return guid;
-        
-        var hexString = new string(id.Where(c => char.IsLetterOrDigit(c)).ToArray());
-        hexString = hexString.PadLeft(32, '0').Substring(0, 32);
-        
-        var formatted = $"{hexString.Substring(0, 8)}-{hexString.Substring(8, 4)}-{hexString.Substring(12, 4)}-{hexString.Substring(16, 4)}-{hexString.Substring(20, 12)}";
-        
-        return Guid.Parse(formatted);
-    }
-
-    private long ConvertGuidToLong(Guid guid)
-    {
-        if (guid == Guid.Empty) return 0;
-        
-        var guidString = guid.ToString().Replace("-", "");
-        var numericPart = new string(guidString.Where(char.IsDigit).Take(18).ToArray());
-        
-        return long.TryParse(numericPart, out var result) ? result : 0;
-    }
-
-    private string ConvertGuidToString(Guid guid)
-    {
-        if (guid == Guid.Empty) return string.Empty;
-        return guid.ToString().Replace("-", "").Substring(0, 40);
-    }
-
     private long GetCurrentUserIdAsLong()
     {
         var userId = _currentUserService.GetCurrentUserId();
-        return ConvertGuidToLong(userId);
+        return GuidLongConverter.ToLong(userId);
     }
 }
 

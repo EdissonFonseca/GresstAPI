@@ -45,7 +45,7 @@ public class ProcessService : IProcessService
             // Process = Service Order associated to a vehicle
             var process = new ProcessDto
             {
-                Id = Guid.NewGuid(),
+                Id = Guid.NewGuid().ToString(),
                 Name = $"Order {firstOrderItem.NumeroOrden ?? firstOrderItem.IdOrden} - Vehicle {firstOrderItem.IdVehiculo ?? "N/A"}",
                 Description = $"Transport order {firstOrderItem.NumeroOrden ?? firstOrderItem.IdOrden} for vehicle {firstOrderItem.IdVehiculo ?? "N/A"}",
                 Status = MapStatus(firstOrderItem.IdEstado, firstOrderItem.IdEtapa, firstOrderItem.IdFase),
@@ -72,8 +72,8 @@ public class ProcessService : IProcessService
 
                 var subProcess = new SubProcessDto
                 {
-                    Id = Guid.NewGuid(),
-                    ProcessId = process.Id,
+                    Id = Guid.NewGuid().ToString(),
+                    ProcessId = Guid.Parse(process.Id),
                     Name = $"Pickup at {cpFirst.DepositoOrigen ?? "Unknown origin"}",
                     Description = $"Collection point at {cpFirst.DepositoOrigen ?? "origin depot"} for order {firstOrderItem.NumeroOrden ?? firstOrderItem.IdOrden}",
                     Status = MapStatus(cpFirst.IdEstado, cpFirst.IdEtapa, cpFirst.IdFase),
@@ -94,7 +94,7 @@ public class ProcessService : IProcessService
                 // 3) Tasks: each SolicitudDetalle (row) at this collection point
                 foreach (var item in cpGroup)
                 {
-                    var task = CreateTaskFromTransportItem(item, process.Id, subProcess.Id);
+                    var task = CreateTaskFromTransportItem(item, Guid.Parse(process.Id), Guid.Parse(subProcess.Id));
                     subProcess.Tasks.Add(task);
                 }
 
@@ -117,7 +117,7 @@ public class ProcessService : IProcessService
                 var first = group.First();
                 var process = new ProcessDto
                 {
-                    Id = Guid.NewGuid(),
+                    Id = Guid.NewGuid().ToString(),
                     Name = first.Titulo ?? $"Unscheduled transport for request {first.NumeroSolicitud ?? first.IdSolicitud}",
                     Description = "Unscheduled transport without service order",
                     Status = MapStatus(first.IdEstado, first.IdEtapa, first.IdFase),
@@ -134,8 +134,8 @@ public class ProcessService : IProcessService
 
                 var subProcess = new SubProcessDto
                 {
-                    Id = Guid.NewGuid(),
-                    ProcessId = process.Id,
+                    Id = Guid.NewGuid().ToString(),
+                    ProcessId = Guid.Parse(process.Id),
                     Name = $"Pickup at {first.DepositoOrigen ?? "Unknown origin"}",
                     Description = "Collection point without associated order",
                     Status = MapStatus(first.IdEstado, first.IdEtapa, first.IdFase),
@@ -151,7 +151,7 @@ public class ProcessService : IProcessService
 
                 foreach (var item in group)
                 {
-                    var task = CreateTaskFromTransportItem(item, process.Id, subProcess.Id);
+                    var task = CreateTaskFromTransportItem(item, Guid.Parse(process.Id), Guid.Parse(subProcess.Id));
                     subProcess.Tasks.Add(task);
                 }
 
@@ -173,7 +173,7 @@ public class ProcessService : IProcessService
     {
         return new TaskDto
         {
-            Id = Guid.NewGuid(),
+            Id = Guid.NewGuid().ToString(),
             ProcessId = processId,
             SubProcessId = subProcessId,
             Name = $"{item.Material ?? "Material"} - {item.DepositoOrigen ?? "Origin"} to {item.DepositoDestino ?? "Destination"}",

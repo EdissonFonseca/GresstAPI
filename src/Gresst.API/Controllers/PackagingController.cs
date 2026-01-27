@@ -40,7 +40,7 @@ public class PackagingController : ControllerBase
     [ProducesResponseType(404)]
     public async Task<ActionResult<PackagingDto>> GetById(Guid id, CancellationToken cancellationToken)
     {
-        var packaging = await _packagingService.GetByIdAsync(id, cancellationToken);
+        var packaging = await _packagingService.GetByIdAsync(id.ToString(), cancellationToken);
         
         if (packaging == null)
             return NotFound(new { message = "Packaging not found" });
@@ -116,7 +116,7 @@ public class PackagingController : ControllerBase
     [ProducesResponseType(404)]
     public async Task<ActionResult<PackagingDto>> Update(Guid id, [FromBody] UpdatePackagingDto dto, CancellationToken cancellationToken)
     {
-        if (id != dto.Id)
+        if (id.ToString() != dto.Id)
             return BadRequest(new { message = "ID mismatch" });
 
         if (!ModelState.IsValid)
@@ -138,7 +138,7 @@ public class PackagingController : ControllerBase
     [ProducesResponseType(404)]
     public async Task<ActionResult> Delete(Guid id, CancellationToken cancellationToken)
     {
-        var success = await _packagingService.DeleteAsync(id, cancellationToken);
+        var success = await _packagingService.DeleteAsync(id.ToString(), cancellationToken);
         
         if (!success)
             return NotFound(new { message = "Packaging not found" });
