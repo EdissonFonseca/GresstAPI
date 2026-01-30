@@ -35,7 +35,6 @@ public static class MapEndpoints
         PersonContactEndpoints.Map(api);
         ResourceAssignmentEndpoints.Map(api);
         InventoryEndpoints.Map(api);
-        MaterialesEndpoints.Map(api);
 
         return app;
     }
