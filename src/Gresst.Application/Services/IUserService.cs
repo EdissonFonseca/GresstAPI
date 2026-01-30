@@ -8,6 +8,7 @@ namespace Gresst.Application.Services;
 public interface IUserService
 {
     Task<UserDto?> GetUserByIdAsync(string userId, CancellationToken cancellationToken = default);
+    Task<UserDto?> GetUserByEmailAsync(string email, CancellationToken cancellationToken = default);
     Task<UserDto?> GetCurrentUserAsync(CancellationToken cancellationToken = default);
     Task<IEnumerable<UserDto>> GetUsersByAccountAsync(string accountId, CancellationToken cancellationToken = default);
     Task<UserDto> CreateUserAsync(CreateUserDto dto, CancellationToken cancellationToken = default);

@@ -12,14 +12,14 @@ public static class UserEndpoints
             .WithTags("User")
             .RequireAuthorization();
 
-        users.MapGet("me", async (IUserService userService, CancellationToken ct) =>
+        users.MapGet("by-email/{email}", async (string email, IUserService userService, CancellationToken ct) =>
             {
-                var user = await userService.GetCurrentUserAsync(ct);
+                var user = await userService.GetUserByEmailAsync(email, ct);
                 if (user == null)
                     return Results.NotFound(new { error = "Usuario no encontrado" });
                 return Results.Ok(user);
             })
-            .WithName("GetCurrentUser");
+            .WithName("GetUserByEmail");
 
         users.MapGet("{id}", async (string id, IUserService userService, CancellationToken ct) =>
             {
@@ -40,18 +40,6 @@ public static class UserEndpoints
             .RequireAuthorization(policy => policy.RequireRole("Admin"))
             .WithName("CreateUser");
 
-        users.MapPut("me", async ([FromBody] UpdateUserProfileDto dto, System.Security.Claims.ClaimsPrincipal user, IUserService userService, CancellationToken ct) =>
-            {
-                var userIdClaim = user.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
-                if (string.IsNullOrEmpty(userIdClaim))
-                    return Results.Unauthorized();
-                var u = await userService.UpdateUserProfileAsync(userIdClaim, dto, ct);
-                if (u == null)
-                    return Results.NotFound(new { error = "Usuario no encontrado" });
-                return Results.Ok(u);
-            })
-            .WithName("UpdateMyProfile");
-
         users.MapPut("{id}", async (string id, [FromBody] UpdateUserProfileDto dto, IUserService userService, CancellationToken ct) =>
             {
                 var user = await userService.UpdateUserProfileAsync(id, dto, ct);
@@ -61,20 +49,6 @@ public static class UserEndpoints
             })
             .RequireAuthorization(policy => policy.RequireRole("Admin"))
             .WithName("UpdateUser");
-
-        users.MapPost("me/change-password", async ([FromBody] ChangePasswordDto dto, System.Security.Claims.ClaimsPrincipal user, IUserService userService, CancellationToken ct) =>
-            {
-                if (dto.NewPassword != dto.ConfirmPassword)
-                    return Results.BadRequest(new { error = "Las contraseñas no coinciden" });
-                var userIdClaim = user.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
-                if (string.IsNullOrEmpty(userIdClaim))
-                    return Results.Unauthorized();
-                var success = await userService.ChangePasswordAsync(userIdClaim, dto, ct);
-                if (!success)
-                    return Results.BadRequest(new { error = "Contraseña actual incorrecta" });
-                return Results.Ok(new { message = "Contraseña actualizada exitosamente" });
-            })
-            .WithName("ChangeMyPassword");
 
         users.MapPost("{id}/deactivate", async (string id, IUserService userService, CancellationToken ct) =>
             {

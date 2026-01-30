@@ -182,6 +182,7 @@ builder.Services.AddScoped<IWasteClassService, WasteClassService>();
 builder.Services.AddScoped<ITreatmentService, TreatmentService>();
 builder.Services.AddScoped<IRouteService, RouteService>();
 builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddScoped<IMeService, MeService>();
 builder.Services.AddScoped<IAuthorizationService, AuthorizationService>();
 
 // Planning Services

@@ -38,6 +38,21 @@ public class UserService : IUserService
         return MapToDto(usuario);
     }
 
+    public async Task<UserDto?> GetUserByEmailAsync(string email, CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrWhiteSpace(email))
+            return null;
+
+        var usuario = await _context.Usuarios
+            .Include(u => u.IdPersonaNavigation)
+            .FirstOrDefaultAsync(u => u.Correo == email, cancellationToken);
+
+        if (usuario == null)
+            return null;
+
+        return MapToDto(usuario);
+    }
+
     public async Task<UserDto?> GetCurrentUserAsync(CancellationToken cancellationToken = default)
     {
         var currentUserId = _currentUserService.GetCurrentUserId();
