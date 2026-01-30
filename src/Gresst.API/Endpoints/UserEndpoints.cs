@@ -30,14 +30,6 @@ public static class UserEndpoints
             })
             .WithName("GetUserById");
 
-        users.MapGet("account/{accountId}", async (string accountId, IUserService userService, CancellationToken ct) =>
-            {
-                var list = await userService.GetUsersByAccountAsync(accountId, ct);
-                return Results.Ok(list);
-            })
-            .RequireAuthorization(policy => policy.RequireRole("Admin"))
-            .WithName("GetUsersByAccount");
-
         users.MapPost("", async ([FromBody] CreateUserDto dto, IUserService userService, CancellationToken ct) =>
             {
                 if (dto == null)

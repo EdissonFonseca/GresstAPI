@@ -30,6 +30,7 @@ public static class MapEndpoints
         OrderEndpoints.Map(api);
         RequestEndpoints.Map(api);
         ProcessEndpoints.Map(api);
+        AccountEndpoints.Map(api);
         UserEndpoints.Map(api);
         PersonEndpoints.Map(api);
         PersonContactEndpoints.Map(api);
