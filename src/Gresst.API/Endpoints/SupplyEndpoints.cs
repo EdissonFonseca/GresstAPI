@@ -8,7 +8,7 @@ public static class SupplyEndpoints
 {
     public static RouteGroupBuilder Map(this RouteGroupBuilder group)
     {
-        var supplies = group.MapGroup("/supply")
+        var supplies = group.MapGroup("/supplies")
             .WithTags("Supply");
 
         supplies.MapGet("", async (ISupplyService supplyService, CancellationToken ct) =>

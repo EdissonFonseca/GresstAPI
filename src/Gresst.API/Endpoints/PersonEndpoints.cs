@@ -8,7 +8,7 @@ public static class PersonEndpoints
 {
     public static RouteGroupBuilder Map(this RouteGroupBuilder group)
     {
-        var person = group.MapGroup("/person")
+        var person = group.MapGroup("/people")
             .WithTags("Person");
 
         // Material
@@ -27,12 +27,12 @@ public static class PersonEndpoints
                 try
                 {
                     var material = await materialService.CreateClientMaterialAsync(personId, dto, ct);
-                    return Results.Created($"/api/v1/person/{personId}/material", material);
+                    return Results.Created($"/api/v1/people/{personId}/material", material);
                 }
                 catch
                 {
                     var material = await materialService.CreateProviderMaterialAsync(personId, dto, ct);
-                    return Results.Created($"/api/v1/person/{personId}/material", material);
+                    return Results.Created($"/api/v1/people/{personId}/material", material);
                 }
             }).WithName("CreatePersonMaterial");
 
@@ -47,7 +47,7 @@ public static class PersonEndpoints
             {
                 if (dto == null) return Results.BadRequest();
                 var personService = await serviceService.CreateProviderServiceAsync(personId, dto, ct);
-                return Results.Created($"/api/v1/person/{personId}/service", personService);
+                return Results.Created($"/api/v1/people/{personId}/service", personService);
             }).WithName("CreatePersonService");
 
         person.MapPut("{personId}/service", async (string personId, [FromBody] UpdatePersonServiceDto dto, IServiceService serviceService, CancellationToken ct) =>
@@ -76,7 +76,7 @@ public static class PersonEndpoints
             {
                 if (dto == null) return Results.BadRequest();
                 var personTreatment = await treatmentService.CreateProviderTreatmentAsync(personId, dto, ct);
-                return Results.Created($"/api/v1/person/{personId}/treatment", personTreatment);
+                return Results.Created($"/api/v1/people/{personId}/treatment", personTreatment);
             }).WithName("CreatePersonTreatment");
 
         person.MapPut("{personId}/treatment", async (string personId, [FromBody] UpdatePersonTreatmentDto dto, ITreatmentService treatmentService, CancellationToken ct) =>
@@ -105,7 +105,7 @@ public static class PersonEndpoints
             {
                 if (dto == null) return Results.BadRequest();
                 var personWasteClass = await wasteClassService.CreateProviderWasteClassAsync(personId, dto, ct);
-                return Results.Created($"/api/v1/person/{personId}/wasteclass", personWasteClass);
+                return Results.Created($"/api/v1/people/{personId}/wasteclass", personWasteClass);
             }).WithName("CreatePersonWasteClass");
 
         person.MapPut("{personId}/wasteclass", async (string personId, [FromBody] UpdatePersonWasteClassDto dto, IWasteClassService wasteClassService, CancellationToken ct) =>
@@ -138,12 +138,12 @@ public static class PersonEndpoints
                 try
                 {
                     var facility = await facilityService.CreateClientFacilityAsync(personId, dto, ct);
-                    return Results.Created($"/api/v1/person/{personId}/facility", facility);
+                    return Results.Created($"/api/v1/people/{personId}/facility", facility);
                 }
                 catch
                 {
                     var facility = await facilityService.CreateProviderFacilityAsync(personId, dto, ct);
-                    return Results.Created($"/api/v1/person/{personId}/facility", facility);
+                    return Results.Created($"/api/v1/people/{personId}/facility", facility);
                 }
             }).WithName("CreatePersonFacility");
 
@@ -174,7 +174,7 @@ public static class PersonEndpoints
                 var facility = clientFacilities.FirstOrDefault(f => f.Id == facilityId) ?? (await facilityService.GetProviderFacilitiesAsync(personId, ct)).FirstOrDefault(f => f.Id == facilityId);
                 if (facility == null) return Results.NotFound(new { message = "Facility not found or does not belong to this person" });
                 var material = await materialService.CreateFacilityMaterialAsync(facilityId, dto, ct);
-                return Results.Created($"/api/v1/person/{personId}/facility/{facilityId}/material", material);
+                return Results.Created($"/api/v1/people/{personId}/facility/{facilityId}/material", material);
             }).WithName("CreatePersonFacilityMaterial");
 
         // Vehicle
@@ -192,12 +192,12 @@ public static class PersonEndpoints
                 try
                 {
                     var vehicle = await vehicleService.CreateClientVehicleAsync(personId, dto, ct);
-                    return Results.Created($"/api/v1/person/{personId}/vehicle", vehicle);
+                    return Results.Created($"/api/v1/people/{personId}/vehicle", vehicle);
                 }
                 catch
                 {
                     var vehicle = await vehicleService.CreateProviderVehicleAsync(personId, dto, ct);
-                    return Results.Created($"/api/v1/person/{personId}/vehicle", vehicle);
+                    return Results.Created($"/api/v1/people/{personId}/vehicle", vehicle);
                 }
             }).WithName("CreatePersonVehicle");
 
@@ -219,7 +219,7 @@ public static class PersonEndpoints
             {
                 if (dto == null) return Results.BadRequest();
                 var contact = await personContactService.CreatePersonContactAsync(personId, dto, ct);
-                return Results.Created($"/api/v1/person/{personId}/contact", contact);
+                return Results.Created($"/api/v1/people/{personId}/contact", contact);
             }).WithName("CreatePersonContact");
 
         person.MapPut("{personId}/contact", async (string personId, [FromBody] UpdatePersonContactDto dto, IPersonContactService personContactService, CancellationToken ct) =>

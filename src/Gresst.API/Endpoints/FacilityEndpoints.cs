@@ -8,7 +8,7 @@ public static class FacilityEndpoints
 {
     public static RouteGroupBuilder Map(this RouteGroupBuilder group)
     {
-        var facilities = group.MapGroup("/facility")
+        var facilities = group.MapGroup("/facilities")
             .WithTags("Facility");
 
         facilities.MapGet("", async (IFacilityService facilityService, CancellationToken ct) =>
@@ -100,7 +100,7 @@ public static class FacilityEndpoints
                 if (dto == null)
                     return Results.BadRequest();
                 var material = await materialService.CreateFacilityMaterialAsync(facilityId, dto, ct);
-                return Results.Created($"/api/v1/facility/{facilityId}/material", material);
+                return Results.Created($"/api/v1/facilities/{facilityId}/material", material);
             })
             .WithName("CreateFacilityMaterial");
 

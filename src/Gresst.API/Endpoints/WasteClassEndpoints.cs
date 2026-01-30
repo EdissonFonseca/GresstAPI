@@ -8,7 +8,7 @@ public static class WasteClassEndpoints
 {
     public static RouteGroupBuilder Map(this RouteGroupBuilder group)
     {
-        var wasteClasses = group.MapGroup("/wasteclass")
+        var wasteClasses = group.MapGroup("/wasteclasses")
             .WithTags("WasteClass");
 
         wasteClasses.MapGet("types", async (IWasteClassService wasteClassService, CancellationToken ct) =>
@@ -70,7 +70,7 @@ public static class WasteClassEndpoints
                 if (dto == null)
                     return Results.BadRequest();
                 var personWasteClass = await wasteClassService.CreateAccountPersonWasteClassAsync(dto, ct);
-                return Results.Created("/api/v1/wasteclass/account", personWasteClass);
+                return Results.Created("/api/v1/wasteclasses/account", personWasteClass);
             })
             .WithName("CreateAccountPersonWasteClass");
 

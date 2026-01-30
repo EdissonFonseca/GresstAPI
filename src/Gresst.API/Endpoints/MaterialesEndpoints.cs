@@ -11,7 +11,7 @@ public static class MaterialesEndpoints
             .WithTags("Materiales")
             .RequireAuthorization();
 
-        materiales.MapGet("get", async (
+        materiales.MapGet("", async (
                 [FromQuery] string? filter,
                 [FromQuery] int pageNumber,
                 [FromQuery] int pageSize,

@@ -16,6 +16,8 @@ public sealed class ConfigureSwaggerOptions : IConfigureOptions<SwaggerGenOption
     public void Configure(SwaggerGenOptions options)
     {
         var descriptions = _provider.ApiVersionDescriptions;
+        const string urlNote = "\n\n**Base URL:** You can call the API using either:\n- **Versioned:** `https://your-host/api/v1/...` (e.g. `/api/v1/clients`)\n- **Legacy (no version):** `https://your-host/api/...` (e.g. `/api/clients`). Requests to `/api/...` are rewritten to `/api/v1/...` for backward compatibility.";
+
         if (descriptions.Count == 0)
         {
             // Minimal API: no controllers, so add default v1 doc for Swagger
@@ -23,7 +25,7 @@ public sealed class ConfigureSwaggerOptions : IConfigureOptions<SwaggerGenOption
             {
                 Title = "Gresst Waste Management API",
                 Version = "1.0",
-                Description = "Complete waste management system with traceability, inventory, and certificates (Minimal API)"
+                Description = "Complete waste management system with traceability, inventory, and certificates (Minimal API)." + urlNote
             });
             return;
         }
@@ -35,9 +37,9 @@ public sealed class ConfigureSwaggerOptions : IConfigureOptions<SwaggerGenOption
                 {
                     Title = "Gresst Waste Management API",
                     Version = description.ApiVersion.ToString(),
-                    Description = description.IsDeprecated
+                    Description = (description.IsDeprecated
                         ? "⚠️ This API version has been deprecated."
-                        : "Complete waste management system with traceability, inventory, and certificates"
+                        : "Complete waste management system with traceability, inventory, and certificates.") + urlNote
                 }
             );
         }

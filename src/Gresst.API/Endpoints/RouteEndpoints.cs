@@ -8,7 +8,7 @@ public static class RouteEndpoints
 {
     public static RouteGroupBuilder Map(this RouteGroupBuilder group)
     {
-        var routes = group.MapGroup("/route")
+        var routes = group.MapGroup("/routes")
             .WithTags("Route");
 
         routes.MapGet("", async (IRouteService routeService, CancellationToken ct) =>
@@ -84,7 +84,7 @@ public static class RouteEndpoints
                 if (dto == null || string.IsNullOrEmpty(dto.FacilityId))
                     return Results.BadRequest(new { message = "FacilityId is required for RouteStop" });
                 var stop = await routeService.AddStopAsync(routeId, dto, ct);
-                return Results.Created($"/api/v1/route/{routeId}", stop);
+                return Results.Created($"/api/v1/routes/{routeId}", stop);
             })
             .WithName("AddRouteStop");
 

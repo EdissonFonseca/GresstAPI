@@ -9,7 +9,7 @@ public static class WasteEndpoints
 {
     public static RouteGroupBuilder Map(this RouteGroupBuilder group)
     {
-        var wastes = group.MapGroup("/waste")
+        var wastes = group.MapGroup("/wastes")
             .WithTags("Waste");
 
         wastes.MapGet("", async (IWasteService wasteService, CancellationToken ct) =>

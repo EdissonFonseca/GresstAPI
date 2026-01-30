@@ -8,7 +8,7 @@ public static class InventoryEndpoints
 {
     public static RouteGroupBuilder Map(this RouteGroupBuilder group)
     {
-        var inventory = group.MapGroup("/inventory")
+        var inventory = group.MapGroup("/inventories")
             .WithTags("Inventory");
 
         inventory.MapGet("", async (

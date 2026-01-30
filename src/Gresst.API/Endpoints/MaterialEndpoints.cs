@@ -8,7 +8,7 @@ public static class MaterialEndpoints
 {
     public static RouteGroupBuilder Map(this RouteGroupBuilder group)
     {
-        var materials = group.MapGroup("/material")
+        var materials = group.MapGroup("/materials")
             .WithTags("Material");
 
         materials.MapGet("", async (IMaterialService materialService, CancellationToken ct) =>

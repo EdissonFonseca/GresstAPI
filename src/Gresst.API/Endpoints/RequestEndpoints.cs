@@ -9,7 +9,7 @@ public static class RequestEndpoints
 {
     public static RouteGroupBuilder Map(this RouteGroupBuilder group)
     {
-        var requests = group.MapGroup("/request")
+        var requests = group.MapGroup("/requests")
             .WithTags("Request")
             .RequireAuthorization();
 

@@ -7,7 +7,7 @@ public static class ResourceAssignmentEndpoints
 {
     public static RouteGroupBuilder Map(this RouteGroupBuilder group)
     {
-        var resourceAssignment = group.MapGroup("/resourceassignment")
+        var resourceAssignment = group.MapGroup("/resourceassignments")
             .WithTags("ResourceAssignment")
             .RequireAuthorization(policy => policy.RequireRole("Admin"));
 

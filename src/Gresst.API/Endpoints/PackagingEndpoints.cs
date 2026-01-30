@@ -8,7 +8,7 @@ public static class PackagingEndpoints
 {
     public static RouteGroupBuilder Map(this RouteGroupBuilder group)
     {
-        var packagings = group.MapGroup("/packaging")
+        var packagings = group.MapGroup("/packagings")
             .WithTags("Packaging");
 
         packagings.MapGet("", async (IPackagingService packagingService, CancellationToken ct) =>

@@ -8,7 +8,7 @@ public static class OrderEndpoints
 {
     public static RouteGroupBuilder Map(this RouteGroupBuilder group)
     {
-        var orders = group.MapGroup("/order")
+        var orders = group.MapGroup("/orders")
             .WithTags("Order")
             .RequireAuthorization();
 

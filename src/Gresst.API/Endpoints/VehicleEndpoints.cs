@@ -8,7 +8,7 @@ public static class VehicleEndpoints
 {
     public static RouteGroupBuilder Map(this RouteGroupBuilder group)
     {
-        var vehicles = group.MapGroup("/vehicle")
+        var vehicles = group.MapGroup("/vehicles")
             .WithTags("Vehicle");
 
         vehicles.MapGet("", async (IVehicleService vehicleService, CancellationToken ct) =>

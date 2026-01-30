@@ -8,7 +8,7 @@ public static class PersonContactEndpoints
 {
     public static RouteGroupBuilder Map(this RouteGroupBuilder group)
     {
-        var contacts = group.MapGroup("/personcontact")
+        var contacts = group.MapGroup("/personcontacts")
             .WithTags("PersonContact")
             .RequireAuthorization();
 
@@ -49,7 +49,7 @@ public static class PersonContactEndpoints
                 {
                     if (dto == null) return Results.BadRequest();
                     var contact = await personContactService.CreateAccountPersonContactAsync(dto, ct);
-                    return Results.Created($"/api/v1/personcontact/account/{contact.ContactId}", contact);
+                    return Results.Created($"/api/v1/personcontacts/account/{contact.ContactId}", contact);
                 }
                 catch (Exception ex)
                 {

@@ -8,7 +8,7 @@ public static class TreatmentEndpoints
 {
     public static RouteGroupBuilder Map(this RouteGroupBuilder group)
     {
-        var treatments = group.MapGroup("/treatment")
+        var treatments = group.MapGroup("/treatments")
             .WithTags("Treatment");
 
         treatments.MapGet("types", async (ITreatmentService treatmentService, CancellationToken ct) =>
@@ -70,7 +70,7 @@ public static class TreatmentEndpoints
                 if (dto == null)
                     return Results.BadRequest();
                 var personTreatment = await treatmentService.CreateAccountPersonTreatmentAsync(dto, ct);
-                return Results.Created("/api/v1/treatment/account", personTreatment);
+                return Results.Created("/api/v1/treatments/account", personTreatment);
             })
             .WithName("CreateAccountPersonTreatment");
 

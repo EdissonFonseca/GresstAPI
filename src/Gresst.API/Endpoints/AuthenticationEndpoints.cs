@@ -154,7 +154,7 @@ public static class AuthenticationEndpoints
             .RequireAuthorization()
             .WithName("ExistUser");
 
-        auth.MapGet("getuser", async (
+        auth.MapGet("user", async (
                 System.Security.Claims.ClaimsPrincipal user,
                 AuthenticationServiceFactory factory,
                 CancellationToken ct) =>
@@ -181,7 +181,7 @@ public static class AuthenticationEndpoints
             .RequireAuthorization()
             .WithName("Me");
 
-        auth.MapGet("getaccount", async (
+        auth.MapGet("account", async (
                 System.Security.Claims.ClaimsPrincipal user,
                 AuthenticationServiceFactory factory,
                 CancellationToken ct) =>

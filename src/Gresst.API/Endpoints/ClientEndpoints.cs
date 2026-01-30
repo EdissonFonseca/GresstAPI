@@ -8,10 +8,10 @@ public static class ClientEndpoints
 {
     public static RouteGroupBuilder Map(this RouteGroupBuilder group)
     {
-        var clients = group.MapGroup("/client")
+        var clients = group.MapGroup("/clients")
             .WithTags("Client");
 
-        clients.MapGet("get", async (IClientService clientService, ILogger<Program> logger, CancellationToken ct) =>
+        clients.MapGet("", async (IClientService clientService, ILogger<Program> logger, CancellationToken ct) =>
             {
                 try
                 {
@@ -31,7 +31,7 @@ public static class ClientEndpoints
             })
             .WithName("GetClients");
 
-        clients.MapGet("get/{id}", async (string id, IClientService clientService, ILogger<Program> logger, CancellationToken ct) =>
+        clients.MapGet("{id}", async (string id, IClientService clientService, ILogger<Program> logger, CancellationToken ct) =>
             {
                 try
                 {
@@ -50,7 +50,7 @@ public static class ClientEndpoints
             })
             .WithName("GetClientById");
 
-        clients.MapPost("post", ([FromBody] ClientDto cliente) => Results.Created())
+        clients.MapPost("", ([FromBody] ClientDto cliente) => Results.Created())
             .WithName("PostClient");
 
         return group;

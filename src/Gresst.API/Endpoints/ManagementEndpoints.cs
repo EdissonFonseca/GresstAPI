@@ -9,7 +9,7 @@ public static class ManagementEndpoints
 {
     public static RouteGroupBuilder Map(this RouteGroupBuilder group)
     {
-        var management = group.MapGroup("/management")
+        var management = group.MapGroup("/managements")
             .WithTags("Management");
 
         management.MapGet("waste/{wasteId}/history", async (string wasteId, IManagementService managementService, CancellationToken ct) =>
@@ -24,7 +24,7 @@ public static class ManagementEndpoints
                 if (dto == null)
                     return Results.BadRequest();
                 var managementDto = await managementService.CreateManagementAsync(dto, ct);
-                return Results.Created($"/api/v1/management/waste/{dto.WasteId}/history", managementDto);
+                return Results.Created($"/api/v1/managements/waste/{dto.WasteId}/history", managementDto);
             })
             .WithName("CreateManagement");
 

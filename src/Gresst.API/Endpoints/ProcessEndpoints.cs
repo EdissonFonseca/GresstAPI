@@ -9,7 +9,7 @@ public static class ProcessEndpoints
 {
     public static RouteGroupBuilder Map(this RouteGroupBuilder group)
     {
-        var processes = group.MapGroup("/process")
+        var processes = group.MapGroup("/processes")
             .WithTags("Process")
             .RequireAuthorization();
 

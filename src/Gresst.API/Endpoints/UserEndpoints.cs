@@ -8,7 +8,7 @@ public static class UserEndpoints
 {
     public static RouteGroupBuilder Map(this RouteGroupBuilder group)
     {
-        var users = group.MapGroup("/user")
+        var users = group.MapGroup("/users")
             .WithTags("User")
             .RequireAuthorization();
 

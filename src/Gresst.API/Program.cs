@@ -286,9 +286,10 @@ if (app.Environment.IsProduction() || isWindows)
     app.UseHttpsRedirection();
 }
 
-// Legacy: rewrite /api/authentication/... to /api/v1/authentication/... so clients can keep using the old path
+// Legacy: rewrite any /api/... (except /api/v1/...) to /api/v1/... so clients can use paths without the version segment
+// Note: rewrite middleware strips the leading slash from Path before regex matching, so pattern must not start with /
 var rewriteOptions = new RewriteOptions()
-    .AddRewrite(@"^/api/authentication(/.*)?$", "/api/v1/authentication$1", skipRemainingRules: true);
+    .AddRewrite(@"^api/(?!v1/)(.*)$", "/api/v1/$1", skipRemainingRules: true);
 app.UseRewriter(rewriteOptions);
 
 app.UseCors("AllowAll");
