@@ -7,7 +7,7 @@ public interface IOrderService
     Task<OrderDto> GetByIdAsync(string id, CancellationToken cancellationToken = default);
     Task<IEnumerable<OrderDto>> GetAllAsync(CancellationToken cancellationToken = default);
     Task<IEnumerable<OrderDto>> GetByProviderAsync(string providerId, CancellationToken cancellationToken = default);
-    Task<IEnumerable<OrderDto>> GetByClientAsync(string clientId, CancellationToken cancellationToken = default);
+    Task<IEnumerable<OrderDto>> GetByCustomerAsync(string customerId, CancellationToken cancellationToken = default);
     Task<IEnumerable<OrderDto>> GetByStatusAsync(string status, CancellationToken cancellationToken = default);
     Task<IEnumerable<OrderDto>> GetScheduledAsync(DateTime startDate, DateTime endDate, CancellationToken cancellationToken = default);
     Task<OrderDto> CreateAsync(CreateOrderDto dto, CancellationToken cancellationToken = default);

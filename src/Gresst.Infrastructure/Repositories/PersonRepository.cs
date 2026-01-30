@@ -166,7 +166,7 @@ public class PersonRepository : IPersonRepository
         }
     }
 
-    public async Task<IEnumerable<Person>> GetClientsAsync(CancellationToken cancellationToken = default)
+    public async Task<IEnumerable<Person>> GetCustomersAsync(CancellationToken cancellationToken = default)
     {
         var accountId = _currentUserService.GetCurrentAccountId();
         var accountIdLong = string.IsNullOrEmpty(accountId) ? (long?)null : long.Parse(accountId);

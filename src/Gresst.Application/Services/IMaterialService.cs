@@ -21,9 +21,9 @@ public interface IMaterialService
     Task<IEnumerable<MaterialDto>> GetProviderMaterialsAsync(string providerId, CancellationToken cancellationToken = default);
     Task<MaterialDto> CreateProviderMaterialAsync(string providerId, CreateMaterialDto dto, CancellationToken cancellationToken = default);
     
-    // Client operations
-    Task<IEnumerable<MaterialDto>> GetClientMaterialsAsync(string clientId, CancellationToken cancellationToken = default);
-    Task<MaterialDto> CreateClientMaterialAsync(string clientId, CreateMaterialDto dto, CancellationToken cancellationToken = default);
+    // Customer operations
+    Task<IEnumerable<MaterialDto>> GetCustomerMaterialsAsync(string customerId, CancellationToken cancellationToken = default);
+    Task<MaterialDto> CreateCustomerMaterialAsync(string customerId, CreateMaterialDto dto, CancellationToken cancellationToken = default);
     
     // Facility operations (for account person, provider, or client)
     Task<IEnumerable<MaterialDto>> GetFacilityMaterialsAsync(string facilityId, CancellationToken cancellationToken = default);

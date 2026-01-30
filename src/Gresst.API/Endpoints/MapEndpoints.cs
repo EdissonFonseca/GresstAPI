@@ -15,7 +15,7 @@ public static class MapEndpoints
 
         AuthenticationEndpoints.Map(api);
         AuthorizationEndpoints.Map(api);
-        ClientEndpoints.Map(api);
+        CustomerEndpoints.Map(api);
         FacilityEndpoints.Map(api);
         WasteEndpoints.Map(api);
         ManagementEndpoints.Map(api);

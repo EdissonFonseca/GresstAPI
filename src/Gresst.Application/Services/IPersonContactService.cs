@@ -23,15 +23,15 @@ public interface IPersonContactService
     
     // Legacy methods (for backward compatibility - delegate to generic methods)
     [Obsolete("Use GetPersonContactsAsync instead")]
-    Task<IEnumerable<PersonContactDto>> GetClientContactsAsync(string clientId, CancellationToken cancellationToken = default);
+    Task<IEnumerable<PersonContactDto>> GetCustomerContactsAsync(string customerId, CancellationToken cancellationToken = default);
     [Obsolete("Use GetPersonContactAsync instead")]
-    Task<PersonContactDto?> GetClientContactAsync(string clientId, string contactId, string? relationshipType = null, CancellationToken cancellationToken = default);
+    Task<PersonContactDto?> GetCustomerContactAsync(string customerId, string contactId, string? relationshipType = null, CancellationToken cancellationToken = default);
     [Obsolete("Use CreatePersonContactAsync instead")]
-    Task<PersonContactDto> CreateClientContactAsync(string clientId, CreatePersonContactDto dto, CancellationToken cancellationToken = default);
+    Task<PersonContactDto> CreateCustomerContactAsync(string customerId, CreatePersonContactDto dto, CancellationToken cancellationToken = default);
     [Obsolete("Use UpdatePersonContactAsync instead")]
-    Task<PersonContactDto?> UpdateClientContactAsync(string clientId, UpdatePersonContactDto dto, CancellationToken cancellationToken = default);
+    Task<PersonContactDto?> UpdateCustomerContactAsync(string customerId, UpdatePersonContactDto dto, CancellationToken cancellationToken = default);
     [Obsolete("Use DeletePersonContactAsync instead")]
-    Task<bool> DeleteClientContactAsync(string clientId, string contactId, string? relationshipType = null, CancellationToken cancellationToken = default);
+    Task<bool> DeleteCustomerContactAsync(string customerId, string contactId, string? relationshipType = null, CancellationToken cancellationToken = default);
     
     [Obsolete("Use GetPersonContactsAsync instead")]
     Task<IEnumerable<PersonContactDto>> GetProviderContactsAsync(string providerId, CancellationToken cancellationToken = default);

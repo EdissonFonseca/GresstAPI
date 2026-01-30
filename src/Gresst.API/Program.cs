@@ -171,7 +171,7 @@ builder.Services.AddScoped<IWasteService, WasteService>();
 builder.Services.AddScoped<IManagementService, ManagementService>();
 builder.Services.AddScoped<IBalanceService, BalanceService>();
 builder.Services.AddScoped<IMaterialService, MaterialService>();
-builder.Services.AddScoped<IClientService, ClientService>();
+builder.Services.AddScoped<ICustomerService, CustomerService>();
 builder.Services.AddScoped<IProviderService, ProviderService>();
 builder.Services.AddScoped<IPersonContactService, PersonContactService>();
 builder.Services.AddScoped<IVehicleService, VehicleService>();

@@ -10,8 +10,8 @@ public class OrderDto
     public string Status { get; set; } = string.Empty;
     public string ProviderId { get; set; } = string.Empty;
     public string ProviderName { get; set; } = string.Empty;
-    public string ClientId { get; set; } = string.Empty;
-    public string ClientName { get; set; } = string.Empty;
+    public string CustomerId { get; set; } = string.Empty;
+    public string CustomerName { get; set; } = string.Empty;
     public DateTime? ScheduledDate { get; set; }
     public DateTime? CompletedDate { get; set; }
     public string? Description { get; set; }
@@ -34,7 +34,7 @@ public class CreateOrderDto
 {
     public OrderType Type { get; set; }
     public string ProviderId { get; set; } = string.Empty;
-    public string ClientId { get; set; } = string.Empty;
+    public string CustomerId { get; set; } = string.Empty;
     public string? RequestId { get; set; }
     public DateTime? ScheduledDate { get; set; }
     public string? Description { get; set; }

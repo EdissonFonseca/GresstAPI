@@ -47,10 +47,10 @@ public class OrderService : IOrderService
         return orders.Select(MapToDto).ToList();
     }
 
-    public async Task<IEnumerable<OrderDto>> GetByClientAsync(string clientId, CancellationToken cancellationToken = default)
+    public async Task<IEnumerable<OrderDto>> GetByCustomerAsync(string customerId, CancellationToken cancellationToken = default)
     {
         var orders = await _orderRepository.FindAsync(
-            o => o.ClientId == clientId,
+            o => o.CustomerId == customerId,
             cancellationToken);
         return orders.Select(MapToDto).ToList();
     }
@@ -86,7 +86,7 @@ public class OrderService : IOrderService
             Type = dto.Type,
             Status = OrderStatus.Pending,
             ProviderId = dto.ProviderId,
-            ClientId = dto.ClientId,
+            CustomerId = dto.CustomerId,
             RequestId = dto.RequestId,
             ServiceId = string.Empty, // TODO: Get ServiceId from Request or add to CreateOrderDto
             ScheduledDate = dto.ScheduledDate,
@@ -142,8 +142,8 @@ public class OrderService : IOrderService
             if (dto.ProviderId != null)
                 order.ProviderId = (string)dto.ProviderId;
             
-            if (dto.ClientId != null)
-                order.ClientId = (string)dto.ClientId;
+            if (dto.CustomerId != null)
+                order.CustomerId = (string)dto.CustomerId;
             
             if (dto.RequestId != null)
                 order.RequestId = (string?)dto.RequestId;
@@ -292,8 +292,8 @@ public class OrderService : IOrderService
             Status = order.Status.ToString(),
             ProviderId = order.ProviderId,
             ProviderName = order.Provider?.Name ?? string.Empty,
-            ClientId = order.ClientId,
-            ClientName = order.Client?.Name ?? string.Empty,
+            CustomerId = order.CustomerId,
+            CustomerName = order.Customer?.Name ?? string.Empty,
             ScheduledDate = order.ScheduledDate,
             CompletedDate = order.CompletedDate,
             Description = order.Description,

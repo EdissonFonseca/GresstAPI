@@ -21,9 +21,9 @@ public interface IFacilityService
     Task<IEnumerable<FacilityDto>> GetProviderFacilitiesAsync(string providerId, CancellationToken cancellationToken = default);
     Task<FacilityDto> CreateProviderFacilityAsync(string providerId, CreateFacilityDto dto, CancellationToken cancellationToken = default);
     
-    // Client operations
-    Task<IEnumerable<FacilityDto>> GetClientFacilitiesAsync(string clientId, CancellationToken cancellationToken = default);
-    Task<FacilityDto> CreateClientFacilityAsync(string clientId, CreateFacilityDto dto, CancellationToken cancellationToken = default);
+    // Customer operations
+    Task<IEnumerable<FacilityDto>> GetCustomerFacilitiesAsync(string customerId, CancellationToken cancellationToken = default);
+    Task<FacilityDto> CreateCustomerFacilityAsync(string customerId, CreateFacilityDto dto, CancellationToken cancellationToken = default);
     
     Task<FacilityDto> CreateAsync(CreateFacilityDto dto, CancellationToken cancellationToken = default);
     Task<FacilityDto?> UpdateAsync(UpdateFacilityDto dto, CancellationToken cancellationToken = default);

@@ -191,12 +191,12 @@ public class MaterialService : IMaterialService
     }
 
     /// <summary>
-    /// Get materials for a Client
+    /// Get materials for a Customer
     /// </summary>
-    public async Task<IEnumerable<MaterialDto>> GetClientMaterialsAsync(string clientId, CancellationToken cancellationToken = default)
+    public async Task<IEnumerable<MaterialDto>> GetCustomerMaterialsAsync(string customerId, CancellationToken cancellationToken = default)
     {
         var personMaterials = await _personMaterialRepository.FindAsync(
-            pm => pm.PersonId == clientId && pm.IsActive,
+            pm => pm.PersonId == customerId && pm.IsActive,
             cancellationToken);
         
         var materialIds = personMaterials.Select(pm => pm.MaterialId).Distinct().ToList();
@@ -208,11 +208,11 @@ public class MaterialService : IMaterialService
     }
 
     /// <summary>
-    /// Create material for a Client
+    /// Create material for a Customer
     /// </summary>
-    public async Task<MaterialDto> CreateClientMaterialAsync(string clientId, CreateMaterialDto dto, CancellationToken cancellationToken = default)
+    public async Task<MaterialDto> CreateCustomerMaterialAsync(string customerId, CreateMaterialDto dto, CancellationToken cancellationToken = default)
     {
-        return await CreateMaterialForPersonAsync(clientId, dto, cancellationToken);
+        return await CreateMaterialForPersonAsync(customerId, dto, cancellationToken);
     }
 
     /// <summary>

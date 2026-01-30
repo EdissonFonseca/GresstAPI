@@ -145,19 +145,19 @@ public class VehicleService : IVehicleService
     }
 
     /// <summary>
-    /// Get vehicles for a Client
+    /// Get vehicles for a Customer
     /// </summary>
-    public async Task<IEnumerable<VehicleDto>> GetClientVehiclesAsync(string clientId, CancellationToken cancellationToken = default)
+    public async Task<IEnumerable<VehicleDto>> GetCustomerVehiclesAsync(string customerId, CancellationToken cancellationToken = default)
     {
-        return await GetByPersonAsync(clientId, cancellationToken);
+        return await GetByPersonAsync(customerId, cancellationToken);
     }
 
     /// <summary>
-    /// Create vehicle for a Client
+    /// Create vehicle for a Customer
     /// </summary>
-    public async Task<VehicleDto> CreateClientVehicleAsync(string clientId, CreateVehicleDto dto, CancellationToken cancellationToken = default)
+    public async Task<VehicleDto> CreateCustomerVehicleAsync(string customerId, CreateVehicleDto dto, CancellationToken cancellationToken = default)
     {
-        dto.PersonId = clientId;
+        dto.PersonId = customerId;
         return await CreateAsync(dto, cancellationToken);
     }
 

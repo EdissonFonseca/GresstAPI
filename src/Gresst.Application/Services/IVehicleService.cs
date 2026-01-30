@@ -20,9 +20,9 @@ public interface IVehicleService
     Task<IEnumerable<VehicleDto>> GetProviderVehiclesAsync(string providerId, CancellationToken cancellationToken = default);
     Task<VehicleDto> CreateProviderVehicleAsync(string providerId, CreateVehicleDto dto, CancellationToken cancellationToken = default);
     
-    // Client operations
-    Task<IEnumerable<VehicleDto>> GetClientVehiclesAsync(string clientId, CancellationToken cancellationToken = default);
-    Task<VehicleDto> CreateClientVehicleAsync(string clientId, CreateVehicleDto dto, CancellationToken cancellationToken = default);
+    // Customer operations
+    Task<IEnumerable<VehicleDto>> GetCustomerVehiclesAsync(string customerId, CancellationToken cancellationToken = default);
+    Task<VehicleDto> CreateCustomerVehicleAsync(string customerId, CreateVehicleDto dto, CancellationToken cancellationToken = default);
     
     Task<VehicleDto> CreateAsync(CreateVehicleDto dto, CancellationToken cancellationToken = default);
     Task<VehicleDto?> UpdateAsync(UpdateVehicleDto dto, CancellationToken cancellationToken = default);

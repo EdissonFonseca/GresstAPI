@@ -28,9 +28,9 @@ public class Order : BaseEntity
     public string ProviderId { get; set; } = string.Empty;
     public virtual Person Provider { get; set; } = null!;
     
-    // Client
-    public string ClientId { get; set; } = string.Empty;
-    public virtual Person Client { get; set; } = null!;
+    // Customer
+    public string CustomerId { get; set; } = string.Empty;
+    public virtual Person Customer { get; set; } = null!;
     
     // Resources
     public string? VehicleId { get; set; }

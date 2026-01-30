@@ -149,20 +149,19 @@ public class FacilityService : IFacilityService
     }
 
     /// <summary>
-    /// Get facilities for a Client
+    /// Get facilities for a Customer
     /// </summary>
-    public async Task<IEnumerable<FacilityDto>> GetClientFacilitiesAsync(string clientId, CancellationToken cancellationToken = default)
+    public async Task<IEnumerable<FacilityDto>> GetCustomerFacilitiesAsync(string customerId, CancellationToken cancellationToken = default)
     {
-        // Verify it's a client (could add validation here)
-        return await GetByPersonAsync(clientId, cancellationToken);
+        return await GetByPersonAsync(customerId, cancellationToken);
     }
 
     /// <summary>
-    /// Create facility for a Client
+    /// Create facility for a Customer
     /// </summary>
-    public async Task<FacilityDto> CreateClientFacilityAsync(string clientId, CreateFacilityDto dto, CancellationToken cancellationToken = default)
+    public async Task<FacilityDto> CreateCustomerFacilityAsync(string customerId, CreateFacilityDto dto, CancellationToken cancellationToken = default)
     {
-        dto.PersonId = clientId;
+        dto.PersonId = customerId;
         return await CreateAsync(dto, cancellationToken);
     }
 

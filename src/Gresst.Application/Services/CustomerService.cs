@@ -5,18 +5,18 @@ using Gresst.Domain.Interfaces;
 namespace Gresst.Application.Services;
 
 /// <summary>
-/// Service for managing Clients (Personas with Client role)
-/// Filters Personas by IdRol = "CL" (or similar client role code)
+/// Service for managing Customers (Personas with Customer role)
+/// Filters Personas by IdRol = "CL" (or similar customer role code)
 /// </summary>
-public class ClientService : IClientService
+public class CustomerService : ICustomerService
 {
     private readonly IPersonRepository _personRepository;
     private readonly IUnitOfWork _unitOfWork;
 
-    // Role code for Clients in the database
-    private const string CLIENT_ROLE_CODE = "CL"; // Ajustar según los valores reales en BD
+    // Role code for Customers in the database
+    private const string CUSTOMER_ROLE_CODE = "CL"; // Adjust according to actual values in DB
 
-    public ClientService(
+    public CustomerService(
         IPersonRepository personRepository,
         IUnitOfWork unitOfWork)
     {
@@ -24,29 +24,29 @@ public class ClientService : IClientService
         _unitOfWork = unitOfWork;
     }
 
-    public async Task<IEnumerable<ClientDto>> GetAllAsync(CancellationToken cancellationToken = default)
+    public async Task<IEnumerable<CustomerDto>> GetAllAsync(CancellationToken cancellationToken = default)
     {
-        var persons = await _personRepository.GetClientsAsync(cancellationToken);
+        var persons = await _personRepository.GetCustomersAsync(cancellationToken);
         return persons.Select(MapToDto).ToList();
     }
 
-    public async Task<ClientDto?> GetByIdAsync(string id, CancellationToken cancellationToken = default)
+    public async Task<CustomerDto?> GetByIdAsync(string id, CancellationToken cancellationToken = default)
     {
-        var person = await _personRepository.GetByIdAndRoleAsync(id, CLIENT_ROLE_CODE, cancellationToken);
+        var person = await _personRepository.GetByIdAndRoleAsync(id, CUSTOMER_ROLE_CODE, cancellationToken);
         if (person == null)
             return null;
 
         return MapToDto(person);
     }
 
-    public async Task<IEnumerable<ClientDto>> GetByDocumentNumberAsync(string documentNumber, CancellationToken cancellationToken = default)
+    public async Task<IEnumerable<CustomerDto>> GetByDocumentNumberAsync(string documentNumber, CancellationToken cancellationToken = default)
     {
-        var persons = await _personRepository.GetByRoleAsync(CLIENT_ROLE_CODE, cancellationToken);
+        var persons = await _personRepository.GetByRoleAsync(CUSTOMER_ROLE_CODE, cancellationToken);
         var filteredPersons = persons.Where(p => p.DocumentNumber == documentNumber);
         return filteredPersons.Select(MapToDto).ToList();
     }
 
-    public async Task<ClientDto> CreateAsync(CreateClientDto dto, CancellationToken cancellationToken = default)
+    public async Task<CustomerDto> CreateAsync(CreateCustomerDto dto, CancellationToken cancellationToken = default)
     {
         var person = new Person
         {
@@ -69,20 +69,18 @@ public class ClientService : IClientService
         };
 
         await _personRepository.AddAsync(person, cancellationToken);
-        await _personRepository.SetPersonRoleAsync(person.Id, CLIENT_ROLE_CODE, cancellationToken);
+        await _personRepository.SetPersonRoleAsync(person.Id, CUSTOMER_ROLE_CODE, cancellationToken);
         await _unitOfWork.SaveChangesAsync(cancellationToken);
 
         return MapToDto(person);
     }
 
-    public async Task<ClientDto?> UpdateAsync(UpdateClientDto dto, CancellationToken cancellationToken = default)
+    public async Task<CustomerDto?> UpdateAsync(UpdateCustomerDto dto, CancellationToken cancellationToken = default)
     {
-        // Verificar que sea cliente
-        var person = await _personRepository.GetByIdAndRoleAsync(dto.Id, CLIENT_ROLE_CODE, cancellationToken);
+        var person = await _personRepository.GetByIdAndRoleAsync(dto.Id, CUSTOMER_ROLE_CODE, cancellationToken);
         if (person == null)
             return null;
 
-        // Update only provided fields
         if (!string.IsNullOrEmpty(dto.Name))
             person.Name = dto.Name;
         if (dto.DocumentNumber != null)
@@ -115,27 +113,25 @@ public class ClientService : IClientService
         await _personRepository.UpdateAsync(person, cancellationToken);
         await _unitOfWork.SaveChangesAsync(cancellationToken);
 
-        // Refrescar desde repositorio
-        var updatedPerson = await _personRepository.GetByIdAndRoleAsync(dto.Id, CLIENT_ROLE_CODE, cancellationToken);
+        var updatedPerson = await _personRepository.GetByIdAndRoleAsync(dto.Id, CUSTOMER_ROLE_CODE, cancellationToken);
         return updatedPerson != null ? MapToDto(updatedPerson) : null;
     }
 
     public async Task<bool> DeleteAsync(string id, CancellationToken cancellationToken = default)
     {
-        // Verificar que sea cliente
-        var person = await _personRepository.GetByIdAndRoleAsync(id, CLIENT_ROLE_CODE, cancellationToken);
+        var person = await _personRepository.GetByIdAndRoleAsync(id, CUSTOMER_ROLE_CODE, cancellationToken);
         if (person == null)
             return false;
 
         await _personRepository.DeleteAsync(person, cancellationToken);
         await _unitOfWork.SaveChangesAsync(cancellationToken);
-        
+
         return true;
     }
 
-    private ClientDto MapToDto(Person person)
+    private CustomerDto MapToDto(Person person)
     {
-        return new ClientDto
+        return new CustomerDto
         {
             Id = person.Id,
             Name = person.Name,
@@ -144,7 +140,6 @@ public class ClientService : IClientService
             Phone = person.Phone,
             Address = person.Address,
             AccountId = person.AccountId,
-            // Capabilities
             IsGenerator = person.IsGenerator,
             IsCollector = person.IsCollector,
             IsTransporter = person.IsTransporter,
@@ -158,4 +153,3 @@ public class ClientService : IClientService
         };
     }
 }
-

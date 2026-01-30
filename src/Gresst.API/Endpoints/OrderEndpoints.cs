@@ -49,7 +49,7 @@ public static class OrderEndpoints
                     return Results.StatusCode(503);
                 if (dto == null)
                     return Results.BadRequest();
-                var updateDto = new { Id = id, dto.Type, dto.ProviderId, dto.ClientId, dto.RequestId, dto.ScheduledDate, dto.Description, dto.EstimatedCost, dto.VehicleId, dto.FacilityId, dto.RouteId, dto.Items };
+                var updateDto = new { Id = id, dto.Type, dto.ProviderId, dto.CustomerId, dto.RequestId, dto.ScheduledDate, dto.Description, dto.EstimatedCost, dto.VehicleId, dto.FacilityId, dto.RouteId, dto.Items };
                 var order = await orderService.UpdateAsync(updateDto, ct);
                 if (order == null)
                     return Results.NotFound(new { message = "Order not found" });
@@ -68,16 +68,16 @@ public static class OrderEndpoints
             })
             .WithName("GetOrdersByProvider");
 
-        orders.MapGet("client/{clientId}", async (string clientId, IOrderService? orderService, CancellationToken ct) =>
+        orders.MapGet("customer/{customerId}", async (string customerId, IOrderService? orderService, CancellationToken ct) =>
             {
                 if (orderService == null)
                     return Results.StatusCode(503);
-                if (string.IsNullOrEmpty(clientId))
-                    return Results.BadRequest(new { message = "Invalid client ID" });
-                var list = await orderService.GetByClientAsync(clientId, ct);
+                if (string.IsNullOrEmpty(customerId))
+                    return Results.BadRequest(new { message = "Invalid customer ID" });
+                var list = await orderService.GetByCustomerAsync(customerId, ct);
                 return Results.Ok(list);
             })
-            .WithName("GetOrdersByClient");
+            .WithName("GetOrdersByCustomer");
 
         orders.MapGet("status/{status}", async (string status, IOrderService? orderService, CancellationToken ct) =>
             {

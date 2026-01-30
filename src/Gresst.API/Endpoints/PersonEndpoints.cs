@@ -14,9 +14,9 @@ public static class PersonEndpoints
         // Material
         person.MapGet("{personId}/material", async (string personId, IMaterialService materialService, CancellationToken ct) =>
             {
-                var clientMaterials = await materialService.GetClientMaterialsAsync(personId, ct);
-                if (clientMaterials.Any())
-                    return Results.Ok(clientMaterials);
+                var customerMaterials = await materialService.GetCustomerMaterialsAsync(personId, ct);
+                if (customerMaterials.Any())
+                    return Results.Ok(customerMaterials);
                 var providerMaterials = await materialService.GetProviderMaterialsAsync(personId, ct);
                 return Results.Ok(providerMaterials);
             }).WithName("GetPersonMaterials");
@@ -26,7 +26,7 @@ public static class PersonEndpoints
                 if (dto == null) return Results.BadRequest();
                 try
                 {
-                    var material = await materialService.CreateClientMaterialAsync(personId, dto, ct);
+                    var material = await materialService.CreateCustomerMaterialAsync(personId, dto, ct);
                     return Results.Created($"/api/v1/people/{personId}/material", material);
                 }
                 catch
@@ -126,8 +126,8 @@ public static class PersonEndpoints
         // Facility
         person.MapGet("{personId}/facility", async (string personId, IFacilityService facilityService, CancellationToken ct) =>
             {
-                var clientFacilities = await facilityService.GetClientFacilitiesAsync(personId, ct);
-                if (clientFacilities.Any()) return Results.Ok(clientFacilities);
+                var customerFacilities = await facilityService.GetCustomerFacilitiesAsync(personId, ct);
+                if (customerFacilities.Any()) return Results.Ok(customerFacilities);
                 var providerFacilities = await facilityService.GetProviderFacilitiesAsync(personId, ct);
                 return Results.Ok(providerFacilities);
             }).WithName("GetPersonFacilities");
@@ -137,7 +137,7 @@ public static class PersonEndpoints
                 if (dto == null) return Results.BadRequest();
                 try
                 {
-                    var facility = await facilityService.CreateClientFacilityAsync(personId, dto, ct);
+                    var facility = await facilityService.CreateCustomerFacilityAsync(personId, dto, ct);
                     return Results.Created($"/api/v1/people/{personId}/facility", facility);
                 }
                 catch
@@ -149,8 +149,8 @@ public static class PersonEndpoints
 
         person.MapGet("{personId}/facility/{facilityId}", async (string personId, string facilityId, IFacilityService facilityService, CancellationToken ct) =>
             {
-                var clientFacilities = await facilityService.GetClientFacilitiesAsync(personId, ct);
-                var facility = clientFacilities.FirstOrDefault(f => f.Id == facilityId);
+                var customerFacilities = await facilityService.GetCustomerFacilitiesAsync(personId, ct);
+                var facility = customerFacilities.FirstOrDefault(f => f.Id == facilityId);
                 if (facility != null) return Results.Ok(facility);
                 var providerFacilities = await facilityService.GetProviderFacilitiesAsync(personId, ct);
                 facility = providerFacilities.FirstOrDefault(f => f.Id == facilityId);
@@ -160,8 +160,8 @@ public static class PersonEndpoints
 
         person.MapGet("{personId}/facility/{facilityId}/material", async (string personId, string facilityId, IFacilityService facilityService, IMaterialService materialService, CancellationToken ct) =>
             {
-                var clientFacilities = await facilityService.GetClientFacilitiesAsync(personId, ct);
-                var facility = clientFacilities.FirstOrDefault(f => f.Id == facilityId) ?? (await facilityService.GetProviderFacilitiesAsync(personId, ct)).FirstOrDefault(f => f.Id == facilityId);
+                var customerFacilities = await facilityService.GetCustomerFacilitiesAsync(personId, ct);
+                var facility = customerFacilities.FirstOrDefault(f => f.Id == facilityId) ?? (await facilityService.GetProviderFacilitiesAsync(personId, ct)).FirstOrDefault(f => f.Id == facilityId);
                 if (facility == null) return Results.NotFound(new { message = "Facility not found or does not belong to this person" });
                 var materials = await materialService.GetFacilityMaterialsAsync(facilityId, ct);
                 return Results.Ok(materials);
@@ -170,8 +170,8 @@ public static class PersonEndpoints
         person.MapPost("{personId}/facility/{facilityId}/material", async (string personId, string facilityId, [FromBody] CreateMaterialDto dto, IFacilityService facilityService, IMaterialService materialService, CancellationToken ct) =>
             {
                 if (dto == null) return Results.BadRequest();
-                var clientFacilities = await facilityService.GetClientFacilitiesAsync(personId, ct);
-                var facility = clientFacilities.FirstOrDefault(f => f.Id == facilityId) ?? (await facilityService.GetProviderFacilitiesAsync(personId, ct)).FirstOrDefault(f => f.Id == facilityId);
+                var customerFacilities = await facilityService.GetCustomerFacilitiesAsync(personId, ct);
+                var facility = customerFacilities.FirstOrDefault(f => f.Id == facilityId) ?? (await facilityService.GetProviderFacilitiesAsync(personId, ct)).FirstOrDefault(f => f.Id == facilityId);
                 if (facility == null) return Results.NotFound(new { message = "Facility not found or does not belong to this person" });
                 var material = await materialService.CreateFacilityMaterialAsync(facilityId, dto, ct);
                 return Results.Created($"/api/v1/people/{personId}/facility/{facilityId}/material", material);
@@ -180,8 +180,8 @@ public static class PersonEndpoints
         // Vehicle
         person.MapGet("{personId}/vehicle", async (string personId, IVehicleService vehicleService, CancellationToken ct) =>
             {
-                var clientVehicles = await vehicleService.GetClientVehiclesAsync(personId, ct);
-                if (clientVehicles.Any()) return Results.Ok(clientVehicles);
+                var customerVehicles = await vehicleService.GetCustomerVehiclesAsync(personId, ct);
+                if (customerVehicles.Any()) return Results.Ok(customerVehicles);
                 var providerVehicles = await vehicleService.GetProviderVehiclesAsync(personId, ct);
                 return Results.Ok(providerVehicles);
             }).WithName("GetPersonVehicles");
@@ -191,7 +191,7 @@ public static class PersonEndpoints
                 if (dto == null) return Results.BadRequest();
                 try
                 {
-                    var vehicle = await vehicleService.CreateClientVehicleAsync(personId, dto, ct);
+                    var vehicle = await vehicleService.CreateCustomerVehicleAsync(personId, dto, ct);
                     return Results.Created($"/api/v1/people/{personId}/vehicle", vehicle);
                 }
                 catch

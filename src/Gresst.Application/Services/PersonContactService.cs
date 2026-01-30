@@ -6,7 +6,7 @@ namespace Gresst.Application.Services;
 
 /// <summary>
 /// Service for managing PersonContacts
-/// Handles contacts for Account Person, Clients, and Providers
+/// Handles contacts for Account Person, Customers, and Providers
 /// </summary>
 public class PersonContactService : IPersonContactService
 {
@@ -297,31 +297,31 @@ public class PersonContactService : IPersonContactService
 
     #endregion
 
-    #region Client Contacts (Legacy - delegate to generic methods)
+    #region Customer Contacts (Legacy - delegate to generic methods)
 
-    public async Task<IEnumerable<PersonContactDto>> GetClientContactsAsync(string clientId, CancellationToken cancellationToken = default)
+    public async Task<IEnumerable<PersonContactDto>> GetCustomerContactsAsync(string customerId, CancellationToken cancellationToken = default)
     {
-        return await GetPersonContactsAsync(clientId, cancellationToken);
+        return await GetPersonContactsAsync(customerId, cancellationToken);
     }
 
-    public async Task<PersonContactDto?> GetClientContactAsync(string clientId, string contactId, string? relationshipType = null, CancellationToken cancellationToken = default)
+    public async Task<PersonContactDto?> GetCustomerContactAsync(string customerId, string contactId, string? relationshipType = null, CancellationToken cancellationToken = default)
     {
-        return await GetPersonContactAsync(clientId, contactId, relationshipType, cancellationToken);
+        return await GetPersonContactAsync(customerId, contactId, relationshipType, cancellationToken);
     }
 
-    public async Task<PersonContactDto> CreateClientContactAsync(string clientId, CreatePersonContactDto dto, CancellationToken cancellationToken = default)
+    public async Task<PersonContactDto> CreateCustomerContactAsync(string customerId, CreatePersonContactDto dto, CancellationToken cancellationToken = default)
     {
-        return await CreatePersonContactAsync(clientId, dto, cancellationToken);
+        return await CreatePersonContactAsync(customerId, dto, cancellationToken);
     }
 
-    public async Task<PersonContactDto?> UpdateClientContactAsync(string clientId, UpdatePersonContactDto dto, CancellationToken cancellationToken = default)
+    public async Task<PersonContactDto?> UpdateCustomerContactAsync(string customerId, UpdatePersonContactDto dto, CancellationToken cancellationToken = default)
     {
-        return await UpdatePersonContactAsync(clientId, dto, cancellationToken);
+        return await UpdatePersonContactAsync(customerId, dto, cancellationToken);
     }
 
-    public async Task<bool> DeleteClientContactAsync(string clientId, string contactId, string? relationshipType = null, CancellationToken cancellationToken = default)
+    public async Task<bool> DeleteCustomerContactAsync(string customerId, string contactId, string? relationshipType = null, CancellationToken cancellationToken = default)
     {
-        return await DeletePersonContactAsync(clientId, contactId, relationshipType, cancellationToken);
+        return await DeletePersonContactAsync(customerId, contactId, relationshipType, cancellationToken);
     }
 
     #endregion
