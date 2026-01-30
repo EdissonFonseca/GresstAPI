@@ -4,7 +4,7 @@ namespace Gresst.API.Endpoints;
 
 /// <summary>
 /// Registers all Minimal API endpoints under /api/v1.
-/// Also registers authentication endpoints under /api (legacy) for backward compatibility.
+/// Legacy path /api/authentication/... is handled via URL rewrite to /api/v1/authentication/... (see Program.cs).
 /// </summary>
 public static class MapEndpoints
 {
@@ -15,11 +15,6 @@ public static class MapEndpoints
 
         AuthenticationEndpoints.Map(api);
         AuthorizationEndpoints.Map(api);
-
-        // Legacy: same authentication endpoints at /api (without v1) for backward compatibility
-        var apiLegacy = app.MapGroup("/api")
-            .WithTags("legacy");
-        AuthenticationEndpoints.Map(apiLegacy);
         ClientEndpoints.Map(api);
         FacilityEndpoints.Map(api);
         WasteEndpoints.Map(api);

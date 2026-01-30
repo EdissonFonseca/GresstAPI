@@ -13,6 +13,7 @@ using Gresst.Infrastructure.Repositories;
 using Gresst.Infrastructure.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Diagnostics;
+using Microsoft.AspNetCore.Rewrite;
 using Microsoft.AspNetCore.Server.Kestrel.Core;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -284,6 +285,11 @@ if (app.Environment.IsProduction() || isWindows)
 {
     app.UseHttpsRedirection();
 }
+
+// Legacy: rewrite /api/authentication/... to /api/v1/authentication/... so clients can keep using the old path
+var rewriteOptions = new RewriteOptions()
+    .AddRewrite(@"^/api/authentication(/.*)?$", "/api/v1/authentication$1", skipRemainingRules: true);
+app.UseRewriter(rewriteOptions);
 
 app.UseCors("AllowAll");
 
