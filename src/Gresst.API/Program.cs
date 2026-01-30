@@ -1,6 +1,7 @@
 using Asp.Versioning;
 using Asp.Versioning.ApiExplorer;
 using Gresst.API.Configuration;
+using Gresst.API.Endpoints;
 using Gresst.API.Services;
 using Gresst.Application.Services;
 using Gresst.Domain.Entities;
@@ -30,9 +31,7 @@ builder.Host.UseSerilog((context, services, loggerConfiguration) =>
         .WriteTo.Console();
 });
 
-// Add services to the container
-builder.Services.AddControllers();
-
+// Minimal API - no controllers
 builder.Services.AddApiVersioning(options =>
     {
         options.DefaultApiVersion = new ApiVersion(1, 0);
@@ -288,30 +287,32 @@ if (app.Environment.IsProduction() || isWindows)
 
 app.UseCors("AllowAll");
 
-// Swagger: configurar ANTES de Authentication/Authorization para acceso sin autenticación
+// Swagger: configure before Authentication/Authorization for unauthenticated access
 var enableSwagger = app.Configuration.GetValue<bool>("Swagger:Enabled", true);
 if (enableSwagger)
 {
     app.UseSwagger();
-    
     var apiVersionDescriptionProvider = app.Services.GetRequiredService<IApiVersionDescriptionProvider>();
-    
     app.UseSwaggerUI(options =>
     {
-        foreach (var description in apiVersionDescriptionProvider.ApiVersionDescriptions)
+        var descriptions = apiVersionDescriptionProvider.ApiVersionDescriptions;
+        if (descriptions.Count == 0)
+            options.SwaggerEndpoint("/swagger/v1/swagger.json", "Gresst API v1");
+        else
         {
-            options.SwaggerEndpoint($"/swagger/{description.GroupName}/swagger.json", 
-                $"Gresst API {description.GroupName.ToUpperInvariant()}");
+            foreach (var description in descriptions)
+                options.SwaggerEndpoint($"/swagger/{description.GroupName}/swagger.json",
+                    $"Gresst API {description.GroupName.ToUpperInvariant()}");
         }
-        
         options.RoutePrefix = string.Empty; // Swagger at root
     });
 }
 
-// Authentication y Authorization para los controladores
+// Authentication and Authorization
 app.UseAuthentication();
 app.UseAuthorization();
 
-app.MapControllers();
+// Minimal API endpoints (replaces MapControllers)
+app.MapApiEndpoints();
 
 app.Run();

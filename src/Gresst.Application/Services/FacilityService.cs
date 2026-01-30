@@ -102,11 +102,11 @@ public class FacilityService : IFacilityService
     /// <summary>
     /// Get Account Person ID (persona de la cuenta)
     /// </summary>
-    private async Task<Guid> GetAccountPersonIdAsync(CancellationToken cancellationToken)
+    private async Task<string> GetAccountPersonIdAsync(CancellationToken cancellationToken)
     {
         var accountId = _currentUserService.GetCurrentAccountId();
         var account = await _accountRepository.GetByIdAsync(accountId, cancellationToken);
-        if (account == null || account.PersonId == Guid.Empty)
+        if (account == null || string.IsNullOrEmpty(account.PersonId))
             throw new InvalidOperationException("Account or Account Person not found");
         return account.PersonId;
     }
@@ -133,7 +133,7 @@ public class FacilityService : IFacilityService
     /// <summary>
     /// Get facilities for a Provider
     /// </summary>
-    public async Task<IEnumerable<FacilityDto>> GetProviderFacilitiesAsync(Guid providerId, CancellationToken cancellationToken = default)
+    public async Task<IEnumerable<FacilityDto>> GetProviderFacilitiesAsync(string providerId, CancellationToken cancellationToken = default)
     {
         // Verify it's a provider (could add validation here)
         return await GetByPersonAsync(providerId, cancellationToken);
@@ -142,7 +142,7 @@ public class FacilityService : IFacilityService
     /// <summary>
     /// Create facility for a Provider
     /// </summary>
-    public async Task<FacilityDto> CreateProviderFacilityAsync(Guid providerId, CreateFacilityDto dto, CancellationToken cancellationToken = default)
+    public async Task<FacilityDto> CreateProviderFacilityAsync(string providerId, CreateFacilityDto dto, CancellationToken cancellationToken = default)
     {
         dto.PersonId = providerId;
         return await CreateAsync(dto, cancellationToken);
@@ -151,7 +151,7 @@ public class FacilityService : IFacilityService
     /// <summary>
     /// Get facilities for a Client
     /// </summary>
-    public async Task<IEnumerable<FacilityDto>> GetClientFacilitiesAsync(Guid clientId, CancellationToken cancellationToken = default)
+    public async Task<IEnumerable<FacilityDto>> GetClientFacilitiesAsync(string clientId, CancellationToken cancellationToken = default)
     {
         // Verify it's a client (could add validation here)
         return await GetByPersonAsync(clientId, cancellationToken);
@@ -160,7 +160,7 @@ public class FacilityService : IFacilityService
     /// <summary>
     /// Create facility for a Client
     /// </summary>
-    public async Task<FacilityDto> CreateClientFacilityAsync(Guid clientId, CreateFacilityDto dto, CancellationToken cancellationToken = default)
+    public async Task<FacilityDto> CreateClientFacilityAsync(string clientId, CreateFacilityDto dto, CancellationToken cancellationToken = default)
     {
         dto.PersonId = clientId;
         return await CreateAsync(dto, cancellationToken);
@@ -169,7 +169,7 @@ public class FacilityService : IFacilityService
     public async Task<FacilityDto> CreateAsync(CreateFacilityDto dto, CancellationToken cancellationToken = default)
     {
         // If PersonId is not provided, use Account Person (persona de la cuenta)
-        var personId = dto.PersonId ?? await GetAccountPersonIdAsync(cancellationToken);
+        var personId = !string.IsNullOrEmpty(dto.PersonId) ? dto.PersonId : await GetAccountPersonIdAsync(cancellationToken);
 
         var facility = new Facility
         {
@@ -203,7 +203,7 @@ public class FacilityService : IFacilityService
         return MapToDto(facility);
     }
 
-    public async Task<IEnumerable<FacilityDto>> GetByPersonAsync(Guid personId, CancellationToken cancellationToken = default)
+    public async Task<IEnumerable<FacilityDto>> GetByPersonAsync(string personId, CancellationToken cancellationToken = default)
     {
         var facilities = await _facilityRepository.FindAsync(
             f => f.PersonId == personId, 
@@ -266,13 +266,13 @@ public class FacilityService : IFacilityService
             facility.CurrentCapacity = dto.CurrentCapacity;
         
         // Hierarchical structure
-        if (dto.ParentFacilityId.HasValue)
+        if (dto.ParentFacilityId != null)
         {
-            // If Guid.Empty is provided, clear the parent (set to null)
-            if (dto.ParentFacilityId.Value == Guid.Empty)
+            // If null or empty is provided, clear the parent (set to null)
+            if (string.IsNullOrEmpty(dto.ParentFacilityId))
                 facility.ParentFacilityId = null;
             else
-                facility.ParentFacilityId = dto.ParentFacilityId.Value;
+                facility.ParentFacilityId = dto.ParentFacilityId;
         }
         
         if (dto.IsVirtual.HasValue)

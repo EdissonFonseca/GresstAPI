@@ -22,7 +22,7 @@ public class TreatmentMapper : MapperBase<DomainTreatment, DbTreatment>
         {
             // IDs - Domain BaseEntity uses string
             Id = dbEntity.IdTratamiento != 0 
-                ? GuidLongConverter.ToGuid(dbEntity.IdTratamiento).ToString() 
+                ? IdConversion.ToStringFromLong(dbEntity.IdTratamiento) 
                 : string.Empty,
             
             // Basic Info
@@ -34,7 +34,7 @@ public class TreatmentMapper : MapperBase<DomainTreatment, DbTreatment>
             Category = dbEntity.IdCategoria ?? string.Empty,
             
             // Service
-            ServiceId = GuidLongConverter.ToGuid(dbEntity.IdServicio),
+            ServiceId = IdConversion.ToStringFromLong(dbEntity.IdServicio),
             
             // Process details - No están directamente en BD, usar valores por defecto
             ProcessDescription = null,
@@ -67,10 +67,8 @@ public class TreatmentMapper : MapperBase<DomainTreatment, DbTreatment>
 
         return new DbTreatment
         {
-            // IDs - Conversión de Guid a long
-            IdTratamiento = !string.IsNullOrEmpty(domainEntity.Id) && Guid.TryParse(domainEntity.Id, out var trGuid)
-                ? GuidLongConverter.ToLong(trGuid) 
-                : 0,
+            // IDs - Domain Id/ServiceId are string
+            IdTratamiento = IdConversion.ToLongFromString(domainEntity.Id),
             
             // Basic Info
             Nombre = domainEntity.Name,
@@ -80,7 +78,7 @@ public class TreatmentMapper : MapperBase<DomainTreatment, DbTreatment>
             IdCategoria = domainEntity.Category,
             
             // Service
-            IdServicio = GuidLongConverter.ToLong(domainEntity.ServiceId),
+            IdServicio = IdConversion.ToLongFromString(domainEntity.ServiceId),
             
             // Results
             Aprovechamiento = domainEntity.ProducesNewWaste,
@@ -109,7 +107,7 @@ public class TreatmentMapper : MapperBase<DomainTreatment, DbTreatment>
         dbEntity.Nombre = domainEntity.Name;
         dbEntity.Descripcion = domainEntity.Description;
         dbEntity.IdCategoria = domainEntity.Category;
-        dbEntity.IdServicio = GuidLongConverter.ToLong(domainEntity.ServiceId);
+        dbEntity.IdServicio = IdConversion.ToLongFromString(domainEntity.ServiceId);
         dbEntity.Aprovechamiento = domainEntity.ProducesNewWaste;
         dbEntity.Activo = domainEntity.IsActive;
         

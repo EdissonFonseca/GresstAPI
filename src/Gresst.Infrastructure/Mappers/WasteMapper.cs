@@ -21,7 +21,7 @@ public class WasteMapper : MapperBase<Waste, Residuo>
         return new Waste
         {
             // IDs - Domain BaseEntity uses string
-            Id = GuidLongConverter.ToGuid(dbEntity.IdResiduo).ToString(),
+            Id = IdConversion.ToStringFromLong(dbEntity.IdResiduo),
             AccountId = string.Empty, // Se obtiene del usuario actual en DbContext
             
             // Basic Info
@@ -29,7 +29,7 @@ public class WasteMapper : MapperBase<Waste, Residuo>
             Description = dbEntity.Descripcion,
             
             // Waste Type - IdMaterial en BD es como WasteClassId
-            WasteClassId = GuidLongConverter.ToGuid(dbEntity.IdMaterial),
+            WasteClassId = IdConversion.ToStringFromLong(dbEntity.IdMaterial),
             
             // Quantity - Asumiendo que Residuo no tiene cantidad directa, se obtiene de gestiones
             Quantity = 0, // Se calculará desde las gestiones
@@ -39,15 +39,11 @@ public class WasteMapper : MapperBase<Waste, Residuo>
             Status = MapStatus(dbEntity.IdEstado),
             
             // Generator - Asumiendo que el propietario es el generador inicialmente
-            GeneratorId = !string.IsNullOrEmpty(dbEntity.IdPropietario)
-                ? GuidStringConverter.ToGuid(dbEntity.IdPropietario)
-                : Guid.Empty,
+            GeneratorId = dbEntity.IdPropietario ?? string.Empty,
             GeneratedAt = dbEntity.FechaIngreso ?? dbEntity.FechaCreacion,
             
-            // Current Owner
-            CurrentOwnerId = !string.IsNullOrEmpty(dbEntity.IdPropietario)
-                ? GuidStringConverter.ToGuid(dbEntity.IdPropietario)
-                : null,
+            // Current Owner - DB IdPropietario is string
+            CurrentOwnerId = dbEntity.IdPropietario,
             
             // Properties
             IsHazardous = false, // Determinar desde TipoResiduo/Material
@@ -73,13 +69,11 @@ public class WasteMapper : MapperBase<Waste, Residuo>
         return new Residuo
         {
             // IDs
-            IdResiduo = string.IsNullOrEmpty(domainEntity.Id) ? 0 : GuidLongConverter.ToLong(Guid.Parse(domainEntity.Id)),
-            IdMaterial = GuidLongConverter.ToLong(domainEntity.WasteClassId),
+            IdResiduo = IdConversion.ToLongFromString(domainEntity.Id),
+            IdMaterial = IdConversion.ToLongFromString(domainEntity.WasteClassId),
             
-            // Owner
-            IdPropietario = domainEntity.CurrentOwnerId.HasValue 
-                ? GuidStringConverter.ToString(domainEntity.CurrentOwnerId.Value)
-                : null,
+            // Owner - DB IdPropietario is string
+            IdPropietario = domainEntity.CurrentOwnerId,
             
             // Info
             Descripcion = domainEntity.Description,
@@ -114,9 +108,7 @@ public class WasteMapper : MapperBase<Waste, Residuo>
         // Actualizar campos modificables
         dbEntity.Descripcion = domainEntity.Description;
         dbEntity.IdEstado = MapStatusToDb(domainEntity.Status);
-        dbEntity.IdPropietario = domainEntity.CurrentOwnerId.HasValue
-            ? GuidStringConverter.ToString(domainEntity.CurrentOwnerId.Value)
-            : null;
+        dbEntity.IdPropietario = domainEntity.CurrentOwnerId;
         
         // Audit
         dbEntity.FechaUltimaModificacion = domainEntity.UpdatedAt;

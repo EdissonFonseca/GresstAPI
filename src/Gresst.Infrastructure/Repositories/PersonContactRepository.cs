@@ -30,7 +30,7 @@ public class PersonContactRepository : IPersonContactRepository
         // For now, we'll search all contacts and find by a generated Guid match
         // This is a limitation - we might need to store a mapping or use a different approach
         var accountId = _currentUserService.GetCurrentAccountId();
-        var accountIdLong = string.IsNullOrEmpty(accountId) ? 0L : long.Parse(accountId);
+        var accountIdLong = IdConversion.ToLongFromString(accountId);
         
         var dbEntities = await _context.PersonaContactos
             .Where(pc => pc.IdCuenta == accountIdLong && pc.Activo)
@@ -49,7 +49,7 @@ public class PersonContactRepository : IPersonContactRepository
     public async Task<IEnumerable<PersonContact>> GetAllAsync(CancellationToken cancellationToken = default)
     {
         var accountId = _currentUserService.GetCurrentAccountId();
-        var accountIdLong = string.IsNullOrEmpty(accountId) ? 0L : long.Parse(accountId);
+        var accountIdLong = IdConversion.ToLongFromString(accountId);
         
         var dbEntities = await _context.PersonaContactos
             .Where(pc => pc.IdCuenta == accountIdLong && pc.Activo)
@@ -78,9 +78,9 @@ public class PersonContactRepository : IPersonContactRepository
     public async Task UpdateAsync(PersonContact entity, CancellationToken cancellationToken = default)
     {
         var accountId = _currentUserService.GetCurrentAccountId();
-        var accountIdLong = string.IsNullOrEmpty(accountId) ? 0L : long.Parse(accountId);
-        var personIdString = GuidStringConverter.ToString(entity.PersonId);
-        var contactIdString = GuidStringConverter.ToString(entity.ContactId);
+        var accountIdLong = IdConversion.ToLongFromString(accountId);
+        var personIdString = entity.PersonId ?? string.Empty;
+        var contactIdString = entity.ContactId ?? string.Empty;
         
         var dbEntity = await _context.PersonaContactos
             .FirstOrDefaultAsync(pc => 
@@ -99,9 +99,9 @@ public class PersonContactRepository : IPersonContactRepository
     public async Task DeleteAsync(PersonContact entity, CancellationToken cancellationToken = default)
     {
         var accountId = _currentUserService.GetCurrentAccountId();
-        var accountIdLong = string.IsNullOrEmpty(accountId) ? 0L : long.Parse(accountId);
-        var personIdString = GuidStringConverter.ToString(entity.PersonId);
-        var contactIdString = GuidStringConverter.ToString(entity.ContactId);
+        var accountIdLong = IdConversion.ToLongFromString(accountId);
+        var personIdString = entity.PersonId ?? string.Empty;
+        var contactIdString = entity.ContactId ?? string.Empty;
         
         var dbEntity = await _context.PersonaContactos
             .FirstOrDefaultAsync(pc => 
@@ -126,11 +126,11 @@ public class PersonContactRepository : IPersonContactRepository
         return all.Count(predicate.Compile());
     }
 
-    public async Task<IEnumerable<PersonContact>> GetContactsByPersonIdAsync(Guid personId, CancellationToken cancellationToken = default)
+    public async Task<IEnumerable<PersonContact>> GetContactsByPersonIdAsync(string personId, CancellationToken cancellationToken = default)
     {
         var accountId = _currentUserService.GetCurrentAccountId();
-        var accountIdLong = string.IsNullOrEmpty(accountId) ? 0L : long.Parse(accountId);
-        var personIdString = GuidStringConverter.ToString(personId);
+        var accountIdLong = IdConversion.ToLongFromString(accountId);
+        var personIdString = personId ?? string.Empty;
         
         var dbEntities = await _context.PersonaContactos
             .Where(pc => pc.IdPersona == personIdString && pc.IdCuenta == accountIdLong && pc.Activo)
@@ -143,11 +143,11 @@ public class PersonContactRepository : IPersonContactRepository
         return dbEntities.Select(_mapper.ToDomain).ToList();
     }
 
-    public async Task<IEnumerable<PersonContact>> GetPersonsByContactIdAsync(Guid contactId, CancellationToken cancellationToken = default)
+    public async Task<IEnumerable<PersonContact>> GetPersonsByContactIdAsync(string contactId, CancellationToken cancellationToken = default)
     {
         var accountId = _currentUserService.GetCurrentAccountId();
-        var accountIdLong = string.IsNullOrEmpty(accountId) ? 0L : long.Parse(accountId);
-        var contactIdString = GuidStringConverter.ToString(contactId);
+        var accountIdLong = IdConversion.ToLongFromString(accountId);
+        var contactIdString = contactId ?? string.Empty;
         
         var dbEntities = await _context.PersonaContactos
             .Where(pc => pc.IdContacto == contactIdString && pc.IdCuenta == accountIdLong && pc.Activo)
@@ -160,12 +160,12 @@ public class PersonContactRepository : IPersonContactRepository
         return dbEntities.Select(_mapper.ToDomain).ToList();
     }
 
-    public async Task<PersonContact?> GetByPersonAndContactIdAsync(Guid personId, Guid contactId, string? relationshipType = null, CancellationToken cancellationToken = default)
+    public async Task<PersonContact?> GetByPersonAndContactIdAsync(string personId, string contactId, string? relationshipType = null, CancellationToken cancellationToken = default)
     {
         var accountId = _currentUserService.GetCurrentAccountId();
-        var accountIdLong = string.IsNullOrEmpty(accountId) ? 0L : long.Parse(accountId);
-        var personIdString = GuidStringConverter.ToString(personId);
-        var contactIdString = GuidStringConverter.ToString(contactId);
+        var accountIdLong = IdConversion.ToLongFromString(accountId);
+        var personIdString = personId ?? string.Empty;
+        var contactIdString = contactId ?? string.Empty;
         
         var query = _context.PersonaContactos
             .Where(pc => 
@@ -189,11 +189,11 @@ public class PersonContactRepository : IPersonContactRepository
         return dbEntity != null ? _mapper.ToDomain(dbEntity) : null;
     }
 
-    public async Task<IEnumerable<PersonContact>> GetContactsByPersonAndRelationshipAsync(Guid personId, string relationshipType, CancellationToken cancellationToken = default)
+    public async Task<IEnumerable<PersonContact>> GetContactsByPersonAndRelationshipAsync(string personId, string relationshipType, CancellationToken cancellationToken = default)
     {
         var accountId = _currentUserService.GetCurrentAccountId();
-        var accountIdLong = string.IsNullOrEmpty(accountId) ? 0L : long.Parse(accountId);
-        var personIdString = GuidStringConverter.ToString(personId);
+        var accountIdLong = IdConversion.ToLongFromString(accountId);
+        var personIdString = personId ?? string.Empty;
         
         var dbEntities = await _context.PersonaContactos
             .Where(pc => 

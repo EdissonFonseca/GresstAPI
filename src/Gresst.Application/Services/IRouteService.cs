@@ -8,13 +8,13 @@ public interface IRouteService
     Task<IEnumerable<RouteDto>> GetAllAsync(CancellationToken cancellationToken = default);
     Task<IEnumerable<RouteDto>> GetActiveAsync(CancellationToken cancellationToken = default);
     Task<IEnumerable<RouteDto>> GetByTypeAsync(string routeType, CancellationToken cancellationToken = default);
-    Task<IEnumerable<RouteDto>> GetByVehicleAsync(Guid vehicleId, CancellationToken cancellationToken = default);
+    Task<IEnumerable<RouteDto>> GetByVehicleAsync(string vehicleId, CancellationToken cancellationToken = default);
     Task<RouteDto> CreateAsync(CreateRouteDto dto, CancellationToken cancellationToken = default);
     Task<RouteDto?> UpdateAsync(UpdateRouteDto dto, CancellationToken cancellationToken = default);
-    Task<RouteStopDto> AddStopAsync(Guid routeId, CreateRouteStopDto dto, CancellationToken cancellationToken = default);
-    Task<bool> RemoveStopAsync(Guid routeId, Guid facilityId, CancellationToken cancellationToken = default);
-    Task<RouteDto> ReorderStopsAsync(Guid routeId, Dictionary<Guid, int> stopSequences, CancellationToken cancellationToken = default);
-    Task<RouteDto?> ActivateAsync(Guid id, CancellationToken cancellationToken = default);
-    Task<RouteDto?> DeactivateAsync(Guid id, CancellationToken cancellationToken = default);
+    Task<RouteStopDto> AddStopAsync(string routeId, CreateRouteStopDto dto, CancellationToken cancellationToken = default);
+    Task<bool> RemoveStopAsync(string routeId, string facilityId, CancellationToken cancellationToken = default);
+    Task<RouteDto> ReorderStopsAsync(string routeId, Dictionary<string, int> stopSequences, CancellationToken cancellationToken = default);
+    Task<RouteDto?> ActivateAsync(string id, CancellationToken cancellationToken = default);
+    Task<RouteDto?> DeactivateAsync(string id, CancellationToken cancellationToken = default);
 }
 

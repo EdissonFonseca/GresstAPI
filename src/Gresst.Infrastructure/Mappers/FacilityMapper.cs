@@ -1,4 +1,5 @@
 using Gresst.Domain.Entities;
+using Gresst.Infrastructure.Common;
 using Gresst.Infrastructure.Data.Entities;
 using NetTopologySuite.Geometries;
 
@@ -20,8 +21,8 @@ public class FacilityMapper : MapperBase<Facility, Deposito>
         return new Facility
         {
             // IDs - Domain uses string for BaseEntity.Id/AccountId
-            Id = dbEntity.IdDeposito.ToString(),
-            AccountId = dbEntity.IdCuenta?.ToString() ?? string.Empty,
+            Id = IdConversion.ToStringFromLong(dbEntity.IdDeposito),
+            AccountId = dbEntity.IdCuenta.HasValue ? IdConversion.ToStringFromLong(dbEntity.IdCuenta.Value) : string.Empty,
             
             // Basic Info
             Code = dbEntity.IdDeposito.ToString(),
@@ -34,10 +35,8 @@ public class FacilityMapper : MapperBase<Facility, Deposito>
             Latitude = dbEntity.Ubicacion.GetLatitude(),
             Longitude = dbEntity.Ubicacion.GetLongitude(),
             
-            // Owner - Conversión de string a Guid
-            PersonId = !string.IsNullOrEmpty(dbEntity.IdPersona) 
-                ? new Guid(dbEntity.IdPersona.PadLeft(32, '0')) 
-                : Guid.Empty,
+            // Owner - DB IdPersona is string
+            PersonId = dbEntity.IdPersona ?? string.Empty,
             
             // Capabilities - Mapeo directo de booleanos
             CanCollect = dbEntity.Acopio,
@@ -55,7 +54,7 @@ public class FacilityMapper : MapperBase<Facility, Deposito>
             // Virtual and Parent
             IsVirtual = false, // Deposito doesn't have IsVirtual field, default to false
             ParentFacilityId = dbEntity.IdSuperior.HasValue 
-                ? new Guid(dbEntity.IdSuperior.Value.ToString().PadLeft(32, '0')) 
+                ? IdConversion.ToStringFromLong(dbEntity.IdSuperior.Value) 
                 : null,
             // Map ParentFacility navigation if loaded (for eager loading)
             ParentFacility = dbEntity.IdSuperiorNavigation != null 
@@ -80,7 +79,7 @@ public class FacilityMapper : MapperBase<Facility, Deposito>
         
         return new Facility
         {
-            Id = parentDbEntity.IdDeposito.ToString(),
+            Id = IdConversion.ToStringFromLong(parentDbEntity.IdDeposito),
             Name = parentDbEntity.Nombre ?? string.Empty,
             Code = parentDbEntity.IdDeposito.ToString(),
             // Only map essential fields to avoid deep recursion
@@ -99,8 +98,8 @@ public class FacilityMapper : MapperBase<Facility, Deposito>
         return new Deposito
         {
             // IDs - Domain Id/AccountId are string, BD uses long
-            IdDeposito = string.IsNullOrEmpty(domainEntity.Id) ? 0 : long.Parse(domainEntity.Id),
-            IdCuenta = string.IsNullOrEmpty(domainEntity.AccountId) ? null : long.Parse(domainEntity.AccountId),
+            IdDeposito = IdConversion.ToLongFromString(domainEntity.Id),
+            IdCuenta = string.IsNullOrEmpty(domainEntity.AccountId) ? null : IdConversion.ToLongFromString(domainEntity.AccountId),
             
             // Basic Info
             Nombre = domainEntity.Name,
@@ -111,10 +110,8 @@ public class FacilityMapper : MapperBase<Facility, Deposito>
             Direccion = domainEntity.Address,
             Ubicacion = NetTopologySuiteExtensions.CreatePoint(domainEntity.Latitude, domainEntity.Longitude),
             
-            // Owner
-            IdPersona = domainEntity.PersonId != Guid.Empty 
-                ? domainEntity.PersonId.ToString().Replace("-", "").Substring(0, 40) 
-                : null,
+            // Owner - DB IdPersona is string
+            IdPersona = string.IsNullOrEmpty(domainEntity.PersonId) ? null : domainEntity.PersonId,
             
             // Capabilities
             Acopio = domainEntity.CanCollect,
@@ -128,9 +125,9 @@ public class FacilityMapper : MapperBase<Facility, Deposito>
             Peso = domainEntity.MaxCapacity,
             Cantidad = domainEntity.CurrentCapacity,
             
-            // Parent Facility
-            IdSuperior = domainEntity.ParentFacilityId.HasValue 
-                ? long.Parse(domainEntity.ParentFacilityId.Value.ToString().Replace("-", "").Substring(0, 18)) 
+            // Parent Facility - Domain ParentFacilityId is string
+            IdSuperior = !string.IsNullOrEmpty(domainEntity.ParentFacilityId) 
+                ? IdConversion.ToLongFromString(domainEntity.ParentFacilityId) 
                 : null,
             
             // Audit
@@ -171,9 +168,9 @@ public class FacilityMapper : MapperBase<Facility, Deposito>
         dbEntity.Peso = domainEntity.MaxCapacity;
         dbEntity.Cantidad = domainEntity.CurrentCapacity;
         
-        // Parent Facility
-        dbEntity.IdSuperior = domainEntity.ParentFacilityId.HasValue 
-            ? long.Parse(domainEntity.ParentFacilityId.Value.ToString().Replace("-", "").Substring(0, 18)) 
+        // Parent Facility - Domain ParentFacilityId is string
+        dbEntity.IdSuperior = !string.IsNullOrEmpty(domainEntity.ParentFacilityId) 
+            ? IdConversion.ToLongFromString(domainEntity.ParentFacilityId) 
             : null;
         
         // Note: IsVirtual is not stored in Deposito table, it's a domain concept

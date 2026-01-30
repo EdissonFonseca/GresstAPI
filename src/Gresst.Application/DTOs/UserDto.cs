@@ -12,7 +12,7 @@ public class UserDto
     public string Email { get; set; } = string.Empty;
     public string Status { get; set; } = string.Empty; // A=Active, I=Inactive
     public bool IsActive => Status == "A";
-    public Guid? PersonId { get; set; }
+    public string? PersonId { get; set; }
     public string? PersonName { get; set; }
     public string[]? Roles { get; set; }
     public DateTime? LastAccess { get; set; }
@@ -29,7 +29,7 @@ public class CreateUserDto
     public string? LastName { get; set; }
     public string Email { get; set; } = string.Empty;
     public string Password { get; set; } = string.Empty;
-    public Guid? PersonId { get; set; }
+    public string? PersonId { get; set; }
     public string[]? Roles { get; set; }
 }
 

@@ -12,15 +12,15 @@ public class Request : BaseEntity
     public RequestStatus Status { get; set; }
     
     // Requester (who needs the service)
-    public Guid RequesterId { get; set; }
+    public string RequesterId { get; set; } = string.Empty;
     public virtual Person Requester { get; set; } = null!;
     
     // Provider (who will provide the service)
-    public Guid? ProviderId { get; set; }
+    public string? ProviderId { get; set; }
     public virtual Person? Provider { get; set; }
     
     // Service requested
-    public Guid ServiceId { get; set; }
+    public string ServiceId { get; set; } = string.Empty;
     public virtual Service Service { get; set; } = null!;
     
     // Service Details
@@ -53,10 +53,10 @@ public class Request : BaseEntity
 /// </summary>
 public class RequestItem : BaseEntity
 {
-    public Guid RequestId { get; set; }
+    public string RequestId { get; set; } = string.Empty;
     public virtual Request Request { get; set; } = null!;
     
-    public Guid WasteClassId { get; set; }
+    public string WasteClassId { get; set; } = string.Empty;
     public virtual WasteClass WasteClass { get; set; } = null!;
     
     public decimal EstimatedQuantity { get; set; }

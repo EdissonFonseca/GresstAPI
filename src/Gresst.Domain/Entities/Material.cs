@@ -17,7 +17,7 @@ public class Material : BaseEntity
     public string? Category { get; set; } // Metal, Plastic, Glass, Organic, etc.
     
     // Waste Class relationship
-    public Guid? WasteClassId { get; set; }
+    public string? WasteClassId { get; set; }
     public virtual WasteClass? WasteClass { get; set; }
     
     // Navigation properties

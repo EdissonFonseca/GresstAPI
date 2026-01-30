@@ -45,14 +45,14 @@ public class WasteClassServiceTests
         {
             new WasteClass
             {
-                Id = Guid.NewGuid(),
+                Id = Guid.NewGuid().ToString(),
                 Name = "Organic Waste",
                 Code = "ORG-001",
                 IsActive = true
             },
             new WasteClass
             {
-                Id = Guid.NewGuid(),
+                Id = Guid.NewGuid().ToString(),
                 Name = "Plastic Waste",
                 Code = "PLA-001",
                 IsActive = true
@@ -78,16 +78,17 @@ public class WasteClassServiceTests
     {
         // Arrange
         var wasteClassId = Guid.NewGuid();
+        var wasteClassIdStr = wasteClassId.ToString();
         var wasteClass = new WasteClass
         {
-            Id = wasteClassId,
+            Id = wasteClassIdStr,
             Name = "Organic Waste",
             Code = "ORG-001",
             IsActive = true
         };
 
         _wasteClassRepositoryMock
-            .Setup(r => r.GetByIdAsync(wasteClassId, It.IsAny<CancellationToken>()))
+            .Setup(r => r.GetByIdAsync(wasteClassIdStr, It.IsAny<CancellationToken>()))
             .ReturnsAsync(wasteClass);
 
         // Act
@@ -95,7 +96,7 @@ public class WasteClassServiceTests
 
         // Assert
         result.Should().NotBeNull();
-        result!.Id.Should().Be(wasteClassId);
+        result!.Id.Should().Be(wasteClassIdStr);
         result.Name.Should().Be("Organic Waste");
         result.Code.Should().Be("ORG-001");
     }
@@ -105,9 +106,10 @@ public class WasteClassServiceTests
     {
         // Arrange
         var wasteClassId = Guid.NewGuid();
+        var wasteClassIdStr = wasteClassId.ToString();
 
         _wasteClassRepositoryMock
-            .Setup(r => r.GetByIdAsync(wasteClassId, It.IsAny<CancellationToken>()))
+            .Setup(r => r.GetByIdAsync(wasteClassIdStr, It.IsAny<CancellationToken>()))
             .ReturnsAsync((WasteClass?)null);
 
         // Act
@@ -131,7 +133,7 @@ public class WasteClassServiceTests
 
         var createdWasteClass = new WasteClass
         {
-            Id = Guid.NewGuid(),
+            Id = Guid.NewGuid().ToString(),
             Name = createDto.Name,
             Code = createDto.Code,
             IsActive = true
@@ -143,8 +145,8 @@ public class WasteClassServiceTests
 
         var accountPersonId = Guid.NewGuid();
         _accountRepositoryMock
-            .Setup(r => r.GetByIdAsync(accountId, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new Account { Id = accountId, PersonId = accountPersonId });
+            .Setup(r => r.GetByIdAsync(accountId.ToString(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new Account { Id = accountId.ToString(), PersonId = accountPersonId });
 
         _wasteClassRepositoryMock
             .Setup(r => r.AddAsync(It.IsAny<WasteClass>(), It.IsAny<CancellationToken>()))
@@ -169,10 +171,10 @@ public class WasteClassServiceTests
     public async Task UpdateWasteClassAsync_WhenExists_UpdatesWasteClass()
     {
         // Arrange
-        var wasteClassId = Guid.NewGuid();
+        var wasteClassIdStr = Guid.NewGuid().ToString();
         var existingWasteClass = new WasteClass
         {
-            Id = wasteClassId,
+            Id = wasteClassIdStr,
             Name = "Old Name",
             Code = "OLD-001",
             IsActive = true
@@ -180,12 +182,12 @@ public class WasteClassServiceTests
 
         var updateDto = new UpdateWasteClassDto
         {
-            Id = wasteClassId,
+            Id = wasteClassIdStr,
             Name = "Updated Name"
         };
 
         _wasteClassRepositoryMock
-            .Setup(r => r.GetByIdAsync(wasteClassId, It.IsAny<CancellationToken>()))
+            .Setup(r => r.GetByIdAsync(wasteClassIdStr, It.IsAny<CancellationToken>()))
             .ReturnsAsync(existingWasteClass);
 
         _unitOfWorkMock
@@ -207,16 +209,17 @@ public class WasteClassServiceTests
     {
         // Arrange
         var wasteClassId = Guid.NewGuid();
+        var wasteClassIdStr = wasteClassId.ToString();
         var wasteClass = new WasteClass
         {
-            Id = wasteClassId,
+            Id = wasteClassIdStr,
             Name = "Test Waste Class",
             Code = "TWC-001",
             IsActive = true
         };
 
         _wasteClassRepositoryMock
-            .Setup(r => r.GetByIdAsync(wasteClassId, It.IsAny<CancellationToken>()))
+            .Setup(r => r.GetByIdAsync(wasteClassIdStr, It.IsAny<CancellationToken>()))
             .ReturnsAsync(wasteClass);
 
         _unitOfWorkMock

@@ -1,4 +1,4 @@
-﻿using Gresst.Domain.Entities;
+using Gresst.Domain.Entities;
 
 namespace Gresst.Domain.Interfaces;
 
@@ -8,6 +8,6 @@ namespace Gresst.Domain.Interfaces;
 public interface IAccountRepository : IRepository<Account>
 {
     // Método específico adicional
-    Task<Account?> GetByUserIdAsync(Guid userId, CancellationToken cancellationToken = default);
+    Task<Account?> GetByUserIdAsync(string userId, CancellationToken cancellationToken = default);
     Task<Account?> GetByCodeAsync(string code, CancellationToken cancellationToken = default);
 }

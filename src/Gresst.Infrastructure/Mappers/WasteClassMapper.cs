@@ -22,7 +22,7 @@ public class WasteClassMapper : MapperBase<DomainWasteClass, DbWasteClass>
         {
             // IDs - Domain BaseEntity uses string
             Id = dbEntity.IdTipoResiduo != 0 
-                ? GuidLongConverter.ToGuid(dbEntity.IdTipoResiduo).ToString() 
+                ? IdConversion.ToStringFromLong(dbEntity.IdTipoResiduo) 
                 : string.Empty,
             
             // Basic Info
@@ -61,10 +61,8 @@ public class WasteClassMapper : MapperBase<DomainWasteClass, DbWasteClass>
 
         return new DbWasteClass
         {
-            // IDs - Conversión de Guid a int
-            IdTipoResiduo = !string.IsNullOrEmpty(domainEntity.Id) && Guid.TryParse(domainEntity.Id, out var wcGuid)
-                ? (int)GuidLongConverter.ToLong(wcGuid) 
-                : 0,
+            // IDs - Domain Id is string, BD IdTipoResiduo is int
+            IdTipoResiduo = (int)IdConversion.ToLongFromString(domainEntity.Id),
             
             // Basic Info
             Nombre = domainEntity.Name,

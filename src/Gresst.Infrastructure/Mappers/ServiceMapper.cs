@@ -21,7 +21,7 @@ public class ServiceMapper : MapperBase<Service, Servicio>
         return new Service
         {
             // IDs - Domain BaseEntity uses string
-            Id = GuidLongConverter.ToGuid(dbEntity.IdServicio).ToString(),
+            Id = IdConversion.ToStringFromLong(dbEntity.IdServicio),
             AccountId = string.Empty, // Servicio is not account-specific in BD
             
             // Basic Info
@@ -48,7 +48,7 @@ public class ServiceMapper : MapperBase<Service, Servicio>
         return new Servicio
         {
             // IDs
-            IdServicio = string.IsNullOrEmpty(domainEntity.Id) ? 0 : GuidLongConverter.ToLong(Guid.Parse(domainEntity.Id)),
+            IdServicio = IdConversion.ToLongFromString(domainEntity.Id),
             
             // Basic Info
             Nombre = domainEntity.Name,

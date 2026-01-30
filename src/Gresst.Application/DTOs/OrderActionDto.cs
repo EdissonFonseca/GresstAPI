@@ -6,8 +6,8 @@ namespace Gresst.Application.DTOs;
 public class ScheduleOrderDto
 {
     public DateTime ScheduledDate { get; set; }
-    public Guid? VehicleId { get; set; }
-    public Guid? RouteId { get; set; }
+    public string? VehicleId { get; set; }
+    public string? RouteId { get; set; }
 }
 
 /// <summary>

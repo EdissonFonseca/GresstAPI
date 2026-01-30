@@ -25,8 +25,8 @@ public class PersonSupplyMapper : MapperBase<PersonSupply, PersonaInsumo>
             AccountId = dbEntity.IdCuenta.ToString(),
             
             // Relations
-            PersonId = GuidStringConverter.ToGuid(dbEntity.IdPersona),
-            SupplyId = GuidLongConverter.ToGuid(dbEntity.IdInsumo),
+            PersonId = dbEntity.IdPersona ?? string.Empty,
+            SupplyId = IdConversion.ToStringFromLong(dbEntity.IdInsumo),
             
             // Properties
             Price = dbEntity.Precio,
@@ -51,8 +51,8 @@ public class PersonSupplyMapper : MapperBase<PersonSupply, PersonaInsumo>
         return new PersonaInsumo
         {
             // IDs (composite key)
-            IdPersona = GuidStringConverter.ToString(domainEntity.PersonId),
-            IdInsumo = GuidLongConverter.ToLong(domainEntity.SupplyId),
+            IdPersona = domainEntity.PersonId ?? string.Empty,
+            IdInsumo = IdConversion.ToLongFromString(domainEntity.SupplyId),
             IdCuenta = long.TryParse(domainEntity.AccountId, out var psAc) ? psAc : 0,
             
             // Properties

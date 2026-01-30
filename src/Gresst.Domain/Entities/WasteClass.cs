@@ -9,7 +9,7 @@ public class WasteClass : BaseEntity
     public string? Description { get; set; }
     
     // International Classifications
-    public Guid? ClassificationId { get; set; }
+    public string? ClassificationId { get; set; }
     public virtual Classification? Classification { get; set; }
     
     // Properties
@@ -18,7 +18,7 @@ public class WasteClass : BaseEntity
     public string? PhysicalState { get; set; } // Solid, Liquid, Gas, Sludge
     
     // Treatment - One-to-one optional relationship
-    public Guid? TreatmentId { get; set; }
+    public string? TreatmentId { get; set; }
     public virtual Treatment? Treatment { get; set; }
     
     // Navigation properties

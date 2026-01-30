@@ -60,7 +60,7 @@ public class PackagingRepository : IRepository<Packaging>
         
         // Set audit fields
         dbEntity.FechaCreacion = DateTime.UtcNow;
-        dbEntity.IdUsuarioCreacion = GuidLongConverter.ToLong(_currentUserService.GetCurrentUserId());
+        dbEntity.IdUsuarioCreacion = IdConversion.ToLongFromString(_currentUserService.GetCurrentUserId());
         dbEntity.Activo = true;
 
         await _context.Embalajes.AddAsync(dbEntity, cancellationToken);
@@ -83,7 +83,7 @@ public class PackagingRepository : IRepository<Packaging>
         
         // Update audit fields
         dbEntity.FechaUltimaModificacion = DateTime.UtcNow;
-        dbEntity.IdUsuarioUltimaModificacion = GuidLongConverter.ToLong(_currentUserService.GetCurrentUserId());
+        dbEntity.IdUsuarioUltimaModificacion = IdConversion.ToLongFromString(_currentUserService.GetCurrentUserId());
         
         _context.Embalajes.Update(dbEntity);
         return Task.CompletedTask;
@@ -100,7 +100,7 @@ public class PackagingRepository : IRepository<Packaging>
         // Soft delete
         dbEntity.Activo = false;
         dbEntity.FechaUltimaModificacion = DateTime.UtcNow;
-        dbEntity.IdUsuarioUltimaModificacion = GuidLongConverter.ToLong(_currentUserService.GetCurrentUserId());
+        dbEntity.IdUsuarioUltimaModificacion = IdConversion.ToLongFromString(_currentUserService.GetCurrentUserId());
         
         _context.Embalajes.Update(dbEntity);
         return Task.CompletedTask;

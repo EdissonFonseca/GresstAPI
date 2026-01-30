@@ -18,8 +18,8 @@ public class PersonWasteClassMapper : MapperBase<PersonWasteClass, PersonaTipoRe
         if (dbEntity == null) 
             throw new ArgumentNullException(nameof(dbEntity));
 
-        // Convert int IdTipoResiduo to Guid (using GuidLongConverter pattern)
-        var wasteClassId = GuidLongConverter.ToGuid(dbEntity.IdTipoResiduo);
+        // Convert int IdTipoResiduo to string (domain ID)
+        var wasteClassId = IdConversion.ToStringFromLong(dbEntity.IdTipoResiduo);
 
         return new PersonWasteClass
         {
@@ -28,7 +28,7 @@ public class PersonWasteClassMapper : MapperBase<PersonWasteClass, PersonaTipoRe
             AccountId = dbEntity.IdCuenta.ToString(),
             
             // Relations
-            PersonId = GuidStringConverter.ToGuid(dbEntity.IdPersona),
+            PersonId = dbEntity.IdPersona ?? string.Empty,
             WasteClassId = wasteClassId,
             
             // Audit
@@ -48,14 +48,14 @@ public class PersonWasteClassMapper : MapperBase<PersonWasteClass, PersonaTipoRe
         if (domainEntity == null) 
             throw new ArgumentNullException(nameof(domainEntity));
 
-        // Convert Guid WasteClassId to int (using GuidLongConverter pattern, then cast to int)
-        var wasteClassIdLong = GuidLongConverter.ToLong(domainEntity.WasteClassId);
+        // Convert string WasteClassId to int (domain ID to DB int)
+        var wasteClassIdLong = IdConversion.ToLongFromString(domainEntity.WasteClassId);
         var wasteClassIdInt = (int)wasteClassIdLong; // Cast long to int
 
         return new PersonaTipoResiduo
         {
             // IDs (composite key)
-            IdPersona = GuidStringConverter.ToString(domainEntity.PersonId),
+            IdPersona = domainEntity.PersonId ?? string.Empty,
             IdTipoResiduo = wasteClassIdInt,
             IdCuenta = long.TryParse(domainEntity.AccountId, out var pwcAc) ? pwcAc : 0,
             

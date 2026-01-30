@@ -15,7 +15,19 @@ public sealed class ConfigureSwaggerOptions : IConfigureOptions<SwaggerGenOption
 
     public void Configure(SwaggerGenOptions options)
     {
-        foreach (var description in _provider.ApiVersionDescriptions)
+        var descriptions = _provider.ApiVersionDescriptions;
+        if (descriptions.Count == 0)
+        {
+            // Minimal API: no controllers, so add default v1 doc for Swagger
+            options.SwaggerDoc("v1", new()
+            {
+                Title = "Gresst Waste Management API",
+                Version = "1.0",
+                Description = "Complete waste management system with traceability, inventory, and certificates (Minimal API)"
+            });
+            return;
+        }
+        foreach (var description in descriptions)
         {
             options.SwaggerDoc(
                 description.GroupName,

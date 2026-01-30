@@ -111,7 +111,7 @@ public class ManagementRepository : IRepository<Management>
     private long GetCurrentUserIdAsLong()
     {
         var userId = _currentUserService.GetCurrentUserId();
-        return GuidLongConverter.ToLong(userId);
+        return IdConversion.ToLongFromString(userId);
     }
 }
 

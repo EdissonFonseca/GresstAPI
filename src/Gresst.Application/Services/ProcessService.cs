@@ -73,7 +73,7 @@ public class ProcessService : IProcessService
                 var subProcess = new SubProcessDto
                 {
                     Id = Guid.NewGuid().ToString(),
-                    ProcessId = Guid.Parse(process.Id),
+                    ProcessId = process.Id,
                     Name = $"Pickup at {cpFirst.DepositoOrigen ?? "Unknown origin"}",
                     Description = $"Collection point at {cpFirst.DepositoOrigen ?? "origin depot"} for order {firstOrderItem.NumeroOrden ?? firstOrderItem.IdOrden}",
                     Status = MapStatus(cpFirst.IdEstado, cpFirst.IdEtapa, cpFirst.IdFase),
@@ -94,7 +94,7 @@ public class ProcessService : IProcessService
                 // 3) Tasks: each SolicitudDetalle (row) at this collection point
                 foreach (var item in cpGroup)
                 {
-                    var task = CreateTaskFromTransportItem(item, Guid.Parse(process.Id), Guid.Parse(subProcess.Id));
+                    var task = CreateTaskFromTransportItem(item, process.Id, subProcess.Id);
                     subProcess.Tasks.Add(task);
                 }
 
@@ -135,7 +135,7 @@ public class ProcessService : IProcessService
                 var subProcess = new SubProcessDto
                 {
                     Id = Guid.NewGuid().ToString(),
-                    ProcessId = Guid.Parse(process.Id),
+                    ProcessId = process.Id,
                     Name = $"Pickup at {first.DepositoOrigen ?? "Unknown origin"}",
                     Description = "Collection point without associated order",
                     Status = MapStatus(first.IdEstado, first.IdEtapa, first.IdFase),
@@ -151,7 +151,7 @@ public class ProcessService : IProcessService
 
                 foreach (var item in group)
                 {
-                    var task = CreateTaskFromTransportItem(item, Guid.Parse(process.Id), Guid.Parse(subProcess.Id));
+                    var task = CreateTaskFromTransportItem(item, process.Id, subProcess.Id);
                     subProcess.Tasks.Add(task);
                 }
 
@@ -168,8 +168,8 @@ public class ProcessService : IProcessService
     /// </summary>
     private TaskDto CreateTaskFromTransportItem(
         MobileTransportWasteDto item, 
-        Guid processId, 
-        Guid? subProcessId)
+        string processId, 
+        string? subProcessId)
     {
         return new TaskDto
         {

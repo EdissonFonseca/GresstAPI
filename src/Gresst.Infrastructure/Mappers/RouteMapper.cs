@@ -21,15 +21,12 @@ public class RouteMapper : MapperBase<DomainRoute, DbRoute>
         if (dbEntity == null) 
             throw new ArgumentNullException(nameof(dbEntity));
 
-        // Convert IdVehiculo (string) to VehicleId (Guid?)
-        // If IdVehiculo is a placeholder, set VehicleId to null
-        Guid? vehicleId = null;
+        // IdVehiculo in BD is the LicensePlate (string); Domain VehicleId is string? (vehicle ID or null)
+        string? vehicleId = null;
         if (!string.IsNullOrEmpty(dbEntity.IdVehiculo) && 
             !dbEntity.IdVehiculo.Equals("SIN-VEHICULO", StringComparison.OrdinalIgnoreCase))
         {
-            // IdVehiculo in BD is the LicensePlate (string), not a Guid
-            // We'll need to look up the vehicle by LicensePlate in the service layer
-            // For now, set to null - the service will handle the lookup
+            // Service layer may resolve LicensePlate to vehicle ID; for mapper we keep null
             vehicleId = null;
         }
 
@@ -37,7 +34,7 @@ public class RouteMapper : MapperBase<DomainRoute, DbRoute>
         {
             // IDs - Domain BaseEntity uses string
             Id = dbEntity.IdRuta != 0 
-                ? GuidLongConverter.ToGuid(dbEntity.IdRuta).ToString() 
+                ? IdConversion.ToStringFromLong(dbEntity.IdRuta) 
                 : string.Empty,
             
             // Basic Info
@@ -48,9 +45,9 @@ public class RouteMapper : MapperBase<DomainRoute, DbRoute>
             // Route Type - No está directamente en BD, usar valor por defecto
             RouteType = "Collection", // Valor por defecto
             
-            // Assignment
+            // Assignment - DB IdResponsable is string
             VehicleId = vehicleId,
-            DriverId = GuidStringConverter.ToGuid(dbEntity.IdResponsable),
+            DriverId = dbEntity.IdResponsable,
             
             // Scheduling
             Schedule = dbEntity.Recurrencia, // JSON: Days of week, frequency
@@ -78,35 +75,29 @@ public class RouteMapper : MapperBase<DomainRoute, DbRoute>
         if (domainEntity == null) 
             throw new ArgumentNullException(nameof(domainEntity));
 
-        // Convert VehicleId (Guid?) to IdVehiculo (string, mandatory)
-        // If VehicleId is null, use placeholder "SIN-VEHICULO"
-        // Note: The repository will handle the actual lookup of LicensePlate from VehicleId
+        // VehicleId (string?) - BD IdVehiculo is LicensePlate (string, mandatory)
         string idVehiculo;
-        if (domainEntity.VehicleId.HasValue && domainEntity.VehicleId.Value != Guid.Empty && 
+        if (!string.IsNullOrEmpty(domainEntity.VehicleId) && 
             domainEntity.Vehicle != null && !string.IsNullOrEmpty(domainEntity.Vehicle.LicensePlate))
         {
-            // Use the LicensePlate from the loaded Vehicle entity
             idVehiculo = domainEntity.Vehicle.LicensePlate;
         }
         else
         {
-            // Use placeholder when VehicleId is null or Vehicle is not loaded
             idVehiculo = "SIN-VEHICULO";
         }
 
         return new DbRoute
         {
-            // IDs - Conversión de Guid a long
-            IdRuta = !string.IsNullOrEmpty(domainEntity.Id) && Guid.TryParse(domainEntity.Id, out var routeGuid)
-                ? GuidLongConverter.ToLong(routeGuid) 
-                : 0,
+            // IDs - Domain Id is string
+            IdRuta = IdConversion.ToLongFromString(domainEntity.Id),
             
             // Basic Info
             Nombre = domainEntity.Name,
             
-            // Assignment
-            IdVehiculo = idVehiculo, // Mandatory in BD
-            IdResponsable = GuidStringConverter.ToString(domainEntity.DriverId ?? Guid.Empty),
+            // Assignment - DB IdResponsable is string
+            IdVehiculo = idVehiculo,
+            IdResponsable = domainEntity.DriverId ?? string.Empty,
             
             // Scheduling
             Recurrencia = domainEntity.Schedule ?? string.Empty,
@@ -144,22 +135,20 @@ public class RouteMapper : MapperBase<DomainRoute, DbRoute>
         dbEntity.Activo = domainEntity.IsActive;
         
         // Update VehicleId if provided
-        if (domainEntity.VehicleId.HasValue && domainEntity.VehicleId.Value != Guid.Empty &&
+        if (!string.IsNullOrEmpty(domainEntity.VehicleId) &&
             domainEntity.Vehicle != null && !string.IsNullOrEmpty(domainEntity.Vehicle.LicensePlate))
         {
-            // Use the LicensePlate from the loaded Vehicle entity
             dbEntity.IdVehiculo = domainEntity.Vehicle.LicensePlate;
         }
-        else if (domainEntity.VehicleId == null)
+        else if (string.IsNullOrEmpty(domainEntity.VehicleId))
         {
-            // Keep placeholder if VehicleId is null
             dbEntity.IdVehiculo = "SIN-VEHICULO";
         }
         
-        // Update DriverId if provided
-        if (domainEntity.DriverId.HasValue)
+        // Update DriverId if provided - Domain DriverId is string?
+        if (!string.IsNullOrEmpty(domainEntity.DriverId))
         {
-            dbEntity.IdResponsable = GuidStringConverter.ToString(domainEntity.DriverId.Value);
+            dbEntity.IdResponsable = domainEntity.DriverId;
         }
         
         // Audit

@@ -60,7 +60,7 @@ public class PersonTreatmentRepository : IRepository<PersonTreatment>
         
         dbEntity.IdCuenta = string.IsNullOrEmpty(_currentUserService.GetCurrentAccountId()) ? 0L : long.Parse(_currentUserService.GetCurrentAccountId());
         dbEntity.FechaCreacion = DateTime.UtcNow;
-        dbEntity.IdUsuarioCreacion = GuidLongConverter.ToLong(_currentUserService.GetCurrentUserId());
+        dbEntity.IdUsuarioCreacion = IdConversion.ToLongFromString(_currentUserService.GetCurrentUserId());
         dbEntity.Activo = true;
 
         await _context.PersonaTratamientos.AddAsync(dbEntity, cancellationToken);
@@ -71,10 +71,13 @@ public class PersonTreatmentRepository : IRepository<PersonTreatment>
     public Task UpdateAsync(PersonTreatment entity, CancellationToken cancellationToken = default)
     {
         var accountIdLong = string.IsNullOrEmpty(_currentUserService.GetCurrentAccountId()) ? 0L : long.Parse(_currentUserService.GetCurrentAccountId());
-        var personIdString = GuidStringConverter.ToString(entity.PersonId);
-        var treatmentIdLong = GuidLongConverter.ToLong(entity.TreatmentId);
+        var personIdString = entity.PersonId ?? string.Empty;
+        var treatmentIdLong = IdConversion.ToLongFromString(entity.TreatmentId);
 
-        var dbEntity = _context.PersonaTratamientos.Find(personIdString, treatmentIdLong, accountIdLong);
+        var dbEntity = _context.PersonaTratamientos
+            .FirstOrDefault(pt => pt.IdPersona == personIdString
+                && pt.IdTratamiento == treatmentIdLong
+                && pt.IdCuenta == accountIdLong);
         
         if (dbEntity == null)
             throw new KeyNotFoundException($"PersonTreatment relationship for Person {entity.PersonId}, Treatment {entity.TreatmentId} not found");
@@ -82,7 +85,7 @@ public class PersonTreatmentRepository : IRepository<PersonTreatment>
         _mapper.UpdateDatabase(entity, dbEntity);
         
         dbEntity.FechaUltimaModificacion = DateTime.UtcNow;
-        dbEntity.IdUsuarioUltimaModificacion = GuidLongConverter.ToLong(_currentUserService.GetCurrentUserId());
+        dbEntity.IdUsuarioUltimaModificacion = IdConversion.ToLongFromString(_currentUserService.GetCurrentUserId());
         
         _context.PersonaTratamientos.Update(dbEntity);
         return Task.CompletedTask;
@@ -91,10 +94,13 @@ public class PersonTreatmentRepository : IRepository<PersonTreatment>
     public Task DeleteAsync(PersonTreatment entity, CancellationToken cancellationToken = default)
     {
         var accountIdLong = string.IsNullOrEmpty(_currentUserService.GetCurrentAccountId()) ? 0L : long.Parse(_currentUserService.GetCurrentAccountId());
-        var personIdString = GuidStringConverter.ToString(entity.PersonId);
-        var treatmentIdLong = GuidLongConverter.ToLong(entity.TreatmentId);
+        var personIdString = entity.PersonId ?? string.Empty;
+        var treatmentIdLong = IdConversion.ToLongFromString(entity.TreatmentId);
 
-        var dbEntity = _context.PersonaTratamientos.Find(personIdString, treatmentIdLong, accountIdLong);
+        var dbEntity = _context.PersonaTratamientos
+            .FirstOrDefault(pt => pt.IdPersona == personIdString
+                && pt.IdTratamiento == treatmentIdLong
+                && pt.IdCuenta == accountIdLong);
         
         if (dbEntity == null)
             throw new KeyNotFoundException($"PersonTreatment relationship for Person {entity.PersonId}, Treatment {entity.TreatmentId} not found");
@@ -102,7 +108,7 @@ public class PersonTreatmentRepository : IRepository<PersonTreatment>
         // Soft delete
         dbEntity.Activo = false;
         dbEntity.FechaUltimaModificacion = DateTime.UtcNow;
-        dbEntity.IdUsuarioUltimaModificacion = GuidLongConverter.ToLong(_currentUserService.GetCurrentUserId());
+        dbEntity.IdUsuarioUltimaModificacion = IdConversion.ToLongFromString(_currentUserService.GetCurrentUserId());
         
         _context.PersonaTratamientos.Update(dbEntity);
         return Task.CompletedTask;

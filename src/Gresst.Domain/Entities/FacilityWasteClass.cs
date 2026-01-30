@@ -11,13 +11,13 @@ public class FacilityWasteClass : BaseEntity
     /// <summary>
     /// Facility that can handle this waste class
     /// </summary>
-    public Guid FacilityId { get; set; }
+    public string FacilityId { get; set; } = string.Empty;
     public virtual Facility Facility { get; set; } = null!;
     
     /// <summary>
     /// Waste class that the facility can handle
     /// </summary>
-    public Guid WasteClassId { get; set; }
+    public string WasteClassId { get; set; } = string.Empty;
     public virtual WasteClass WasteClass { get; set; } = null!;
     
     /// <summary>

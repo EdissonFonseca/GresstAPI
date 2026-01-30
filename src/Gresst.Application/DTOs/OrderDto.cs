@@ -8,9 +8,9 @@ public class OrderDto
     public string OrderNumber { get; set; } = string.Empty;
     public string Type { get; set; } = string.Empty;
     public string Status { get; set; } = string.Empty;
-    public Guid ProviderId { get; set; }
+    public string ProviderId { get; set; } = string.Empty;
     public string ProviderName { get; set; } = string.Empty;
-    public Guid ClientId { get; set; }
+    public string ClientId { get; set; } = string.Empty;
     public string ClientName { get; set; } = string.Empty;
     public DateTime? ScheduledDate { get; set; }
     public DateTime? CompletedDate { get; set; }
@@ -23,8 +23,8 @@ public class OrderDto
 public class OrderItemDto
 {
     public string Id { get; set; } = string.Empty;
-    public Guid? WasteId { get; set; }
-    public Guid? WasteClassId { get; set; }
+    public string? WasteId { get; set; }
+    public string? WasteClassId { get; set; }
     public string WasteClassName { get; set; } = string.Empty;
     public decimal Quantity { get; set; }
     public string Unit { get; set; } = string.Empty;
@@ -33,22 +33,22 @@ public class OrderItemDto
 public class CreateOrderDto
 {
     public OrderType Type { get; set; }
-    public Guid ProviderId { get; set; }
-    public Guid ClientId { get; set; }
-    public Guid? RequestId { get; set; }
+    public string ProviderId { get; set; } = string.Empty;
+    public string ClientId { get; set; } = string.Empty;
+    public string? RequestId { get; set; }
     public DateTime? ScheduledDate { get; set; }
     public string? Description { get; set; }
     public decimal? EstimatedCost { get; set; }
-    public Guid? VehicleId { get; set; }
-    public Guid? FacilityId { get; set; }
-    public Guid? RouteId { get; set; }
+    public string? VehicleId { get; set; }
+    public string? FacilityId { get; set; }
+    public string? RouteId { get; set; }
     public List<CreateOrderItemDto> Items { get; set; } = new();
 }
 
 public class CreateOrderItemDto
 {
-    public Guid? WasteId { get; set; }
-    public Guid? WasteClassId { get; set; }
+    public string? WasteId { get; set; }
+    public string? WasteClassId { get; set; }
     public decimal Quantity { get; set; }
     public UnitOfMeasure Unit { get; set; }
     public string? Notes { get; set; }

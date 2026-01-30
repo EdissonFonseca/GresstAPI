@@ -18,7 +18,7 @@ public class Facility : BaseEntity
     public decimal? Longitude { get; set; }
     
     // Owner
-    public Guid PersonId { get; set; }
+    public string PersonId { get; set; } = string.Empty;
     public virtual Person Person { get; set; } = null!;
     
     // Capabilities - What operations this facility can perform
@@ -42,7 +42,7 @@ public class Facility : BaseEntity
     /// <summary>
     /// Parent facility (for hierarchical structures)
     /// </summary>
-    public Guid? ParentFacilityId { get; set; }
+    public string? ParentFacilityId { get; set; }
     public virtual Facility? ParentFacility { get; set; }
     public virtual ICollection<Facility> ChildFacilities { get; set; } = new List<Facility>();
     

@@ -14,11 +14,11 @@ public class Rate : BaseEntity
     public string ServiceType { get; set; } = string.Empty; // Collection, Transport, Disposal, etc.
     
     // Provider
-    public Guid ProviderId { get; set; }
+    public string ProviderId { get; set; } = string.Empty;
     public virtual Person Provider { get; set; } = null!;
     
     // Waste Class
-    public Guid? WasteClassId { get; set; }
+    public string? WasteClassId { get; set; }
     public virtual WasteClass? WasteClass { get; set; }
     
     // Pricing

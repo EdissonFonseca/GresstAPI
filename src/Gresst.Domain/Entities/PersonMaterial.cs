@@ -11,13 +11,13 @@ public class PersonMaterial : BaseEntity
     /// <summary>
     /// Person who has this material relationship
     /// </summary>
-    public Guid PersonId { get; set; }
+    public string PersonId { get; set; } = string.Empty;
     public virtual Person Person { get; set; } = null!;
     
     /// <summary>
     /// Material associated with the person
     /// </summary>
-    public Guid MaterialId { get; set; }
+    public string MaterialId { get; set; } = string.Empty;
     public virtual Material Material { get; set; } = null!;
     
     /// <summary>
@@ -63,7 +63,7 @@ public class PersonMaterial : BaseEntity
     /// <summary>
     /// Packaging ID (if applicable)
     /// </summary>
-    public Guid? PackagingId { get; set; }
+    public string? PackagingId { get; set; }
     public virtual Packaging? Packaging { get; set; }
 }
 

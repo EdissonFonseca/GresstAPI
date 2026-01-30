@@ -42,28 +42,29 @@ public class FacilityServiceTests
     {
         // Arrange
         var facilityId = Guid.NewGuid();
+        var facilityIdStr = facilityId.ToString();
         var facility = new Facility
         {
-            Id = facilityId,
+            Id = facilityIdStr,
             Name = "Test Facility",
             Code = "FAC-001",
             IsActive = true
         };
 
         _facilityRepositoryMock
-            .Setup(r => r.GetByIdAsync(facilityId, It.IsAny<CancellationToken>()))
+            .Setup(r => r.GetByIdAsync(facilityIdStr, It.IsAny<CancellationToken>()))
             .ReturnsAsync(facility);
 
         _segmentationServiceMock
-            .Setup(s => s.UserHasAccessToFacilityAsync(facilityId, It.IsAny<CancellationToken>()))
+            .Setup(s => s.UserHasAccessToFacilityAsync(facilityIdStr, It.IsAny<CancellationToken>()))
             .ReturnsAsync(true);
 
         // Act
-        var result = await _facilityService.GetByIdAsync(facilityId);
+        var result = await _facilityService.GetByIdAsync(facilityIdStr);
 
         // Assert
         result.Should().NotBeNull();
-        result!.Id.Should().Be(facilityId);
+        result!.Id.Should().Be(facilityIdStr);
         result.Name.Should().Be("Test Facility");
         result.Code.Should().Be("FAC-001");
     }
@@ -72,14 +73,14 @@ public class FacilityServiceTests
     public async Task GetByIdAsync_WhenFacilityDoesNotExist_ReturnsNull()
     {
         // Arrange
-        var facilityId = Guid.NewGuid();
+        var facilityIdStr = Guid.NewGuid().ToString();
 
         _facilityRepositoryMock
-            .Setup(r => r.GetByIdAsync(facilityId, It.IsAny<CancellationToken>()))
+            .Setup(r => r.GetByIdAsync(facilityIdStr, It.IsAny<CancellationToken>()))
             .ReturnsAsync((Facility?)null);
 
         // Act
-        var result = await _facilityService.GetByIdAsync(facilityId);
+        var result = await _facilityService.GetByIdAsync(facilityIdStr);
 
         // Assert
         result.Should().BeNull();
@@ -89,25 +90,25 @@ public class FacilityServiceTests
     public async Task GetByIdAsync_WhenUserHasNoAccess_ReturnsNull()
     {
         // Arrange
-        var facilityId = Guid.NewGuid();
+        var facilityIdStr = Guid.NewGuid().ToString();
         var facility = new Facility
         {
-            Id = facilityId,
+            Id = facilityIdStr,
             Name = "Test Facility",
             Code = "FAC-001",
             IsActive = true
         };
 
         _facilityRepositoryMock
-            .Setup(r => r.GetByIdAsync(facilityId, It.IsAny<CancellationToken>()))
+            .Setup(r => r.GetByIdAsync(facilityIdStr, It.IsAny<CancellationToken>()))
             .ReturnsAsync(facility);
 
         _segmentationServiceMock
-            .Setup(s => s.UserHasAccessToFacilityAsync(facilityId, It.IsAny<CancellationToken>()))
+            .Setup(s => s.UserHasAccessToFacilityAsync(facilityIdStr, It.IsAny<CancellationToken>()))
             .ReturnsAsync(false);
 
         // Act
-        var result = await _facilityService.GetByIdAsync(facilityId);
+        var result = await _facilityService.GetByIdAsync(facilityIdStr);
 
         // Assert
         result.Should().BeNull();
@@ -119,8 +120,8 @@ public class FacilityServiceTests
         // Arrange
         var facilities = new List<Facility>
         {
-            new Facility { Id = Guid.NewGuid(), Name = "Facility 1", Code = "FAC-001", IsActive = true },
-            new Facility { Id = Guid.NewGuid(), Name = "Facility 2", Code = "FAC-002", IsActive = true }
+            new Facility { Id = Guid.NewGuid().ToString(), Name = "Facility 1", Code = "FAC-001", IsActive = true },
+            new Facility { Id = Guid.NewGuid().ToString(), Name = "Facility 2", Code = "FAC-002", IsActive = true }
         };
 
         _segmentationServiceMock
@@ -145,12 +146,12 @@ public class FacilityServiceTests
     public async Task GetAllAsync_WhenUserIsNotAdmin_ReturnsOnlyAssignedFacilities()
     {
         // Arrange
-        var userFacilityId = Guid.NewGuid();
-        var otherFacilityId = Guid.NewGuid();
+        var userFacilityIdStr = Guid.NewGuid().ToString();
+        var otherFacilityIdStr = Guid.NewGuid().ToString();
         var facilities = new List<Facility>
         {
-            new Facility { Id = userFacilityId, Name = "My Facility", Code = "FAC-001", IsActive = true },
-            new Facility { Id = otherFacilityId, Name = "Other Facility", Code = "FAC-002", IsActive = true }
+            new Facility { Id = userFacilityIdStr, Name = "My Facility", Code = "FAC-001", IsActive = true },
+            new Facility { Id = otherFacilityIdStr, Name = "Other Facility", Code = "FAC-002", IsActive = true }
         };
 
         _segmentationServiceMock
@@ -159,7 +160,7 @@ public class FacilityServiceTests
 
         _segmentationServiceMock
             .Setup(s => s.GetUserFacilityIdsAsync(It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new[] { userFacilityId });
+            .ReturnsAsync(new[] { userFacilityIdStr });
 
         // Mock FindAsync to return only the facility that matches the user's assigned IDs
         _facilityRepositoryMock
@@ -176,7 +177,7 @@ public class FacilityServiceTests
         // Assert
         result.Should().NotBeNull();
         result.Should().HaveCount(1);
-        result.Should().Contain(f => f.Id == userFacilityId);
+        result.Should().Contain(f => f.Id == userFacilityIdStr);
         result.Should().NotContain(f => f.Name == "Other Facility");
     }
 
@@ -194,7 +195,7 @@ public class FacilityServiceTests
 
         var createdFacility = new Facility
         {
-            Id = Guid.NewGuid(),
+            Id = Guid.NewGuid().ToString(),
             Name = createDto.Name,
             Code = createDto.Code,
             FacilityType = createDto.FacilityType,
@@ -207,8 +208,8 @@ public class FacilityServiceTests
 
         var accountPersonId = Guid.NewGuid();
         _accountRepositoryMock
-            .Setup(r => r.GetByIdAsync(accountId, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new Account { Id = accountId, PersonId = accountPersonId });
+            .Setup(r => r.GetByIdAsync(accountId.ToString(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new Account { Id = accountId.ToString(), PersonId = accountPersonId });
 
         _facilityRepositoryMock
             .Setup(r => r.AddAsync(It.IsAny<Facility>(), It.IsAny<CancellationToken>()))
@@ -233,10 +234,10 @@ public class FacilityServiceTests
     public async Task UpdateAsync_WhenFacilityExists_UpdatesFacility()
     {
         // Arrange
-        var facilityId = Guid.NewGuid();
+        var facilityIdStr = Guid.NewGuid().ToString();
         var existingFacility = new Facility
         {
-            Id = facilityId,
+            Id = facilityIdStr,
             Name = "Old Name",
             Code = "FAC-001",
             IsActive = true
@@ -244,16 +245,16 @@ public class FacilityServiceTests
 
         var updateDto = new UpdateFacilityDto
         {
-            Id = facilityId,
+            Id = facilityIdStr,
             Name = "Updated Name"
         };
 
         _facilityRepositoryMock
-            .Setup(r => r.GetByIdAsync(facilityId, It.IsAny<CancellationToken>()))
+            .Setup(r => r.GetByIdAsync(facilityIdStr, It.IsAny<CancellationToken>()))
             .ReturnsAsync(existingFacility);
 
         _segmentationServiceMock
-            .Setup(s => s.UserHasAccessToFacilityAsync(facilityId, It.IsAny<CancellationToken>()))
+            .Setup(s => s.UserHasAccessToFacilityAsync(facilityIdStr, It.IsAny<CancellationToken>()))
             .ReturnsAsync(true);
 
         _unitOfWorkMock
@@ -288,7 +289,7 @@ public class FacilityServiceTests
             .ReturnsAsync(facility);
 
         _segmentationServiceMock
-            .Setup(s => s.UserHasAccessToFacilityAsync(facilityId, It.IsAny<CancellationToken>()))
+            .Setup(s => s.UserHasAccessToFacilityAsync(facilityIdStr, It.IsAny<CancellationToken>()))
             .ReturnsAsync(true);
 
         _unitOfWorkMock
@@ -296,7 +297,7 @@ public class FacilityServiceTests
             .ReturnsAsync(1);
 
         // Act
-        var result = await _facilityService.DeleteAsync(facilityId);
+        var result = await _facilityService.DeleteAsync(facilityIdStr);
 
         // Assert
         result.Should().BeTrue();

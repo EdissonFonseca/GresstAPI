@@ -87,7 +87,7 @@ public class VehicleService : IVehicleService
     /// <summary>
     /// Get vehicles by person
     /// </summary>
-    public async Task<IEnumerable<VehicleDto>> GetByPersonAsync(Guid personId, CancellationToken cancellationToken = default)
+    public async Task<IEnumerable<VehicleDto>> GetByPersonAsync(string personId, CancellationToken cancellationToken = default)
     {
         var vehicles = await _vehicleRepository.FindAsync(
             v => v.PersonId == personId,
@@ -99,11 +99,11 @@ public class VehicleService : IVehicleService
     /// <summary>
     /// Get Account Person ID (persona de la cuenta)
     /// </summary>
-    private async Task<Guid> GetAccountPersonIdAsync(CancellationToken cancellationToken)
+    private async Task<string> GetAccountPersonIdAsync(CancellationToken cancellationToken)
     {
         var accountId = _currentUserService.GetCurrentAccountId();
         var account = await _accountRepository.GetByIdAsync(accountId, cancellationToken);
-        if (account == null || account.PersonId == Guid.Empty)
+        if (account == null || string.IsNullOrEmpty(account.PersonId))
             throw new InvalidOperationException("Account or Account Person not found");
         return account.PersonId;
     }
@@ -130,7 +130,7 @@ public class VehicleService : IVehicleService
     /// <summary>
     /// Get vehicles for a Provider
     /// </summary>
-    public async Task<IEnumerable<VehicleDto>> GetProviderVehiclesAsync(Guid providerId, CancellationToken cancellationToken = default)
+    public async Task<IEnumerable<VehicleDto>> GetProviderVehiclesAsync(string providerId, CancellationToken cancellationToken = default)
     {
         return await GetByPersonAsync(providerId, cancellationToken);
     }
@@ -138,7 +138,7 @@ public class VehicleService : IVehicleService
     /// <summary>
     /// Create vehicle for a Provider
     /// </summary>
-    public async Task<VehicleDto> CreateProviderVehicleAsync(Guid providerId, CreateVehicleDto dto, CancellationToken cancellationToken = default)
+    public async Task<VehicleDto> CreateProviderVehicleAsync(string providerId, CreateVehicleDto dto, CancellationToken cancellationToken = default)
     {
         dto.PersonId = providerId;
         return await CreateAsync(dto, cancellationToken);
@@ -147,7 +147,7 @@ public class VehicleService : IVehicleService
     /// <summary>
     /// Get vehicles for a Client
     /// </summary>
-    public async Task<IEnumerable<VehicleDto>> GetClientVehiclesAsync(Guid clientId, CancellationToken cancellationToken = default)
+    public async Task<IEnumerable<VehicleDto>> GetClientVehiclesAsync(string clientId, CancellationToken cancellationToken = default)
     {
         return await GetByPersonAsync(clientId, cancellationToken);
     }
@@ -155,7 +155,7 @@ public class VehicleService : IVehicleService
     /// <summary>
     /// Create vehicle for a Client
     /// </summary>
-    public async Task<VehicleDto> CreateClientVehicleAsync(Guid clientId, CreateVehicleDto dto, CancellationToken cancellationToken = default)
+    public async Task<VehicleDto> CreateClientVehicleAsync(string clientId, CreateVehicleDto dto, CancellationToken cancellationToken = default)
     {
         dto.PersonId = clientId;
         return await CreateAsync(dto, cancellationToken);
@@ -164,10 +164,10 @@ public class VehicleService : IVehicleService
     public async Task<VehicleDto> CreateAsync(CreateVehicleDto dto, CancellationToken cancellationToken = default)
     {
         // Si no se especifica PersonId, usar Account Person
-        if (!dto.PersonId.HasValue)
+        var personId = dto.PersonId;
+        if (string.IsNullOrEmpty(personId))
         {
-            var accountPersonId = await GetAccountPersonIdAsync(cancellationToken);
-            dto.PersonId = accountPersonId;
+            personId = await GetAccountPersonIdAsync(cancellationToken);
         }
 
         var vehicle = new Vehicle
@@ -178,7 +178,7 @@ public class VehicleService : IVehicleService
             Model = dto.Model,
             Make = dto.Make,
             Year = dto.Year,
-            PersonId = dto.PersonId.Value,
+            PersonId = personId ?? string.Empty,
             MaxCapacity = dto.MaxCapacity,
             CapacityUnit = dto.CapacityUnit,
             IsAvailable = dto.IsAvailable,
@@ -225,7 +225,7 @@ public class VehicleService : IVehicleService
             vehicle.IsAvailable = dto.IsAvailable.Value;
         if (dto.SpecialEquipment != null)
             vehicle.SpecialEquipment = dto.SpecialEquipment;
-        if (dto.VirtualFacilityId.HasValue)
+        if (!string.IsNullOrEmpty(dto.VirtualFacilityId))
             vehicle.VirtualFacilityId = dto.VirtualFacilityId;
         if (dto.IsActive.HasValue)
             vehicle.IsActive = dto.IsActive.Value;

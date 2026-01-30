@@ -18,10 +18,10 @@ public class AuthenticationResult
     /// </summary>
     public string? RefreshToken { get; set; }
     
-    public Guid UserId { get; set; }
-    public Guid AccountId { get; set; }
-    public Guid AccountPersonId { get; set; }
-    public Guid PersonId { get; set; }
+    public string UserId { get; set; } = string.Empty;
+    public string AccountId { get; set; } = string.Empty;
+    public string AccountPersonId { get; set; } = string.Empty;
+    public string PersonId { get; set; } = string.Empty;
     public string? Username { get; set; }
     public string? Email { get; set; }
     public string[]? Roles { get; set; }

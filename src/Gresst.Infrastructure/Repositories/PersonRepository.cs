@@ -125,7 +125,7 @@ public class PersonRepository : IPersonRepository
     private long GetCurrentUserIdAsLong()
     {
         var userId = _currentUserService.GetCurrentUserId();
-        return GuidLongConverter.ToLong(userId);
+        return IdConversion.ToLongFromString(userId);
     }
 
     // IPersonRepository methods
@@ -171,7 +171,7 @@ public class PersonRepository : IPersonRepository
         var accountId = _currentUserService.GetCurrentAccountId();
         var accountIdLong = string.IsNullOrEmpty(accountId) ? (long?)null : long.Parse(accountId);
         var personId = _currentUserService.GetCurrentAccountPersonId();
-        var personIdString = GuidStringConverter.ToString(personId);
+        var personIdString = personId ?? string.Empty;
 
         var persons = await _context.PersonaContactos
             .AsNoTracking()

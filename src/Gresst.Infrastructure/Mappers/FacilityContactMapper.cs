@@ -32,8 +32,8 @@ public class FacilityContactMapper : MapperBase<FacilityContact, DepositoContact
             AccountId = accountId,
             
             // Relations
-            FacilityId = GuidLongConverter.ToGuid(dbEntity.IdDeposito),
-            ContactId = GuidStringConverter.ToGuid(dbEntity.IdContacto),
+            FacilityId = IdConversion.ToStringFromLong(dbEntity.IdDeposito),
+            ContactId = dbEntity.IdContacto ?? string.Empty,
             RelationshipType = dbEntity.IdRelacion ?? string.Empty,
             
             // Properties
@@ -59,8 +59,8 @@ public class FacilityContactMapper : MapperBase<FacilityContact, DepositoContact
         return new DepositoContacto
         {
             // IDs (composite key)
-            IdDeposito = GuidLongConverter.ToLong(domainEntity.FacilityId),
-            IdContacto = GuidStringConverter.ToString(domainEntity.ContactId),
+            IdDeposito = IdConversion.ToLongFromString(domainEntity.FacilityId),
+            IdContacto = domainEntity.ContactId ?? string.Empty,
             IdRelacion = domainEntity.RelationshipType,
             
             // Properties

@@ -14,10 +14,10 @@ public class CurrentUserService : ICurrentUserService
         _httpContextAccessor = httpContextAccessor;
     }
 
-    public Guid GetCurrentUserId()
+    public string GetCurrentUserId()
     {
         var userId = _httpContextAccessor.HttpContext?.User?.FindFirstValue(ClaimTypes.NameIdentifier);
-        return GuidStringConverter.ToGuid(userId);
+        return userId ?? string.Empty;
     }
 
     public string GetCurrentAccountId()
@@ -32,18 +32,16 @@ public class CurrentUserService : ICurrentUserService
         return _httpContextAccessor.HttpContext?.User?.FindFirstValue(ClaimTypes.Name) ?? "System";
     }
 
-    public Guid GetCurrentPersonId()
+    public string GetCurrentPersonId()
     {
-        // AccountId comes from JWT token claim (set during login)
         var personId = _httpContextAccessor.HttpContext?.User?.FindFirstValue("PersonId");
-        return GuidStringConverter.ToGuid(personId);
+        return personId ?? string.Empty;
     }
 
-    public Guid GetCurrentAccountPersonId()
+    public string GetCurrentAccountPersonId()
     {
-        // AccountId comes from JWT token claim (set during login)
         var accountPersonId = _httpContextAccessor.HttpContext?.User?.FindFirstValue("AccountPersonId");
-        return GuidStringConverter.ToGuid(accountPersonId);
+        return accountPersonId ?? string.Empty;
     }
 }
 

@@ -15,7 +15,7 @@ public class Classification : BaseEntity
     public string ClassificationSystem { get; set; } = string.Empty; // UN, LER, Y-Code, A-Code, etc.
     
     // Hierarchy support
-    public Guid? ParentId { get; set; }
+    public string? ParentId { get; set; }
     public virtual Classification? Parent { get; set; }
     public virtual ICollection<Classification> Children { get; set; } = new List<Classification>();
     

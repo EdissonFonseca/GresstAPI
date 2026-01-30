@@ -25,9 +25,9 @@ public class FacilityMaterialMapper : MapperBase<FacilityMaterial, PersonaMateri
             AccountId = dbEntity.IdCuenta.ToString(),
             
             // Relations
-            PersonId = GuidStringConverter.ToGuid(dbEntity.IdPersona),
-            MaterialId = GuidLongConverter.ToGuid(dbEntity.IdMaterial),
-            FacilityId = GuidLongConverter.ToGuid(dbEntity.IdDeposito),
+            PersonId = dbEntity.IdPersona ?? string.Empty,
+            MaterialId = IdConversion.ToStringFromLong(dbEntity.IdMaterial),
+            FacilityId = IdConversion.ToStringFromLong(dbEntity.IdDeposito),
             
             // Properties
             ServicePrice = dbEntity.PrecioServicio,
@@ -57,9 +57,9 @@ public class FacilityMaterialMapper : MapperBase<FacilityMaterial, PersonaMateri
         return new PersonaMaterialDeposito
         {
             // IDs (composite key)
-            IdPersona = GuidStringConverter.ToString(domainEntity.PersonId),
-            IdMaterial = GuidLongConverter.ToLong(domainEntity.MaterialId),
-            IdDeposito = GuidLongConverter.ToLong(domainEntity.FacilityId),
+            IdPersona = domainEntity.PersonId ?? string.Empty,
+            IdMaterial = IdConversion.ToLongFromString(domainEntity.MaterialId),
+            IdDeposito = IdConversion.ToLongFromString(domainEntity.FacilityId),
             IdCuenta = long.TryParse(domainEntity.AccountId, out var fmAc) ? fmAc : 0,
             
             // Properties

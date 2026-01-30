@@ -25,8 +25,8 @@ public class PersonPackagingMapper : MapperBase<PersonPackaging, PersonaEmbalaje
             AccountId = dbEntity.IdCuenta.ToString(),
             
             // Relations
-            PersonId = GuidStringConverter.ToGuid(dbEntity.IdPersona),
-            PackagingId = GuidLongConverter.ToGuid(dbEntity.IdEmbalaje),
+            PersonId = dbEntity.IdPersona ?? string.Empty,
+            PackagingId = IdConversion.ToStringFromLong(dbEntity.IdEmbalaje),
             
             // Properties
             Price = dbEntity.Precio,
@@ -51,8 +51,8 @@ public class PersonPackagingMapper : MapperBase<PersonPackaging, PersonaEmbalaje
         return new PersonaEmbalaje
         {
             // IDs (composite key)
-            IdPersona = GuidStringConverter.ToString(domainEntity.PersonId),
-            IdEmbalaje = GuidLongConverter.ToLong(domainEntity.PackagingId),
+            IdPersona = domainEntity.PersonId ?? string.Empty,
+            IdEmbalaje = IdConversion.ToLongFromString(domainEntity.PackagingId),
             IdCuenta = long.TryParse(domainEntity.AccountId, out var ppAc) ? ppAc : 0,
             
             // Properties

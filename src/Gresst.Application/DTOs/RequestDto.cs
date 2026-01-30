@@ -7,9 +7,9 @@ public class RequestDto
     public string Id { get; set; } = string.Empty;
     public string RequestNumber { get; set; } = string.Empty;
     public string Status { get; set; } = string.Empty;
-    public Guid RequesterId { get; set; }
+    public string RequesterId { get; set; } = string.Empty;
     public string RequesterName { get; set; } = string.Empty;
-    public Guid? ProviderId { get; set; }
+    public string? ProviderId { get; set; }
     public string? ProviderName { get; set; }
     public string Title { get; set; } = string.Empty;
     public string? Description { get; set; }
@@ -24,7 +24,7 @@ public class RequestDto
 public class RequestItemDto
 {
     public string Id { get; set; } = string.Empty;
-    public Guid WasteClassId { get; set; }
+    public string WasteClassId { get; set; } = string.Empty;
     public string WasteClassName { get; set; } = string.Empty;
     public decimal EstimatedQuantity { get; set; }
     public string Unit { get; set; } = string.Empty;
@@ -33,8 +33,8 @@ public class RequestItemDto
 
 public class CreateRequestDto
 {
-    public Guid RequesterId { get; set; }
-    public Guid? ProviderId { get; set; }
+    public string RequesterId { get; set; } = string.Empty;
+    public string? ProviderId { get; set; }
     public string Title { get; set; } = string.Empty;
     public string? Description { get; set; }
     public string[] ServicesRequested { get; set; } = Array.Empty<string>();
@@ -46,7 +46,7 @@ public class CreateRequestDto
 
 public class CreateRequestItemDto
 {
-    public Guid WasteClassId { get; set; }
+    public string WasteClassId { get; set; } = string.Empty;
     public decimal EstimatedQuantity { get; set; }
     public UnitOfMeasure Unit { get; set; }
     public string? Description { get; set; }

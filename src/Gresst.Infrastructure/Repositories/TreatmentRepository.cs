@@ -62,7 +62,7 @@ public class TreatmentRepository : IRepository<Treatment>
         
         // Set audit fields
         dbEntity.FechaCreacion = DateTime.UtcNow;
-        dbEntity.IdUsuarioCreacion = GuidLongConverter.ToLong(_currentUserService.GetCurrentUserId());
+        dbEntity.IdUsuarioCreacion = IdConversion.ToLongFromString(_currentUserService.GetCurrentUserId());
         dbEntity.Activo = true;
 
         await _context.Tratamientos.AddAsync(dbEntity, cancellationToken);
@@ -85,7 +85,7 @@ public class TreatmentRepository : IRepository<Treatment>
         
         // Update audit fields
         dbEntity.FechaUltimaModificacion = DateTime.UtcNow;
-        dbEntity.IdUsuarioUltimaModificacion = GuidLongConverter.ToLong(_currentUserService.GetCurrentUserId());
+        dbEntity.IdUsuarioUltimaModificacion = IdConversion.ToLongFromString(_currentUserService.GetCurrentUserId());
         
         _context.Tratamientos.Update(dbEntity);
         return Task.CompletedTask;
@@ -102,7 +102,7 @@ public class TreatmentRepository : IRepository<Treatment>
         // Soft delete
         dbEntity.Activo = false;
         dbEntity.FechaUltimaModificacion = DateTime.UtcNow;
-        dbEntity.IdUsuarioUltimaModificacion = GuidLongConverter.ToLong(_currentUserService.GetCurrentUserId());
+        dbEntity.IdUsuarioUltimaModificacion = IdConversion.ToLongFromString(_currentUserService.GetCurrentUserId());
         
         _context.Tratamientos.Update(dbEntity);
         return Task.CompletedTask;

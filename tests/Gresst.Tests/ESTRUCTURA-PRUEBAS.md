@@ -20,7 +20,7 @@ tests/Gresst.Tests/
 │
 ├── Infrastructure/                  # Pruebas de la capa de infraestructura
 │   ├── Common/                     # Pruebas de utilidades comunes
-│   │   └── GuidLongConverterTests.cs
+│   │   └── IdConversionTests.cs
 │   ├── Mappers/                    # Pruebas de mappers (pendiente)
 │   │   └── (ej: FacilityMapperTests.cs)
 │   └── Repositories/               # Pruebas de repositorios (pendiente)
@@ -45,7 +45,7 @@ src/                                tests/
 │
 ├── Gresst.Infrastructure/          ├── Infrastructure/
 │   ├── Common/                     │   ├── Common/
-│   │   └── GuidLongConverter.cs   │   │   └── GuidLongConverterTests.cs
+│   │   └── IdConversion.cs   │   │   └── IdConversionTests.cs
 │   ├── Mappers/                    │   ├── Mappers/
 │   │   └── FacilityMapper.cs      │   │   └── FacilityMapperTests.cs
 │   └── Repositories/               │   └── Repositories/
@@ -126,7 +126,7 @@ tests/Gresst.Tests/
 │
 ├── Infrastructure/
 │   ├── Common/
-│   │   └── GuidLongConverterTests.cs
+│   │   └── IdConversionTests.cs
 │   ├── Mappers/
 │   │   ├── FacilityMapperTests.cs
 │   │   └── WasteClassMapperTests.cs
@@ -155,7 +155,7 @@ tests/
 tests/
 ├── FacilityServiceTests.cs
 ├── WasteClassServiceTests.cs
-└── GuidLongConverterTests.cs
+└── IdConversionTests.cs
 ```
 **Problema**: No escala bien, difícil de navegar
 

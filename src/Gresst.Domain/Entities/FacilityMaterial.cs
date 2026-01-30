@@ -11,19 +11,19 @@ public class FacilityMaterial : BaseEntity
     /// <summary>
     /// Person who owns/manages this facility-material relationship
     /// </summary>
-    public Guid PersonId { get; set; }
+    public string PersonId { get; set; } = string.Empty;
     public virtual Person Person { get; set; } = null!;
     
     /// <summary>
     /// Material that the facility can handle
     /// </summary>
-    public Guid MaterialId { get; set; }
+    public string MaterialId { get; set; } = string.Empty;
     public virtual Material Material { get; set; } = null!;
     
     /// <summary>
     /// Facility that can handle this material
     /// </summary>
-    public Guid FacilityId { get; set; }
+    public string FacilityId { get; set; } = string.Empty;
     public virtual Facility Facility { get; set; } = null!;
     
     /// <summary>

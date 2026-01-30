@@ -12,7 +12,7 @@ public class Waste : BaseEntity
     public string? Description { get; set; }
     
     // Waste Class and Classification
-    public Guid WasteClassId { get; set; }
+    public string WasteClassId { get; set; } = string.Empty;
     public virtual WasteClass WasteClass { get; set; } = null!;
     
     // Quantity
@@ -21,23 +21,23 @@ public class Waste : BaseEntity
     
     // Status and Location
     public WasteStatus Status { get; set; }
-    public Guid? CurrentLocationId { get; set; }
+    public string? CurrentLocationId { get; set; }
     public virtual Location? CurrentLocation { get; set; }
     
-    public Guid? CurrentFacilityId { get; set; }
+    public string? CurrentFacilityId { get; set; }
     public virtual Facility? CurrentFacility { get; set; }
     
     // Generator
-    public Guid GeneratorId { get; set; }
+    public string GeneratorId { get; set; } = string.Empty;
     public virtual Person Generator { get; set; } = null!;
     public DateTime GeneratedAt { get; set; }
     
     // Current Owner/Responsible
-    public Guid? CurrentOwnerId { get; set; }
+    public string? CurrentOwnerId { get; set; }
     public virtual Person? CurrentOwner { get; set; }
     
     // Packaging
-    public Guid? PackagingId { get; set; }
+    public string? PackagingId { get; set; }
     public virtual Packaging? Packaging { get; set; }
     
     // Properties

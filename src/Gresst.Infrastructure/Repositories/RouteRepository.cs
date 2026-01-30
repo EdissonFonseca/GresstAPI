@@ -88,7 +88,7 @@ public class RouteRepository : IRepository<DomainRoute>
         
         // Set audit fields
         dbEntity.FechaCreacion = DateTime.UtcNow;
-        dbEntity.IdUsuarioCreacion = GuidLongConverter.ToLong(_currentUserService.GetCurrentUserId());
+        dbEntity.IdUsuarioCreacion = IdConversion.ToLongFromString(_currentUserService.GetCurrentUserId());
         dbEntity.IdCuenta = string.IsNullOrEmpty(_currentUserService.GetCurrentAccountId()) ? 0L : long.Parse(_currentUserService.GetCurrentAccountId());
         dbEntity.Activo = true;
 
@@ -115,7 +115,7 @@ public class RouteRepository : IRepository<DomainRoute>
         
         // Update audit fields
         dbEntity.FechaUltimaModificacion = DateTime.UtcNow;
-        dbEntity.IdUsuarioUltimaModificacion = GuidLongConverter.ToLong(_currentUserService.GetCurrentUserId());
+        dbEntity.IdUsuarioUltimaModificacion = IdConversion.ToLongFromString(_currentUserService.GetCurrentUserId());
         
         _context.Ruta.Update(dbEntity);
     }
@@ -131,7 +131,7 @@ public class RouteRepository : IRepository<DomainRoute>
         // Soft delete
         dbEntity.Activo = false;
         dbEntity.FechaUltimaModificacion = DateTime.UtcNow;
-        dbEntity.IdUsuarioUltimaModificacion = GuidLongConverter.ToLong(_currentUserService.GetCurrentUserId());
+        dbEntity.IdUsuarioUltimaModificacion = IdConversion.ToLongFromString(_currentUserService.GetCurrentUserId());
         
         _context.Ruta.Update(dbEntity);
         return Task.CompletedTask;

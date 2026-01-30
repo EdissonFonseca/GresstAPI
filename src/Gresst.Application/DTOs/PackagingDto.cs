@@ -12,7 +12,7 @@ public class PackagingDto
     public bool IsReusable { get; set; }
     public string? Material { get; set; }
     public string? UNPackagingCode { get; set; }
-    public Guid? ParentPackagingId { get; set; }
+    public string? ParentPackagingId { get; set; }
     public string? ParentPackagingName { get; set; }
     public bool IsActive { get; set; }
     public DateTime CreatedAt { get; set; }
@@ -33,7 +33,7 @@ public class CreatePackagingDto
     /// <summary>
     /// Parent packaging ID (for hierarchical structures). Optional.
     /// </summary>
-    public Guid? ParentPackagingId { get; set; }
+    public string? ParentPackagingId { get; set; }
 }
 
 public class UpdatePackagingDto
@@ -49,9 +49,9 @@ public class UpdatePackagingDto
     public string? UNPackagingCode { get; set; }
     /// <summary>
     /// Parent packaging ID (for hierarchical structures). Optional.
-    /// To clear the parent, send Guid.Empty.
+    /// To clear the parent, send null or empty string.
     /// </summary>
-    public Guid? ParentPackagingId { get; set; }
+    public string? ParentPackagingId { get; set; }
     public bool? IsActive { get; set; }
 }
 

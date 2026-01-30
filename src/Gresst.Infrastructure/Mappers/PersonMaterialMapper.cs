@@ -25,10 +25,10 @@ public class PersonMaterialMapper : MapperBase<PersonMaterial, PersonaMaterial>
             AccountId = dbEntity.IdCuenta.ToString(),
             
             // Relations
-            PersonId = GuidStringConverter.ToGuid(dbEntity.IdPersona),
-            MaterialId = GuidLongConverter.ToGuid(dbEntity.IdMaterial),
+            PersonId = dbEntity.IdPersona ?? string.Empty,
+            MaterialId = IdConversion.ToStringFromLong(dbEntity.IdMaterial),
             PackagingId = dbEntity.IdEmbalaje.HasValue 
-                ? GuidLongConverter.ToGuid(dbEntity.IdEmbalaje.Value) 
+                ? IdConversion.ToStringFromLong(dbEntity.IdEmbalaje.Value) 
                 : null,
             
             // Properties
@@ -61,8 +61,8 @@ public class PersonMaterialMapper : MapperBase<PersonMaterial, PersonaMaterial>
         return new PersonaMaterial
         {
             // IDs (composite key)
-            IdPersona = GuidStringConverter.ToString(domainEntity.PersonId),
-            IdMaterial = GuidLongConverter.ToLong(domainEntity.MaterialId),
+            IdPersona = domainEntity.PersonId ?? string.Empty,
+            IdMaterial = IdConversion.ToLongFromString(domainEntity.MaterialId),
             IdCuenta = long.TryParse(domainEntity.AccountId, out var pmAc) ? pmAc : 0,
             
             // Properties
@@ -74,8 +74,8 @@ public class PersonMaterialMapper : MapperBase<PersonMaterial, PersonaMaterial>
             Volumen = domainEntity.Volume,
             FactorCompensacionEmision = domainEntity.EmissionCompensationFactor,
             Referencia = domainEntity.Reference,
-            IdEmbalaje = domainEntity.PackagingId.HasValue 
-                ? GuidLongConverter.ToLong(domainEntity.PackagingId.Value) 
+            IdEmbalaje = !string.IsNullOrEmpty(domainEntity.PackagingId) 
+                ? IdConversion.ToLongFromString(domainEntity.PackagingId) 
                 : null,
             
             // Status
@@ -106,8 +106,8 @@ public class PersonMaterialMapper : MapperBase<PersonMaterial, PersonaMaterial>
         dbEntity.Volumen = domainEntity.Volume;
         dbEntity.FactorCompensacionEmision = domainEntity.EmissionCompensationFactor;
         dbEntity.Referencia = domainEntity.Reference;
-        dbEntity.IdEmbalaje = domainEntity.PackagingId.HasValue 
-            ? GuidLongConverter.ToLong(domainEntity.PackagingId.Value) 
+        dbEntity.IdEmbalaje = !string.IsNullOrEmpty(domainEntity.PackagingId) 
+            ? IdConversion.ToLongFromString(domainEntity.PackagingId) 
             : null;
         dbEntity.Activo = domainEntity.IsActive;
         

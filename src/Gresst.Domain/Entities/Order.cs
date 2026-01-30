@@ -17,29 +17,29 @@ public class Order : BaseEntity
     public DateTime? CompletedDate { get; set; }
     
     // Related Request
-    public Guid? RequestId { get; set; }
+    public string? RequestId { get; set; }
     public virtual Request? Request { get; set; }
     
     // Service to be performed
-    public Guid ServiceId { get; set; }
+    public string ServiceId { get; set; } = string.Empty;
     public virtual Service Service { get; set; } = null!;
     
     // Service Provider
-    public Guid ProviderId { get; set; }
+    public string ProviderId { get; set; } = string.Empty;
     public virtual Person Provider { get; set; } = null!;
     
     // Client
-    public Guid ClientId { get; set; }
+    public string ClientId { get; set; } = string.Empty;
     public virtual Person Client { get; set; } = null!;
     
     // Resources
-    public Guid? VehicleId { get; set; }
+    public string? VehicleId { get; set; }
     public virtual Vehicle? Vehicle { get; set; }
     
-    public Guid? FacilityId { get; set; }
+    public string? FacilityId { get; set; }
     public virtual Facility? Facility { get; set; }
     
-    public Guid? RouteId { get; set; }
+    public string? RouteId { get; set; }
     public virtual Route? Route { get; set; }
     
     // Details
@@ -60,13 +60,13 @@ public class Order : BaseEntity
 /// </summary>
 public class OrderItem : BaseEntity
 {
-    public Guid OrderId { get; set; }
+    public string OrderId { get; set; } = string.Empty;
     public virtual Order Order { get; set; } = null!;
     
-    public Guid? WasteId { get; set; }
+    public string? WasteId { get; set; }
     public virtual Waste? Waste { get; set; }
     
-    public Guid? WasteClassId { get; set; }
+    public string? WasteClassId { get; set; }
     public virtual WasteClass? WasteClass { get; set; }
     
     public decimal Quantity { get; set; }

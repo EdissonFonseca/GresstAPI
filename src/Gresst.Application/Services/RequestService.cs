@@ -42,7 +42,7 @@ public class RequestService : IRequestService
         return requests.Select(MapToDto).ToList();
     }
 
-    public async Task<IEnumerable<RequestDto>> GetByRequesterAsync(Guid requesterId, CancellationToken cancellationToken = default)
+    public async Task<IEnumerable<RequestDto>> GetByRequesterAsync(string requesterId, CancellationToken cancellationToken = default)
     {
         var requests = await _requestRepository.FindAsync(
             r => r.RequesterId == requesterId,
@@ -50,7 +50,7 @@ public class RequestService : IRequestService
         return requests.Select(MapToDto).ToList();
     }
 
-    public async Task<IEnumerable<RequestDto>> GetByProviderAsync(Guid providerId, CancellationToken cancellationToken = default)
+    public async Task<IEnumerable<RequestDto>> GetByProviderAsync(string providerId, CancellationToken cancellationToken = default)
     {
         var requests = await _requestRepository.FindAsync(
             r => r.ProviderId == providerId,
@@ -82,7 +82,7 @@ public class RequestService : IRequestService
             Status = RequestStatus.Submitted,
             RequesterId = dto.RequesterId,
             ProviderId = dto.ProviderId,
-            ServiceId = Guid.Empty, // TODO: Add ServiceId to CreateRequestDto or get from context
+            ServiceId = string.Empty, // TODO: Add ServiceId to CreateRequestDto or get from context
             Title = dto.Title,
             Description = dto.Description,
             ServicesRequested = string.Join(",", dto.ServicesRequested),
@@ -149,7 +149,7 @@ public class RequestService : IRequestService
         if (updateDto.AgreedCost.HasValue)
             request.AgreedCost = updateDto.AgreedCost;
         
-        if (updateDto.ProviderId.HasValue)
+        if (!string.IsNullOrEmpty(updateDto.ProviderId))
             request.ProviderId = updateDto.ProviderId;
 
         await _requestRepository.UpdateAsync(request, cancellationToken);
@@ -158,9 +158,9 @@ public class RequestService : IRequestService
         return MapToDto(request);
     }
 
-    public async Task<RequestDto> ApproveAsync(Guid id, decimal? agreedCost, CancellationToken cancellationToken = default)
+    public async Task<RequestDto> ApproveAsync(string id, decimal? agreedCost, CancellationToken cancellationToken = default)
     {
-        var request = await _requestRepository.GetByIdAsync(id.ToString(), cancellationToken);
+        var request = await _requestRepository.GetByIdAsync(id, cancellationToken);
         if (request == null)
             return null!;
 
@@ -178,9 +178,9 @@ public class RequestService : IRequestService
         return MapToDto(request);
     }
 
-    public async Task<RequestDto> RejectAsync(Guid id, string reason, CancellationToken cancellationToken = default)
+    public async Task<RequestDto> RejectAsync(string id, string reason, CancellationToken cancellationToken = default)
     {
-        var request = await _requestRepository.GetByIdAsync(id.ToString(), cancellationToken);
+        var request = await _requestRepository.GetByIdAsync(id, cancellationToken);
         if (request == null)
             return null!;
 
@@ -196,9 +196,9 @@ public class RequestService : IRequestService
         return MapToDto(request);
     }
 
-    public async Task CancelAsync(Guid id, CancellationToken cancellationToken = default)
+    public async Task CancelAsync(string id, CancellationToken cancellationToken = default)
     {
-        var request = await _requestRepository.GetByIdAsync(id.ToString(), cancellationToken);
+        var request = await _requestRepository.GetByIdAsync(id, cancellationToken);
         if (request == null)
             return;
 
@@ -209,7 +209,7 @@ public class RequestService : IRequestService
     }
 
     public async Task<IEnumerable<MobileTransportWasteDto>> GetMobileTransportWasteAsync(
-        Guid personId, 
+        string personId, 
         CancellationToken cancellationToken = default)
     {
         return await _requestRepositoryInfra.GetMobileTransportWasteAsync(personId, cancellationToken);

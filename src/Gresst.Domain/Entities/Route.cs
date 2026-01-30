@@ -15,10 +15,10 @@ public class Route : BaseEntity
     public string RouteType { get; set; } = string.Empty; // Collection, Transport, Delivery
     
     // Assignment
-    public Guid? VehicleId { get; set; }
+    public string? VehicleId { get; set; }
     public virtual Vehicle? Vehicle { get; set; }
     
-    public Guid? DriverId { get; set; }
+    public string? DriverId { get; set; }
     public virtual Person? Driver { get; set; }
     
     // Scheduling
@@ -39,13 +39,13 @@ public class Route : BaseEntity
 /// </summary>
 public class RouteStop : BaseEntity
 {
-    public Guid RouteId { get; set; }
+    public string RouteId { get; set; } = string.Empty;
     public virtual Route Route { get; set; } = null!;
     
     public int Sequence { get; set; }
     
     // Location
-    public Guid? LocationId { get; set; }
+    public string? LocationId { get; set; }
     public virtual Location? Location { get; set; }
     
     public string? Address { get; set; }
@@ -53,10 +53,10 @@ public class RouteStop : BaseEntity
     public decimal? Longitude { get; set; }
     
     // Person/Facility at stop
-    public Guid? PersonId { get; set; }
+    public string? PersonId { get; set; }
     public virtual Person? Person { get; set; }
     
-    public Guid? FacilityId { get; set; }
+    public string? FacilityId { get; set; }
     public virtual Facility? Facility { get; set; }
     
     // Details

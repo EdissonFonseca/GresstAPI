@@ -9,22 +9,22 @@ namespace Gresst.Domain.Entities;
 public class Balance : BaseEntity
 {
     // Owner
-    public Guid? PersonId { get; set; }
+    public string? PersonId { get; set; }
     public virtual Person? Person { get; set; }
     
     // Location
-    public Guid? FacilityId { get; set; }
+    public string? FacilityId { get; set; }
     public virtual Facility? Facility { get; set; }
     
-    public Guid? LocationId { get; set; }
+    public string? LocationId { get; set; }
     public virtual Location? Location { get; set; }
     
     // Waste Class
-    public Guid WasteClassId { get; set; }
+    public string WasteClassId { get; set; } = string.Empty;
     public virtual WasteClass WasteClass { get; set; } = null!;
     
     // Material (optional, for more detail)
-    public Guid? MaterialId { get; set; }
+    public string? MaterialId { get; set; }
     public virtual Material? Material { get; set; }
     
     // Quantity

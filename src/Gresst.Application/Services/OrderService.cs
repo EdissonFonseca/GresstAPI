@@ -39,7 +39,7 @@ public class OrderService : IOrderService
         return orders.Select(MapToDto).ToList();
     }
 
-    public async Task<IEnumerable<OrderDto>> GetByProviderAsync(Guid providerId, CancellationToken cancellationToken = default)
+    public async Task<IEnumerable<OrderDto>> GetByProviderAsync(string providerId, CancellationToken cancellationToken = default)
     {
         var orders = await _orderRepository.FindAsync(
             o => o.ProviderId == providerId,
@@ -47,7 +47,7 @@ public class OrderService : IOrderService
         return orders.Select(MapToDto).ToList();
     }
 
-    public async Task<IEnumerable<OrderDto>> GetByClientAsync(Guid clientId, CancellationToken cancellationToken = default)
+    public async Task<IEnumerable<OrderDto>> GetByClientAsync(string clientId, CancellationToken cancellationToken = default)
     {
         var orders = await _orderRepository.FindAsync(
             o => o.ClientId == clientId,
@@ -88,7 +88,7 @@ public class OrderService : IOrderService
             ProviderId = dto.ProviderId,
             ClientId = dto.ClientId,
             RequestId = dto.RequestId,
-            ServiceId = Guid.Empty, // TODO: Get ServiceId from Request or add to CreateOrderDto
+            ServiceId = string.Empty, // TODO: Get ServiceId from Request or add to CreateOrderDto
             ScheduledDate = dto.ScheduledDate,
             Description = dto.Description,
             EstimatedCost = dto.EstimatedCost,
@@ -119,17 +119,17 @@ public class OrderService : IOrderService
     public async Task<OrderDto> UpdateAsync(dynamic dto, CancellationToken cancellationToken = default)
     {
         // Extract ID from dynamic object
-        Guid id;
+        string id;
         try
         {
-            id = (Guid)dto.Id;
+            id = (string)dto.Id;
         }
         catch
         {
             throw new ArgumentException("Order ID is required", nameof(dto));
         }
 
-        var order = await _orderRepository.GetByIdAsync(id.ToString(), cancellationToken);
+        var order = await _orderRepository.GetByIdAsync(id, cancellationToken);
         if (order == null)
             return null!;
 
@@ -140,13 +140,13 @@ public class OrderService : IOrderService
                 order.Type = (OrderType)dto.Type;
             
             if (dto.ProviderId != null)
-                order.ProviderId = (Guid)dto.ProviderId;
+                order.ProviderId = (string)dto.ProviderId;
             
             if (dto.ClientId != null)
-                order.ClientId = (Guid)dto.ClientId;
+                order.ClientId = (string)dto.ClientId;
             
             if (dto.RequestId != null)
-                order.RequestId = (Guid?)dto.RequestId;
+                order.RequestId = (string?)dto.RequestId;
             
             if (dto.ScheduledDate != null)
                 order.ScheduledDate = (DateTime?)dto.ScheduledDate;
@@ -158,13 +158,13 @@ public class OrderService : IOrderService
                 order.EstimatedCost = (decimal?)dto.EstimatedCost;
             
             if (dto.VehicleId != null)
-                order.VehicleId = (Guid?)dto.VehicleId;
+                order.VehicleId = (string?)dto.VehicleId;
             
             if (dto.FacilityId != null)
-                order.FacilityId = (Guid?)dto.FacilityId;
+                order.FacilityId = (string?)dto.FacilityId;
             
             if (dto.RouteId != null)
-                order.RouteId = (Guid?)dto.RouteId;
+                order.RouteId = (string?)dto.RouteId;
         }
         catch (Exception ex)
         {
@@ -197,9 +197,9 @@ public class OrderService : IOrderService
         return MapToDto(order);
     }
 
-    public async Task<OrderDto> ScheduleAsync(Guid id, DateTime scheduledDate, Guid? vehicleId, Guid? routeId, CancellationToken cancellationToken = default)
+    public async Task<OrderDto> ScheduleAsync(string id, DateTime scheduledDate, string? vehicleId, string? routeId, CancellationToken cancellationToken = default)
     {
-        var order = await _orderRepository.GetByIdAsync(id.ToString(), cancellationToken);
+        var order = await _orderRepository.GetByIdAsync(id, cancellationToken);
         if (order == null)
             return null!;
 
@@ -209,10 +209,10 @@ public class OrderService : IOrderService
         order.Status = OrderStatus.Scheduled;
         order.ScheduledDate = scheduledDate;
         
-        if (vehicleId.HasValue)
+        if (!string.IsNullOrEmpty(vehicleId))
             order.VehicleId = vehicleId;
         
-        if (routeId.HasValue)
+        if (!string.IsNullOrEmpty(routeId))
             order.RouteId = routeId;
 
         await _orderRepository.UpdateAsync(order, cancellationToken);
@@ -221,9 +221,9 @@ public class OrderService : IOrderService
         return MapToDto(order);
     }
 
-    public async Task<OrderDto> StartAsync(Guid id, CancellationToken cancellationToken = default)
+    public async Task<OrderDto> StartAsync(string id, CancellationToken cancellationToken = default)
     {
-        var order = await _orderRepository.GetByIdAsync(id.ToString(), cancellationToken);
+        var order = await _orderRepository.GetByIdAsync(id, cancellationToken);
         if (order == null)
             return null!;
 
@@ -238,9 +238,9 @@ public class OrderService : IOrderService
         return MapToDto(order);
     }
 
-    public async Task<OrderDto> CompleteAsync(Guid id, decimal? actualCost, CancellationToken cancellationToken = default)
+    public async Task<OrderDto> CompleteAsync(string id, decimal? actualCost, CancellationToken cancellationToken = default)
     {
-        var order = await _orderRepository.GetByIdAsync(id.ToString(), cancellationToken);
+        var order = await _orderRepository.GetByIdAsync(id, cancellationToken);
         if (order == null)
             return null!;
 
@@ -259,9 +259,9 @@ public class OrderService : IOrderService
         return MapToDto(order);
     }
 
-    public async Task CancelAsync(Guid id, string? reason, CancellationToken cancellationToken = default)
+    public async Task CancelAsync(string id, string? reason, CancellationToken cancellationToken = default)
     {
-        var order = await _orderRepository.GetByIdAsync(id.ToString(), cancellationToken);
+        var order = await _orderRepository.GetByIdAsync(id, cancellationToken);
         if (order == null)
             return;
 

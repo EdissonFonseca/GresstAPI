@@ -27,13 +27,13 @@ public class RouteStopMapper : MapperBase<DomainRouteStop, DbRouteStop>
             AccountId = string.Empty, // RutaDeposito doesn't have AccountId directly
             
             // Route
-            RouteId = GuidLongConverter.ToGuid(dbEntity.IdRuta),
+            RouteId = IdConversion.ToStringFromLong(dbEntity.IdRuta),
             
             // Sequence
             Sequence = dbEntity.Orden,
             
             // Facility (Deposito)
-            FacilityId = GuidLongConverter.ToGuid(dbEntity.IdDeposito),
+            FacilityId = IdConversion.ToStringFromLong(dbEntity.IdDeposito),
             
             // Other properties not in BD - set to null/default
             LocationId = null,
@@ -62,14 +62,14 @@ public class RouteStopMapper : MapperBase<DomainRouteStop, DbRouteStop>
         if (domainEntity == null) 
             throw new ArgumentNullException(nameof(domainEntity));
 
-        if (!domainEntity.FacilityId.HasValue)
+        if (string.IsNullOrEmpty(domainEntity.FacilityId))
             throw new InvalidOperationException("RouteStop must have a FacilityId to be saved to database");
 
         return new DbRouteStop
         {
             // IDs (composite key)
-            IdRuta = GuidLongConverter.ToLong(domainEntity.RouteId),
-            IdDeposito = GuidLongConverter.ToLong(domainEntity.FacilityId.Value),
+            IdRuta = IdConversion.ToLongFromString(domainEntity.RouteId),
+            IdDeposito = IdConversion.ToLongFromString(domainEntity.FacilityId),
             
             // Sequence
             Orden = domainEntity.Sequence,
@@ -94,9 +94,9 @@ public class RouteStopMapper : MapperBase<DomainRouteStop, DbRouteStop>
         dbEntity.Orden = domainEntity.Sequence;
         
         // Update FacilityId if provided (though it's part of composite key, we allow updates)
-        if (domainEntity.FacilityId.HasValue)
+        if (!string.IsNullOrEmpty(domainEntity.FacilityId))
         {
-            dbEntity.IdDeposito = GuidLongConverter.ToLong(domainEntity.FacilityId.Value);
+            dbEntity.IdDeposito = IdConversion.ToLongFromString(domainEntity.FacilityId);
         }
         
         // Audit

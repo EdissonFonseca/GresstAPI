@@ -16,8 +16,8 @@ public class RegisterRequest
     public string Username { get; set; } = string.Empty;
     public string Email { get; set; } = string.Empty;
     public string Password { get; set; } = string.Empty;
-    public Guid? PersonId { get; set; }
-    public Guid AccountId { get; set; }
+    public string? PersonId { get; set; }
+    public string AccountId { get; set; } = string.Empty;
 }
 
 public class ExternalLoginRequest

@@ -7,13 +7,13 @@ namespace Gresst.Application.Services;
 /// </summary>
 public interface IUserService
 {
-    Task<UserDto?> GetUserByIdAsync(Guid userId, CancellationToken cancellationToken = default);
+    Task<UserDto?> GetUserByIdAsync(string userId, CancellationToken cancellationToken = default);
     Task<UserDto?> GetCurrentUserAsync(CancellationToken cancellationToken = default);
-    Task<IEnumerable<UserDto>> GetUsersByAccountAsync(Guid accountId, CancellationToken cancellationToken = default);
+    Task<IEnumerable<UserDto>> GetUsersByAccountAsync(string accountId, CancellationToken cancellationToken = default);
     Task<UserDto> CreateUserAsync(CreateUserDto dto, CancellationToken cancellationToken = default);
-    Task<UserDto?> UpdateUserProfileAsync(Guid userId, UpdateUserProfileDto dto, CancellationToken cancellationToken = default);
-    Task<bool> ChangePasswordAsync(Guid userId, ChangePasswordDto dto, CancellationToken cancellationToken = default);
-    Task<bool> DeactivateUserAsync(Guid userId, CancellationToken cancellationToken = default);
-    Task<bool> ActivateUserAsync(Guid userId, CancellationToken cancellationToken = default);
+    Task<UserDto?> UpdateUserProfileAsync(string userId, UpdateUserProfileDto dto, CancellationToken cancellationToken = default);
+    Task<bool> ChangePasswordAsync(string userId, ChangePasswordDto dto, CancellationToken cancellationToken = default);
+    Task<bool> DeactivateUserAsync(string userId, CancellationToken cancellationToken = default);
+    Task<bool> ActivateUserAsync(string userId, CancellationToken cancellationToken = default);
 }
 

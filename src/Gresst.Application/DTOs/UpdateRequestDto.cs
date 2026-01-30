@@ -11,6 +11,6 @@ public class UpdateRequestDto
     public string? DeliveryAddress { get; set; }
     public decimal? EstimatedCost { get; set; }
     public decimal? AgreedCost { get; set; }
-    public Guid? ProviderId { get; set; }
+    public string? ProviderId { get; set; }
 }
 

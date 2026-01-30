@@ -12,14 +12,14 @@ public class PersonContact : BaseEntity
     /// <summary>
     /// Person who has this contact (the main person: account person, client, provider)
     /// </summary>
-    public Guid PersonId { get; set; }
+    public string PersonId { get; set; } = string.Empty;
     public virtual Person Person { get; set; } = null!;
     
     /// <summary>
     /// Contact person (employee, contractor, etc.)
     /// This is also a Person but without vehicles, materials, etc.
     /// </summary>
-    public Guid ContactId { get; set; }
+    public string ContactId { get; set; } = string.Empty;
     public virtual Person Contact { get; set; } = null!;
     
     /// <summary>
@@ -95,7 +95,7 @@ public class PersonContact : BaseEntity
     /// <summary>
     /// Location ID for this contact
     /// </summary>
-    public Guid? LocationId { get; set; }
+    public string? LocationId { get; set; }
     public virtual Location? Location { get; set; }
     
     /// <summary>

@@ -27,7 +27,7 @@ public class DataSegmentationService : IDataSegmentationService
     public async Task<bool> UserHasAccessToFacilityAsync(string facilityId, CancellationToken cancellationToken = default)
     {
         var userId = _currentUserService.GetCurrentUserId();
-        var userIdLong = GuidLongConverter.ToLong(userId);
+        var userIdLong = IdConversion.ToLongFromString(userId);
         var facilityIdLong = string.IsNullOrEmpty(facilityId) ? 0L : long.Parse(facilityId);
 
         // Admin tiene acceso a todo
@@ -44,7 +44,7 @@ public class DataSegmentationService : IDataSegmentationService
     public async Task<IEnumerable<string>> GetUserFacilityIdsAsync(CancellationToken cancellationToken = default)
     {
         var userId = _currentUserService.GetCurrentUserId();
-        var userIdLong = GuidLongConverter.ToLong(userId);
+        var userIdLong = IdConversion.ToLongFromString(userId);
 
         // Admin puede ver todo
         if (await CurrentUserIsAdminAsync(cancellationToken))
@@ -65,11 +65,11 @@ public class DataSegmentationService : IDataSegmentationService
         return facilityIds.Select(x => x.ToString());
     }
 
-    public async Task<bool> AssignFacilityToUserAsync(Guid userId, Guid facilityId, CancellationToken cancellationToken = default)
+    public async Task<bool> AssignFacilityToUserAsync(string userId, string facilityId, CancellationToken cancellationToken = default)
     {
-        var userIdLong = GuidLongConverter.ToLong(userId);
-        var facilityIdLong = GuidLongConverter.ToLong(facilityId);
-        var currentUserIdLong = GuidLongConverter.ToLong(_currentUserService.GetCurrentUserId());
+        var userIdLong = IdConversion.ToLongFromString(userId);
+        var facilityIdLong = IdConversion.ToLongFromString(facilityId);
+        var currentUserIdLong = IdConversion.ToLongFromString(_currentUserService.GetCurrentUserId());
 
         // Verificar si ya existe
         var exists = await _context.UsuarioDepositos
@@ -92,10 +92,10 @@ public class DataSegmentationService : IDataSegmentationService
         return true;
     }
 
-    public async Task<bool> RevokeFacilityFromUserAsync(Guid userId, Guid facilityId, CancellationToken cancellationToken = default)
+    public async Task<bool> RevokeFacilityFromUserAsync(string userId, string facilityId, CancellationToken cancellationToken = default)
     {
-        var userIdLong = GuidLongConverter.ToLong(userId);
-        var facilityIdLong = GuidLongConverter.ToLong(facilityId);
+        var userIdLong = IdConversion.ToLongFromString(userId);
+        var facilityIdLong = IdConversion.ToLongFromString(facilityId);
 
         var assignment = await _context.UsuarioDepositos
             .FirstOrDefaultAsync(ud => ud.IdUsuario == userIdLong && ud.IdDeposito == facilityIdLong, cancellationToken);
@@ -113,7 +113,7 @@ public class DataSegmentationService : IDataSegmentationService
     public async Task<bool> UserHasAccessToVehicleAsync(string vehicleId, CancellationToken cancellationToken = default)
     {
         var userId = _currentUserService.GetCurrentUserId();
-        var userIdLong = GuidLongConverter.ToLong(userId);
+        var userIdLong = IdConversion.ToLongFromString(userId);
         var vehicleIdString = vehicleId ?? string.Empty;
 
         // Admin tiene acceso a todo
@@ -130,7 +130,7 @@ public class DataSegmentationService : IDataSegmentationService
     public async Task<IEnumerable<string>> GetUserVehicleIdsAsync(CancellationToken cancellationToken = default)
     {
         var userId = _currentUserService.GetCurrentUserId();
-        var userIdLong = GuidLongConverter.ToLong(userId);
+        var userIdLong = IdConversion.ToLongFromString(userId);
 
         // Admin puede ver todo
         if (await CurrentUserIsAdminAsync(cancellationToken))
@@ -151,11 +151,11 @@ public class DataSegmentationService : IDataSegmentationService
         return vehicleIds.Where(x => x != null).Select(x => x!).ToList();
     }
 
-    public async Task<bool> AssignVehicleToUserAsync(Guid userId, Guid vehicleId, CancellationToken cancellationToken = default)
+    public async Task<bool> AssignVehicleToUserAsync(string userId, string vehicleId, CancellationToken cancellationToken = default)
     {
-        var userIdLong = GuidLongConverter.ToLong(userId);
-        var vehicleIdString = GuidStringConverter.ToString(vehicleId);
-        var currentUserIdLong = GuidLongConverter.ToLong(_currentUserService.GetCurrentUserId());
+        var userIdLong = IdConversion.ToLongFromString(userId);
+        var vehicleIdString = vehicleId ?? string.Empty;
+        var currentUserIdLong = IdConversion.ToLongFromString(_currentUserService.GetCurrentUserId());
 
         var exists = await _context.UsuarioVehiculos
             .AnyAsync(uv => uv.IdUsuario == userIdLong && uv.IdVehiculo == vehicleIdString, cancellationToken);
@@ -177,10 +177,10 @@ public class DataSegmentationService : IDataSegmentationService
         return true;
     }
 
-    public async Task<bool> RevokeVehicleFromUserAsync(Guid userId, Guid vehicleId, CancellationToken cancellationToken = default)
+    public async Task<bool> RevokeVehicleFromUserAsync(string userId, string vehicleId, CancellationToken cancellationToken = default)
     {
-        var userIdLong = GuidLongConverter.ToLong(userId);
-        var vehicleIdString = GuidStringConverter.ToString(vehicleId);
+        var userIdLong = IdConversion.ToLongFromString(userId);
+        var vehicleIdString = vehicleId ?? string.Empty;
 
         var assignment = await _context.UsuarioVehiculos
             .FirstOrDefaultAsync(uv => uv.IdUsuario == userIdLong && uv.IdVehiculo == vehicleIdString, cancellationToken);
@@ -198,7 +198,7 @@ public class DataSegmentationService : IDataSegmentationService
     public async Task<bool> UserHasAccessToMaterialAsync(string materialId, CancellationToken cancellationToken = default)
     {
         var userId = _currentUserService.GetCurrentUserId();
-        var userIdLong = GuidLongConverter.ToLong(userId);
+        var userIdLong = IdConversion.ToLongFromString(userId);
         var materialIdLong = string.IsNullOrEmpty(materialId) ? 0L : long.Parse(materialId);
 
         // Admin tiene acceso a todo
@@ -221,7 +221,7 @@ public class DataSegmentationService : IDataSegmentationService
     public async Task<IEnumerable<string>> GetUserMaterialIdsAsync(CancellationToken cancellationToken = default)
     {
         var userId = _currentUserService.GetCurrentUserId();
-        var userIdLong = GuidLongConverter.ToLong(userId);
+        var userIdLong = IdConversion.ToLongFromString(userId);
 
         // Admin puede ver todo
         if (await CurrentUserIsAdminAsync(cancellationToken))
@@ -243,11 +243,11 @@ public class DataSegmentationService : IDataSegmentationService
         return materialIds.Select(x => x.ToString()).ToList();
     }
 
-    public async Task<bool> AssignMaterialToUserAsync(Guid userId, Guid materialId, CancellationToken cancellationToken = default)
+    public async Task<bool> AssignMaterialToUserAsync(string userId, string materialId, CancellationToken cancellationToken = default)
     {
         // Por ahora, la asignación se hace cambiando el material a público
         // O se puede crear una tabla UsuarioMaterial en el futuro
-        var materialIdLong = GuidLongConverter.ToLong(materialId);
+        var materialIdLong = IdConversion.ToLongFromString(materialId);
         var material = await _context.Materials.FindAsync(new object[] { materialIdLong }, cancellationToken);
         
         if (material == null)
@@ -256,16 +256,16 @@ public class DataSegmentationService : IDataSegmentationService
         // Hacer el material público para que todos puedan verlo
         material.Publico = true;
         material.FechaUltimaModificacion = DateTime.UtcNow;
-        material.IdUsuarioUltimaModificacion = GuidLongConverter.ToLong(_currentUserService.GetCurrentUserId());
+        material.IdUsuarioUltimaModificacion = IdConversion.ToLongFromString(_currentUserService.GetCurrentUserId());
         
         await _context.SaveChangesAsync(cancellationToken);
         return true;
     }
 
-    public async Task<bool> RevokeMaterialFromUserAsync(Guid userId, Guid materialId, CancellationToken cancellationToken = default)
+    public async Task<bool> RevokeMaterialFromUserAsync(string userId, string materialId, CancellationToken cancellationToken = default)
     {
         // Por ahora, la revocación se hace cambiando el material a privado
-        var materialIdLong = GuidLongConverter.ToLong(materialId);
+        var materialIdLong = IdConversion.ToLongFromString(materialId);
         var material = await _context.Materials.FindAsync(new object[] { materialIdLong }, cancellationToken);
         
         if (material == null)
@@ -274,7 +274,7 @@ public class DataSegmentationService : IDataSegmentationService
         // Hacer el material privado (solo el creador puede verlo)
         material.Publico = false;
         material.FechaUltimaModificacion = DateTime.UtcNow;
-        material.IdUsuarioUltimaModificacion = GuidLongConverter.ToLong(_currentUserService.GetCurrentUserId());
+        material.IdUsuarioUltimaModificacion = IdConversion.ToLongFromString(_currentUserService.GetCurrentUserId());
         
         await _context.SaveChangesAsync(cancellationToken);
         return true;
@@ -284,7 +284,7 @@ public class DataSegmentationService : IDataSegmentationService
     public async Task<bool> CurrentUserIsAdminAsync(CancellationToken cancellationToken = default)
     {
         var userId = _currentUserService.GetCurrentUserId();
-        var userIdLong = GuidLongConverter.ToLong(userId);
+        var userIdLong = IdConversion.ToLongFromString(userId);
 
         var usuario = await _context.Usuarios.FindAsync(new object[] { userIdLong }, cancellationToken);
         

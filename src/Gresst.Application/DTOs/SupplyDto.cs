@@ -8,7 +8,7 @@ public class SupplyDto
     public string? Description { get; set; }
     public string CategoryUnitId { get; set; } = string.Empty;
     public bool IsPublic { get; set; }
-    public Guid? ParentSupplyId { get; set; }
+    public string? ParentSupplyId { get; set; }
     public string? ParentSupplyName { get; set; }
     public bool IsActive { get; set; }
     public DateTime CreatedAt { get; set; }
@@ -25,7 +25,7 @@ public class CreateSupplyDto
     /// <summary>
     /// Parent supply ID (for hierarchical structures). Optional.
     /// </summary>
-    public Guid? ParentSupplyId { get; set; }
+    public string? ParentSupplyId { get; set; }
 }
 
 public class UpdateSupplyDto
@@ -38,9 +38,9 @@ public class UpdateSupplyDto
     public bool? IsPublic { get; set; }
     /// <summary>
     /// Parent supply ID (for hierarchical structures). Optional.
-    /// To clear the parent, send Guid.Empty.
+    /// To clear the parent, send null or empty string.
     /// </summary>
-    public Guid? ParentSupplyId { get; set; }
+    public string? ParentSupplyId { get; set; }
     public bool? IsActive { get; set; }
 }
 

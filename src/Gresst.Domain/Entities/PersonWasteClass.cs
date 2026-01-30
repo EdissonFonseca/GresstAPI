@@ -11,13 +11,13 @@ public class PersonWasteClass : BaseEntity
     /// <summary>
     /// Person who is associated with this waste class
     /// </summary>
-    public Guid PersonId { get; set; }
+    public string PersonId { get; set; } = string.Empty;
     public virtual Person Person { get; set; } = null!;
     
     /// <summary>
     /// Waste class that the person is associated with
     /// </summary>
-    public Guid WasteClassId { get; set; }
+    public string WasteClassId { get; set; } = string.Empty;
     public virtual WasteClass WasteClass { get; set; } = null!;
     
     // Note: IsActive is inherited from BaseEntity

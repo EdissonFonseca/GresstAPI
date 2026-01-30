@@ -83,9 +83,9 @@ public class PersonMaterialRepository : IRepository<PersonMaterial>
     public Task UpdateAsync(PersonMaterial entity, CancellationToken cancellationToken = default)
     {
         var dbEntity = _context.PersonaMaterials
-            .FirstOrDefault(pm => pm.IdPersona == ConvertGuidToString(entity.PersonId) 
-                && pm.IdMaterial == ConvertGuidToLong(entity.MaterialId)
-                && pm.IdCuenta == (string.IsNullOrEmpty(entity.AccountId) ? 0L : long.Parse(entity.AccountId)));
+            .FirstOrDefault(pm => pm.IdPersona == (entity.PersonId ?? string.Empty) 
+                && pm.IdMaterial == IdConversion.ToLongFromString(entity.MaterialId)
+                && pm.IdCuenta == IdConversion.ToLongFromString(entity.AccountId));
         
         if (dbEntity == null)
             throw new KeyNotFoundException($"PersonMaterial not found");
@@ -102,9 +102,9 @@ public class PersonMaterialRepository : IRepository<PersonMaterial>
     public Task DeleteAsync(PersonMaterial entity, CancellationToken cancellationToken = default)
     {
         var dbEntity = _context.PersonaMaterials
-            .FirstOrDefault(pm => pm.IdPersona == ConvertGuidToString(entity.PersonId) 
-                && pm.IdMaterial == ConvertGuidToLong(entity.MaterialId)
-                && pm.IdCuenta == (string.IsNullOrEmpty(entity.AccountId) ? 0L : long.Parse(entity.AccountId)));
+            .FirstOrDefault(pm => pm.IdPersona == (entity.PersonId ?? string.Empty) 
+                && pm.IdMaterial == IdConversion.ToLongFromString(entity.MaterialId)
+                && pm.IdCuenta == IdConversion.ToLongFromString(entity.AccountId));
         
         if (dbEntity == null)
             throw new KeyNotFoundException($"PersonMaterial not found");
@@ -134,37 +134,10 @@ public class PersonMaterialRepository : IRepository<PersonMaterial>
         return all.Count(predicate.Compile());
     }
 
-    // Helper methods
-    private Guid ConvertStringToGuid(string id)
-    {
-        if (string.IsNullOrEmpty(id)) return Guid.Empty;
-        
-        if (Guid.TryParse(id, out var guid))
-            return guid;
-        
-        return new Guid(id.PadLeft(32, '0').Substring(0, 32));
-    }
-
-    private string ConvertGuidToString(Guid guid)
-    {
-        if (guid == Guid.Empty) return string.Empty;
-        return guid.ToString().Replace("-", "").Substring(0, 40);
-    }
-
-    private long ConvertGuidToLong(Guid guid)
-    {
-        if (guid == Guid.Empty) return 0;
-        
-        var guidString = guid.ToString().Replace("-", "");
-        var numericPart = new string(guidString.Where(char.IsDigit).Take(18).ToArray());
-        
-        return long.TryParse(numericPart, out var result) ? result : 0;
-    }
-
     private long GetCurrentUserIdAsLong()
     {
         var userId = _currentUserService.GetCurrentUserId();
-        return GuidLongConverter.ToLong(userId);
+        return IdConversion.ToLongFromString(userId);
     }
 }
 

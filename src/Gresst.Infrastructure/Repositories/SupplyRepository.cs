@@ -64,7 +64,7 @@ public class SupplyRepository : IRepository<Supply>
         
         // Set audit fields
         dbEntity.FechaCreacion = DateTime.UtcNow;
-        dbEntity.IdUsuarioCreacion = GuidLongConverter.ToLong(_currentUserService.GetCurrentUserId());
+        dbEntity.IdUsuarioCreacion = IdConversion.ToLongFromString(_currentUserService.GetCurrentUserId());
         dbEntity.Activo = true;
 
         await _context.Insumos.AddAsync(dbEntity, cancellationToken);
@@ -87,7 +87,7 @@ public class SupplyRepository : IRepository<Supply>
         
         // Update audit fields
         dbEntity.FechaUltimaModificacion = DateTime.UtcNow;
-        dbEntity.IdUsuarioUltimaModificacion = GuidLongConverter.ToLong(_currentUserService.GetCurrentUserId());
+        dbEntity.IdUsuarioUltimaModificacion = IdConversion.ToLongFromString(_currentUserService.GetCurrentUserId());
         
         _context.Insumos.Update(dbEntity);
         return Task.CompletedTask;
@@ -104,7 +104,7 @@ public class SupplyRepository : IRepository<Supply>
         // Soft delete
         dbEntity.Activo = false;
         dbEntity.FechaUltimaModificacion = DateTime.UtcNow;
-        dbEntity.IdUsuarioUltimaModificacion = GuidLongConverter.ToLong(_currentUserService.GetCurrentUserId());
+        dbEntity.IdUsuarioUltimaModificacion = IdConversion.ToLongFromString(_currentUserService.GetCurrentUserId());
         
         _context.Insumos.Update(dbEntity);
         return Task.CompletedTask;

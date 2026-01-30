@@ -21,7 +21,7 @@ public class SupplyMapper : MapperBase<Supply, Insumo>
         return new Supply
         {
             // IDs - Domain BaseEntity uses string
-            Id = GuidLongConverter.ToGuid(dbEntity.IdInsumo).ToString(),
+            Id = IdConversion.ToStringFromLong(dbEntity.IdInsumo),
             AccountId = string.Empty, // Insumo doesn't have AccountId directly, it's public/private
             
             // Basic Info
@@ -35,7 +35,7 @@ public class SupplyMapper : MapperBase<Supply, Insumo>
             
             // Parent Supply (hierarchical)
             ParentSupplyId = dbEntity.IdInsumoSuperior.HasValue 
-                ? GuidLongConverter.ToGuid(dbEntity.IdInsumoSuperior.Value) 
+                ? IdConversion.ToStringFromLong(dbEntity.IdInsumoSuperior.Value) 
                 : null,
             
             // Audit
@@ -58,7 +58,7 @@ public class SupplyMapper : MapperBase<Supply, Insumo>
         return new Insumo
         {
             // IDs
-            IdInsumo = string.IsNullOrEmpty(domainEntity.Id) ? 0 : GuidLongConverter.ToLong(Guid.Parse(domainEntity.Id)),
+            IdInsumo = IdConversion.ToLongFromString(domainEntity.Id),
             
             // Basic Info
             Nombre = domainEntity.Name,
@@ -68,8 +68,8 @@ public class SupplyMapper : MapperBase<Supply, Insumo>
             Publico = domainEntity.IsPublic,
             
             // Parent Supply (hierarchical)
-            IdInsumoSuperior = domainEntity.ParentSupplyId.HasValue 
-                ? GuidLongConverter.ToLong(domainEntity.ParentSupplyId.Value) 
+            IdInsumoSuperior = !string.IsNullOrEmpty(domainEntity.ParentSupplyId) 
+                ? IdConversion.ToLongFromString(domainEntity.ParentSupplyId) 
                 : null,
             
             // Status
@@ -95,8 +95,8 @@ public class SupplyMapper : MapperBase<Supply, Insumo>
         dbEntity.Nombre = domainEntity.Name;
         dbEntity.IdCategoriaUnidad = domainEntity.CategoryUnitId;
         dbEntity.Publico = domainEntity.IsPublic;
-        dbEntity.IdInsumoSuperior = domainEntity.ParentSupplyId.HasValue 
-            ? GuidLongConverter.ToLong(domainEntity.ParentSupplyId.Value) 
+        dbEntity.IdInsumoSuperior = !string.IsNullOrEmpty(domainEntity.ParentSupplyId) 
+            ? IdConversion.ToLongFromString(domainEntity.ParentSupplyId) 
             : null;
         dbEntity.Activo = domainEntity.IsActive;
         

@@ -18,7 +18,7 @@ public class Location : BaseEntity
     public decimal? Longitude { get; set; }
     
     // Hierarchy support - allows flexible levels
-    public Guid? ParentLocationId { get; set; }
+    public string? ParentLocationId { get; set; }
     public virtual Location? ParentLocation { get; set; }
     public virtual ICollection<Location> ChildLocations { get; set; } = new List<Location>();
     
@@ -27,10 +27,10 @@ public class Location : BaseEntity
     public string? CapacityUnit { get; set; }
     
     // Association with Person/Facility
-    public Guid? PersonId { get; set; }
+    public string? PersonId { get; set; }
     public virtual Person? Person { get; set; }
     
-    public Guid? FacilityId { get; set; }
+    public string? FacilityId { get; set; }
     public virtual Facility? Facility { get; set; }
     
     // Navigation properties

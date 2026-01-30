@@ -12,13 +12,13 @@ public class PersonService : BaseEntity
     /// <summary>
     /// Person who provides this service (account person, provider)
     /// </summary>
-    public Guid PersonId { get; set; }
+    public string PersonId { get; set; } = string.Empty;
     public virtual Person Person { get; set; } = null!;
     
     /// <summary>
     /// Service that the person can provide
     /// </summary>
-    public Guid ServiceId { get; set; }
+    public string ServiceId { get; set; } = string.Empty;
     public virtual Service Service { get; set; } = null!;
     
     /// <summary>

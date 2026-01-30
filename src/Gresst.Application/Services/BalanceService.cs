@@ -25,13 +25,13 @@ public class BalanceService : IBalanceService
         var balances = await _balanceRepository.GetAllAsync(cancellationToken);
         
         // Apply filters
-        if (query.PersonId.HasValue)
+        if (query.PersonId != null)
             balances = balances.Where(b => b.PersonId == query.PersonId);
-        if (query.FacilityId.HasValue)
+        if (query.FacilityId != null)
             balances = balances.Where(b => b.FacilityId == query.FacilityId);
-        if (query.LocationId.HasValue)
+        if (query.LocationId != null)
             balances = balances.Where(b => b.LocationId == query.LocationId);
-        if (query.WasteClassId.HasValue)
+        if (query.WasteClassId != null)
             balances = balances.Where(b => b.WasteClassId == query.WasteClassId);
 
         return balances.Select(b => new BalanceDto
@@ -52,13 +52,13 @@ public class BalanceService : IBalanceService
         }).ToList();
     }
 
-    public async Task<BalanceDto?> GetBalanceAsync(Guid? personId, Guid? facilityId, Guid? locationId, Guid wasteTypeId, CancellationToken cancellationToken = default)
+    public async Task<BalanceDto?> GetBalanceAsync(string? personId, string? facilityId, string? locationId, string wasteTypeId, CancellationToken cancellationToken = default)
     {
         var balances = await _balanceRepository.FindAsync(
             b => b.WasteClassId == wasteTypeId &&
-                 (!personId.HasValue || b.PersonId == personId) &&
-                 (!facilityId.HasValue || b.FacilityId == facilityId) &&
-                 (!locationId.HasValue || b.LocationId == locationId),
+                 (personId == null || b.PersonId == personId) &&
+                 (facilityId == null || b.FacilityId == facilityId) &&
+                 (locationId == null || b.LocationId == locationId),
             cancellationToken);
 
         var balance = balances.FirstOrDefault();
@@ -82,9 +82,9 @@ public class BalanceService : IBalanceService
         };
     }
 
-    public async Task UpdateBalanceAsync(Guid wasteId, string operation, decimal quantity, CancellationToken cancellationToken = default)
+    public async Task UpdateBalanceAsync(string wasteId, string operation, decimal quantity, CancellationToken cancellationToken = default)
     {
-        var waste = await _wasteRepository.GetByIdAsync(wasteId.ToString(), cancellationToken);
+        var waste = await _wasteRepository.GetByIdAsync(wasteId, cancellationToken);
         if (waste == null) return;
 
         // Find or create balance

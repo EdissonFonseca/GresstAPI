@@ -13,7 +13,7 @@ tests/Gresst.Tests/
 │
 ├── Infrastructure/                  # Pruebas de la capa de infraestructura
 │   └── Common/                     # Pruebas de utilidades
-│       └── GuidLongConverterTests.cs
+│       └── IdConversionTests.cs
 │
 └── README.md
 ```
@@ -77,7 +77,7 @@ public async Task MethodName_WhenCondition_ExpectedBehavior()
 Las pruebas actuales cubren:
 
 - ✅ **Servicios**: FacilityService, WasteClassService
-- ✅ **Utilidades**: GuidLongConverter
+- ✅ **Utilidades**: IdConversion
 - ⏳ **Mappers**: Pendiente de implementar
 - ⏳ **Repositorios**: Pendiente de implementar
 - ⏳ **Controladores**: Pendiente de implementar

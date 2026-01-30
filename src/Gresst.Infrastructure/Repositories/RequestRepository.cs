@@ -24,15 +24,14 @@ public class RequestRepository : IRequestRepository
     /// <summary>
     /// Gets mobile transport waste data implementing the fnResiduosTransporteMovil logic
     /// </summary>
-    /// <param name="personId">Person ID (Domain Guid)</param>
+    /// <param name="personId">Person ID (domain string)</param>
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>List of mobile transport waste data</returns>
     public async Task<IEnumerable<MobileTransportWasteDto>> GetMobileTransportWasteAsync(
-        Guid personId, 
+        string personId, 
         CancellationToken cancellationToken = default)
     {
-        // Convert Guid to string (database format)
-        var personIdString = GuidStringConverter.ToString(personId);
+        var personIdString = personId ?? string.Empty;
         
         if (string.IsNullOrEmpty(personIdString))
         {

@@ -11,19 +11,19 @@ public class FacilityTreatment : BaseEntity
     /// <summary>
     /// Person who owns/manages this facility-treatment relationship
     /// </summary>
-    public Guid PersonId { get; set; }
+    public string PersonId { get; set; } = string.Empty;
     public virtual Person Person { get; set; } = null!;
     
     /// <summary>
     /// Facility that can perform this treatment
     /// </summary>
-    public Guid FacilityId { get; set; }
+    public string FacilityId { get; set; } = string.Empty;
     public virtual Facility Facility { get; set; } = null!;
     
     /// <summary>
     /// Treatment that the facility can perform
     /// </summary>
-    public Guid TreatmentId { get; set; }
+    public string TreatmentId { get; set; } = string.Empty;
     public virtual Treatment Treatment { get; set; } = null!;
     
     /// <summary>

@@ -10,7 +10,7 @@ public interface IFacilityService
     // GetById verifica que el usuario tenga acceso
     Task<FacilityDto?> GetByIdAsync(string id, CancellationToken cancellationToken = default);
     
-    Task<IEnumerable<FacilityDto>> GetByPersonAsync(Guid personId, CancellationToken cancellationToken = default);
+    Task<IEnumerable<FacilityDto>> GetByPersonAsync(string personId, CancellationToken cancellationToken = default);
     Task<IEnumerable<FacilityDto>> GetByTypeAsync(string facilityType, CancellationToken cancellationToken = default);
     
     // Account Person (persona de la cuenta) - Default operations
@@ -18,12 +18,12 @@ public interface IFacilityService
     Task<FacilityDto> CreateAccountPersonFacilityAsync(CreateFacilityDto dto, CancellationToken cancellationToken = default);
     
     // Provider operations
-    Task<IEnumerable<FacilityDto>> GetProviderFacilitiesAsync(Guid providerId, CancellationToken cancellationToken = default);
-    Task<FacilityDto> CreateProviderFacilityAsync(Guid providerId, CreateFacilityDto dto, CancellationToken cancellationToken = default);
+    Task<IEnumerable<FacilityDto>> GetProviderFacilitiesAsync(string providerId, CancellationToken cancellationToken = default);
+    Task<FacilityDto> CreateProviderFacilityAsync(string providerId, CreateFacilityDto dto, CancellationToken cancellationToken = default);
     
     // Client operations
-    Task<IEnumerable<FacilityDto>> GetClientFacilitiesAsync(Guid clientId, CancellationToken cancellationToken = default);
-    Task<FacilityDto> CreateClientFacilityAsync(Guid clientId, CreateFacilityDto dto, CancellationToken cancellationToken = default);
+    Task<IEnumerable<FacilityDto>> GetClientFacilitiesAsync(string clientId, CancellationToken cancellationToken = default);
+    Task<FacilityDto> CreateClientFacilityAsync(string clientId, CreateFacilityDto dto, CancellationToken cancellationToken = default);
     
     Task<FacilityDto> CreateAsync(CreateFacilityDto dto, CancellationToken cancellationToken = default);
     Task<FacilityDto?> UpdateAsync(UpdateFacilityDto dto, CancellationToken cancellationToken = default);

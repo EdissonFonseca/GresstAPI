@@ -61,7 +61,7 @@ public class PersonServiceRepository : IRepository<PersonService>
         
         dbEntity.IdCuenta = string.IsNullOrEmpty(_currentUserService.GetCurrentAccountId()) ? 0L : long.Parse(_currentUserService.GetCurrentAccountId());
         dbEntity.FechaCreacion = DateTime.UtcNow;
-        dbEntity.IdUsuarioCreacion = GuidLongConverter.ToLong(_currentUserService.GetCurrentUserId());
+        dbEntity.IdUsuarioCreacion = IdConversion.ToLongFromString(_currentUserService.GetCurrentUserId());
         dbEntity.Activo = true;
 
         await _context.PersonaServicios.AddAsync(dbEntity, cancellationToken);
@@ -73,11 +73,15 @@ public class PersonServiceRepository : IRepository<PersonService>
     public Task UpdateAsync(PersonService entity, CancellationToken cancellationToken = default)
     {
         var accountIdLong = string.IsNullOrEmpty(_currentUserService.GetCurrentAccountId()) ? 0L : long.Parse(_currentUserService.GetCurrentAccountId());
-        var personIdString = GuidStringConverter.ToString(entity.PersonId);
-        var serviceIdLong = GuidLongConverter.ToLong(entity.ServiceId);
+        var personIdString = entity.PersonId ?? string.Empty;
+        var serviceIdLong = IdConversion.ToLongFromString(entity.ServiceId);
         var startDate = DateOnly.FromDateTime(entity.StartDate);
 
-        var dbEntity = _context.PersonaServicios.Find(personIdString, serviceIdLong, startDate, accountIdLong);
+        var dbEntity = _context.PersonaServicios
+            .FirstOrDefault(ps => ps.IdPersona == personIdString
+                && ps.IdServicio == serviceIdLong
+                && ps.FechaInicio == startDate
+                && ps.IdCuenta == accountIdLong);
         
         if (dbEntity == null)
             throw new KeyNotFoundException($"PersonService relationship for Person {entity.PersonId}, Service {entity.ServiceId} not found");
@@ -85,7 +89,7 @@ public class PersonServiceRepository : IRepository<PersonService>
         _mapper.UpdateDatabase(entity, dbEntity);
         
         dbEntity.FechaUltimaModificacion = DateTime.UtcNow;
-        dbEntity.IdUsuarioUltimaModificacion = GuidLongConverter.ToLong(_currentUserService.GetCurrentUserId());
+        dbEntity.IdUsuarioUltimaModificacion = IdConversion.ToLongFromString(_currentUserService.GetCurrentUserId());
         
         _context.PersonaServicios.Update(dbEntity);
         return Task.CompletedTask;
@@ -94,11 +98,15 @@ public class PersonServiceRepository : IRepository<PersonService>
     public Task DeleteAsync(PersonService entity, CancellationToken cancellationToken = default)
     {
         var accountIdLong = string.IsNullOrEmpty(_currentUserService.GetCurrentAccountId()) ? 0L : long.Parse(_currentUserService.GetCurrentAccountId());
-        var personIdString = GuidStringConverter.ToString(entity.PersonId);
-        var serviceIdLong = GuidLongConverter.ToLong(entity.ServiceId);
+        var personIdString = entity.PersonId ?? string.Empty;
+        var serviceIdLong = IdConversion.ToLongFromString(entity.ServiceId);
         var startDate = DateOnly.FromDateTime(entity.StartDate);
 
-        var dbEntity = _context.PersonaServicios.Find(personIdString, serviceIdLong, startDate, accountIdLong);
+        var dbEntity = _context.PersonaServicios
+            .FirstOrDefault(ps => ps.IdPersona == personIdString
+                && ps.IdServicio == serviceIdLong
+                && ps.FechaInicio == startDate
+                && ps.IdCuenta == accountIdLong);
         
         if (dbEntity == null)
             throw new KeyNotFoundException($"PersonService relationship for Person {entity.PersonId}, Service {entity.ServiceId} not found");
@@ -106,7 +114,7 @@ public class PersonServiceRepository : IRepository<PersonService>
         // Soft delete
         dbEntity.Activo = false;
         dbEntity.FechaUltimaModificacion = DateTime.UtcNow;
-        dbEntity.IdUsuarioUltimaModificacion = GuidLongConverter.ToLong(_currentUserService.GetCurrentUserId());
+        dbEntity.IdUsuarioUltimaModificacion = IdConversion.ToLongFromString(_currentUserService.GetCurrentUserId());
         
         _context.PersonaServicios.Update(dbEntity);
         return Task.CompletedTask;

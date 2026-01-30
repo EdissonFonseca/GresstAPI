@@ -83,7 +83,7 @@ public class RouteService : IRouteService
         return result;
     }
 
-    public async Task<IEnumerable<RouteDto>> GetByVehicleAsync(Guid vehicleId, CancellationToken cancellationToken = default)
+    public async Task<IEnumerable<RouteDto>> GetByVehicleAsync(string vehicleId, CancellationToken cancellationToken = default)
     {
         var routes = await _routeRepository.FindAsync(
             r => r.VehicleId == vehicleId,
@@ -117,9 +117,9 @@ public class RouteService : IRouteService
         };
 
         // Load Vehicle if VehicleId is provided
-        if (route.VehicleId.HasValue && route.VehicleId.Value != Guid.Empty && _vehicleRepository != null)
+        if (!string.IsNullOrEmpty(route.VehicleId) && _vehicleRepository != null)
         {
-            var vehicle = await _vehicleRepository.GetByIdAsync(route.VehicleId.Value.ToString(), cancellationToken);
+            var vehicle = await _vehicleRepository.GetByIdAsync(route.VehicleId, cancellationToken);
             if (vehicle != null)
             {
                 route.Vehicle = vehicle;
@@ -134,12 +134,12 @@ public class RouteService : IRouteService
         {
             foreach (var stopDto in dto.Stops)
             {
-                if (stopDto.FacilityId.HasValue)
+                if (!string.IsNullOrEmpty(stopDto.FacilityId))
                 {
                     var stop = new DomainRouteStop
                     {
                         Id = string.Empty,
-                        RouteId = Guid.Parse(route.Id),
+                        RouteId = route.Id,
                         Sequence = stopDto.Sequence,
                         FacilityId = stopDto.FacilityId,
                         LocationId = stopDto.LocationId,
@@ -175,20 +175,20 @@ public class RouteService : IRouteService
             route.Description = dto.Description;
         if (!string.IsNullOrEmpty(dto.RouteType))
             route.RouteType = dto.RouteType;
-        if (dto.VehicleId.HasValue)
+        if (!string.IsNullOrEmpty(dto.VehicleId))
         {
             route.VehicleId = dto.VehicleId;
             // Load Vehicle if provided
-            if (dto.VehicleId.Value != Guid.Empty && _vehicleRepository != null)
+            if (_vehicleRepository != null)
             {
-                var vehicle = await _vehicleRepository.GetByIdAsync(dto.VehicleId.Value.ToString(), cancellationToken);
+                var vehicle = await _vehicleRepository.GetByIdAsync(dto.VehicleId, cancellationToken);
                 if (vehicle != null)
                 {
                     route.Vehicle = vehicle;
                 }
             }
         }
-        if (dto.DriverId.HasValue)
+        if (!string.IsNullOrEmpty(dto.DriverId))
             route.DriverId = dto.DriverId;
         if (dto.Schedule != null)
             route.Schedule = dto.Schedule;
@@ -207,12 +207,12 @@ public class RouteService : IRouteService
         return await MapToDtoAsync(route, cancellationToken);
     }
 
-    public async Task<RouteStopDto> AddStopAsync(Guid routeId, CreateRouteStopDto dto, CancellationToken cancellationToken = default)
+    public async Task<RouteStopDto> AddStopAsync(string routeId, CreateRouteStopDto dto, CancellationToken cancellationToken = default)
     {
-        if (!dto.FacilityId.HasValue)
+        if (string.IsNullOrEmpty(dto.FacilityId))
             throw new InvalidOperationException("RouteStop must have a FacilityId");
 
-        var route = await _routeRepository.GetByIdAsync(routeId.ToString(), cancellationToken);
+        var route = await _routeRepository.GetByIdAsync(routeId, cancellationToken);
         if (route == null)
             throw new KeyNotFoundException($"Route with ID {routeId} not found");
 
@@ -239,7 +239,7 @@ public class RouteService : IRouteService
         return MapStopToDto(stop);
     }
 
-    public async Task<bool> RemoveStopAsync(Guid routeId, Guid facilityId, CancellationToken cancellationToken = default)
+    public async Task<bool> RemoveStopAsync(string routeId, string facilityId, CancellationToken cancellationToken = default)
     {
         var stops = await _routeStopRepository.FindAsync(
             rs => rs.RouteId == routeId && rs.FacilityId == facilityId,
@@ -255,9 +255,9 @@ public class RouteService : IRouteService
         return true;
     }
 
-    public async Task<RouteDto> ReorderStopsAsync(Guid routeId, Dictionary<Guid, int> stopSequences, CancellationToken cancellationToken = default)
+    public async Task<RouteDto> ReorderStopsAsync(string routeId, Dictionary<string, int> stopSequences, CancellationToken cancellationToken = default)
     {
-        var route = await _routeRepository.GetByIdAsync(routeId.ToString(), cancellationToken);
+        var route = await _routeRepository.GetByIdAsync(routeId, cancellationToken);
         if (route == null)
             throw new KeyNotFoundException($"Route with ID {routeId} not found");
 
@@ -267,9 +267,9 @@ public class RouteService : IRouteService
 
         foreach (var stop in stops)
         {
-            if (stop.FacilityId.HasValue && stopSequences.ContainsKey(stop.FacilityId.Value))
+            if (!string.IsNullOrEmpty(stop.FacilityId) && stopSequences.ContainsKey(stop.FacilityId))
             {
-                stop.Sequence = stopSequences[stop.FacilityId.Value];
+                stop.Sequence = stopSequences[stop.FacilityId];
                 stop.UpdatedAt = DateTime.UtcNow;
                 await _routeStopRepository.UpdateAsync(stop, cancellationToken);
             }
@@ -280,9 +280,9 @@ public class RouteService : IRouteService
         return await MapToDtoAsync(route, cancellationToken);
     }
 
-    public async Task<RouteDto?> ActivateAsync(Guid id, CancellationToken cancellationToken = default)
+    public async Task<RouteDto?> ActivateAsync(string id, CancellationToken cancellationToken = default)
     {
-        var route = await _routeRepository.GetByIdAsync(id.ToString(), cancellationToken);
+        var route = await _routeRepository.GetByIdAsync(id, cancellationToken);
         if (route == null)
             return null;
 
@@ -295,9 +295,9 @@ public class RouteService : IRouteService
         return await MapToDtoAsync(route, cancellationToken);
     }
 
-    public async Task<RouteDto?> DeactivateAsync(Guid id, CancellationToken cancellationToken = default)
+    public async Task<RouteDto?> DeactivateAsync(string id, CancellationToken cancellationToken = default)
     {
-        var route = await _routeRepository.GetByIdAsync(id.ToString(), cancellationToken);
+        var route = await _routeRepository.GetByIdAsync(id, cancellationToken);
         if (route == null)
             return null;
 
@@ -312,10 +312,9 @@ public class RouteService : IRouteService
 
     private async Task<RouteDto> MapToDtoAsync(DomainRoute route, CancellationToken cancellationToken)
     {
-        // Load stops for this route (RouteStop.RouteId is Guid, route.Id is string)
-        var routeIdGuid = Guid.Parse(route.Id);
+        // Load stops for this route
         var stops = await _routeStopRepository.FindAsync(
-            rs => rs.RouteId == routeIdGuid,
+            rs => rs.RouteId == route.Id,
             cancellationToken);
 
         return new RouteDto

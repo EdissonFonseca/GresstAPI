@@ -25,8 +25,8 @@ public class FacilityWasteClassMapper : MapperBase<FacilityWasteClass, DepositoT
             accountId = dbEntity.IdDepositoNavigation.IdCuenta.Value.ToString();
         }
 
-        // Convert int IdTipoResiduo to Guid (using GuidLongConverter pattern)
-        var wasteClassId = GuidLongConverter.ToGuid(dbEntity.IdTipoResiduo);
+        // Convert int IdTipoResiduo to string (domain ID)
+        var wasteClassId = IdConversion.ToStringFromLong(dbEntity.IdTipoResiduo);
 
         return new FacilityWasteClass
         {
@@ -35,7 +35,7 @@ public class FacilityWasteClassMapper : MapperBase<FacilityWasteClass, DepositoT
             AccountId = accountId,
             
             // Relations
-            FacilityId = GuidLongConverter.ToGuid(dbEntity.IdDeposito),
+            FacilityId = IdConversion.ToStringFromLong(dbEntity.IdDeposito),
             WasteClassId = wasteClassId,
             RelationshipType = dbEntity.IdRelacion ?? string.Empty,
             
@@ -56,14 +56,14 @@ public class FacilityWasteClassMapper : MapperBase<FacilityWasteClass, DepositoT
         if (domainEntity == null) 
             throw new ArgumentNullException(nameof(domainEntity));
 
-        // Convert Guid WasteClassId to int (using GuidLongConverter pattern, then cast to int)
-        var wasteClassIdLong = GuidLongConverter.ToLong(domainEntity.WasteClassId);
+        // Convert string WasteClassId to int (domain ID to DB int)
+        var wasteClassIdLong = IdConversion.ToLongFromString(domainEntity.WasteClassId);
         var wasteClassIdInt = (int)wasteClassIdLong; // Cast long to int
 
         return new DepositoTipoResiduo
         {
             // IDs (composite key)
-            IdDeposito = GuidLongConverter.ToLong(domainEntity.FacilityId),
+            IdDeposito = IdConversion.ToLongFromString(domainEntity.FacilityId),
             IdTipoResiduo = wasteClassIdInt,
             IdRelacion = domainEntity.RelationshipType,
             

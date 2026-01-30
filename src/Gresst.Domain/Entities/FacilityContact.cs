@@ -12,14 +12,14 @@ public class FacilityContact : BaseEntity
     /// <summary>
     /// Facility that has this contact
     /// </summary>
-    public Guid FacilityId { get; set; }
+    public string FacilityId { get; set; } = string.Empty;
     public virtual Facility Facility { get; set; } = null!;
     
     /// <summary>
     /// Contact person (employee, contractor, etc.)
     /// This is a Person but without vehicles, materials, etc.
     /// </summary>
-    public Guid ContactId { get; set; }
+    public string ContactId { get; set; } = string.Empty;
     public virtual Person Contact { get; set; } = null!;
     
     /// <summary>

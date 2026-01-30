@@ -30,8 +30,8 @@ public class MaterialTransformationMapper : MapperBase<MaterialTransformation, M
             
             // Relations
             // MaterialItem: IdItem is source, IdMaterial is result
-            SourceMaterialId = GuidLongConverter.ToGuid(dbEntity.IdItem),
-            ResultMaterialId = GuidLongConverter.ToGuid(dbEntity.IdMaterial),
+            SourceMaterialId = IdConversion.ToStringFromLong(dbEntity.IdItem),
+            ResultMaterialId = IdConversion.ToStringFromLong(dbEntity.IdMaterial),
             RelationshipType = dbEntity.IdRelacion ?? string.Empty,
             
             // Conversion factors
@@ -61,8 +61,8 @@ public class MaterialTransformationMapper : MapperBase<MaterialTransformation, M
         {
             // IDs (composite key)
             // MaterialItem: IdItem is source, IdMaterial is result
-            IdItem = GuidLongConverter.ToLong(domainEntity.SourceMaterialId),
-            IdMaterial = GuidLongConverter.ToLong(domainEntity.ResultMaterialId),
+            IdItem = IdConversion.ToLongFromString(domainEntity.SourceMaterialId),
+            IdMaterial = IdConversion.ToLongFromString(domainEntity.ResultMaterialId),
             IdRelacion = domainEntity.RelationshipType,
             
             // Conversion factors

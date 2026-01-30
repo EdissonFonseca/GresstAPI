@@ -85,9 +85,9 @@ public class FacilityMaterialRepository : IRepository<FacilityMaterial>
     public Task UpdateAsync(FacilityMaterial entity, CancellationToken cancellationToken = default)
     {
         var dbEntity = _context.PersonaMaterialDepositos
-            .FirstOrDefault(pmd => pmd.IdPersona == GuidStringConverter.ToString(entity.PersonId) 
-                && pmd.IdMaterial == GuidLongConverter.ToLong(entity.MaterialId)
-                && pmd.IdDeposito == GuidLongConverter.ToLong(entity.FacilityId)
+            .FirstOrDefault(pmd => pmd.IdPersona == (entity.PersonId ?? string.Empty) 
+                && pmd.IdMaterial == IdConversion.ToLongFromString(entity.MaterialId)
+                && pmd.IdDeposito == IdConversion.ToLongFromString(entity.FacilityId)
                 && pmd.IdCuenta == (string.IsNullOrEmpty(entity.AccountId) ? 0L : long.Parse(entity.AccountId)));
         
         if (dbEntity == null)
@@ -105,9 +105,9 @@ public class FacilityMaterialRepository : IRepository<FacilityMaterial>
     public Task DeleteAsync(FacilityMaterial entity, CancellationToken cancellationToken = default)
     {
         var dbEntity = _context.PersonaMaterialDepositos
-            .FirstOrDefault(pmd => pmd.IdPersona == GuidStringConverter.ToString(entity.PersonId) 
-                && pmd.IdMaterial == GuidLongConverter.ToLong(entity.MaterialId)
-                && pmd.IdDeposito == GuidLongConverter.ToLong(entity.FacilityId)
+            .FirstOrDefault(pmd => pmd.IdPersona == (entity.PersonId ?? string.Empty)
+                && pmd.IdMaterial == IdConversion.ToLongFromString(entity.MaterialId)
+                && pmd.IdDeposito == IdConversion.ToLongFromString(entity.FacilityId)
                 && pmd.IdCuenta == (string.IsNullOrEmpty(entity.AccountId) ? 0L : long.Parse(entity.AccountId)));
         
         if (dbEntity == null)
@@ -142,7 +142,7 @@ public class FacilityMaterialRepository : IRepository<FacilityMaterial>
     private long GetCurrentUserIdAsLong()
     {
         var userId = _currentUserService.GetCurrentUserId();
-        return GuidLongConverter.ToLong(userId);
+        return IdConversion.ToLongFromString(userId);
     }
 }
 

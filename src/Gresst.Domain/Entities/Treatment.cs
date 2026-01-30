@@ -15,7 +15,7 @@ public class Treatment : BaseEntity
     public string Category { get; set; } = string.Empty; // Physical, Chemical, Biological, Thermal
     
     // Service associated with this treatment
-    public Guid ServiceId { get; set; }
+    public string ServiceId { get; set; } = string.Empty;
     public virtual Service Service { get; set; } = null!;
     
     // Process details

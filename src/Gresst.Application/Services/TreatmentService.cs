@@ -39,9 +39,9 @@ public class TreatmentService : ITreatmentService
         return treatments.Select(MapTreatmentToDto).ToList();
     }
 
-    public async Task<TreatmentDto?> GetTreatmentByIdAsync(Guid id, CancellationToken cancellationToken = default)
+    public async Task<TreatmentDto?> GetTreatmentByIdAsync(string id, CancellationToken cancellationToken = default)
     {
-        var treatment = await _treatmentRepository.GetByIdAsync(id.ToString(), cancellationToken);
+        var treatment = await _treatmentRepository.GetByIdAsync(id, cancellationToken);
         if (treatment == null)
             return null;
 
@@ -85,8 +85,8 @@ public class TreatmentService : ITreatmentService
             treatment.Description = dto.Description;
         if (!string.IsNullOrEmpty(dto.Category))
             treatment.Category = dto.Category;
-        if (dto.ServiceId.HasValue)
-            treatment.ServiceId = dto.ServiceId.Value;
+        if (!string.IsNullOrEmpty(dto.ServiceId))
+            treatment.ServiceId = dto.ServiceId;
         if (dto.ProcessDescription != null)
             treatment.ProcessDescription = dto.ProcessDescription;
         if (dto.EstimatedDuration.HasValue)
@@ -108,9 +108,9 @@ public class TreatmentService : ITreatmentService
         return MapTreatmentToDto(treatment);
     }
 
-    public async Task<bool> DeleteTreatmentAsync(Guid id, CancellationToken cancellationToken = default)
+    public async Task<bool> DeleteTreatmentAsync(string id, CancellationToken cancellationToken = default)
     {
-        var treatment = await _treatmentRepository.GetByIdAsync(id.ToString(), cancellationToken);
+        var treatment = await _treatmentRepository.GetByIdAsync(id, cancellationToken);
         if (treatment == null)
             return false;
 
@@ -121,11 +121,11 @@ public class TreatmentService : ITreatmentService
     }
 
     // PersonTreatment - Account Person
-    private async Task<Guid> GetAccountPersonIdAsync(CancellationToken cancellationToken)
+    private async Task<string> GetAccountPersonIdAsync(CancellationToken cancellationToken)
     {
         var accountId = _currentUserService.GetCurrentAccountId();
         var account = await _accountRepository.GetByIdAsync(accountId, cancellationToken);
-        if (account == null || account.PersonId == Guid.Empty)
+        if (account == null || string.IsNullOrEmpty(account.PersonId))
             throw new InvalidOperationException("Account or Account Person not found");
         return account.PersonId;
     }
@@ -149,36 +149,36 @@ public class TreatmentService : ITreatmentService
         return await UpdatePersonTreatmentAsync(dto, cancellationToken);
     }
 
-    public async Task<bool> DeleteAccountPersonTreatmentAsync(Guid treatmentId, CancellationToken cancellationToken = default)
+    public async Task<bool> DeleteAccountPersonTreatmentAsync(string treatmentId, CancellationToken cancellationToken = default)
     {
         var accountPersonId = await GetAccountPersonIdAsync(cancellationToken);
         return await DeletePersonTreatmentAsync(accountPersonId, treatmentId, cancellationToken);
     }
 
     // PersonTreatment - Provider
-    public async Task<IEnumerable<PersonTreatmentDto>> GetProviderTreatmentsAsync(Guid providerId, CancellationToken cancellationToken = default)
+    public async Task<IEnumerable<PersonTreatmentDto>> GetProviderTreatmentsAsync(string providerId, CancellationToken cancellationToken = default)
     {
         return await GetPersonTreatmentsAsync(providerId, cancellationToken);
     }
 
-    public async Task<PersonTreatmentDto> CreateProviderTreatmentAsync(Guid providerId, CreatePersonTreatmentDto dto, CancellationToken cancellationToken = default)
+    public async Task<PersonTreatmentDto> CreateProviderTreatmentAsync(string providerId, CreatePersonTreatmentDto dto, CancellationToken cancellationToken = default)
     {
         return await CreatePersonTreatmentAsync(providerId, dto, cancellationToken);
     }
 
-    public async Task<PersonTreatmentDto?> UpdateProviderTreatmentAsync(Guid providerId, UpdatePersonTreatmentDto dto, CancellationToken cancellationToken = default)
+    public async Task<PersonTreatmentDto?> UpdateProviderTreatmentAsync(string providerId, UpdatePersonTreatmentDto dto, CancellationToken cancellationToken = default)
     {
         dto.PersonId = providerId;
         return await UpdatePersonTreatmentAsync(dto, cancellationToken);
     }
 
-    public async Task<bool> DeleteProviderTreatmentAsync(Guid providerId, Guid treatmentId, CancellationToken cancellationToken = default)
+    public async Task<bool> DeleteProviderTreatmentAsync(string providerId, string treatmentId, CancellationToken cancellationToken = default)
     {
         return await DeletePersonTreatmentAsync(providerId, treatmentId, cancellationToken);
     }
 
     // Helper methods
-    private async Task<IEnumerable<PersonTreatmentDto>> GetPersonTreatmentsAsync(Guid personId, CancellationToken cancellationToken)
+    private async Task<IEnumerable<PersonTreatmentDto>> GetPersonTreatmentsAsync(string personId, CancellationToken cancellationToken)
     {
         var personTreatments = await _personTreatmentRepository.FindAsync(
             pt => pt.PersonId == personId,
@@ -187,7 +187,7 @@ public class TreatmentService : ITreatmentService
         return personTreatments.Select(MapPersonTreatmentToDto).ToList();
     }
 
-    private async Task<PersonTreatmentDto> CreatePersonTreatmentAsync(Guid personId, CreatePersonTreatmentDto dto, CancellationToken cancellationToken)
+    private async Task<PersonTreatmentDto> CreatePersonTreatmentAsync(string personId, CreatePersonTreatmentDto dto, CancellationToken cancellationToken)
     {
         var personTreatment = new PersonTreatment
         {
@@ -231,7 +231,7 @@ public class TreatmentService : ITreatmentService
         return await MapPersonTreatmentToDtoWithNamesAsync(personTreatment, cancellationToken);
     }
 
-    private async Task<bool> DeletePersonTreatmentAsync(Guid personId, Guid treatmentId, CancellationToken cancellationToken)
+    private async Task<bool> DeletePersonTreatmentAsync(string personId, string treatmentId, CancellationToken cancellationToken)
     {
         var personTreatments = await _personTreatmentRepository.FindAsync(
             pt => pt.PersonId == personId && pt.TreatmentId == treatmentId,
@@ -263,7 +263,7 @@ public class TreatmentService : ITreatmentService
             ApplicableWasteClasses = treatment.ApplicableWasteClasses,
             ProducesNewWaste = treatment.ProducesNewWaste,
             ResultingWasteClasses = treatment.ResultingWasteClasses,
-            WasteClassId = string.IsNullOrEmpty(treatment.WasteClass?.Id) ? null : Guid.Parse(treatment.WasteClass.Id),
+            WasteClassId = treatment.WasteClass?.Id,
             WasteClassName = treatment.WasteClass?.Name,
             IsActive = treatment.IsActive,
             CreatedAt = treatment.CreatedAt,

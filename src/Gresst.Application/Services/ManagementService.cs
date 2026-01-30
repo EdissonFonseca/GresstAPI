@@ -67,7 +67,7 @@ public class ManagementService : IManagementService
         return await MapToDto(management, cancellationToken);
     }
 
-    public async Task<IEnumerable<ManagementDto>> GetWasteHistoryAsync(Guid wasteId, CancellationToken cancellationToken = default)
+    public async Task<IEnumerable<ManagementDto>> GetWasteHistoryAsync(string wasteId, CancellationToken cancellationToken = default)
     {
         var managements = await _managementRepository.FindAsync(m => m.WasteId == wasteId, cancellationToken);
         var dtos = new List<ManagementDto>();
@@ -89,7 +89,7 @@ public class ManagementService : IManagementService
         var dto = new CreateManagementDto
         {
             Type = ManagementType.Generate,
-            WasteId = Guid.Parse(waste.Id),
+            WasteId = waste.Id,
             Quantity = wasteDto.Quantity,
             Unit = wasteDto.Unit,
             ExecutedById = wasteDto.GeneratorId,
@@ -135,9 +135,9 @@ public class ManagementService : IManagementService
         return await CreateManagementAsync(managementDto, cancellationToken);
     }
 
-    public async Task<ManagementDto> ReceiveWasteAsync(Guid wasteId, Guid receiverId, Guid facilityId, CancellationToken cancellationToken = default)
+    public async Task<ManagementDto> ReceiveWasteAsync(string wasteId, string receiverId, string facilityId, CancellationToken cancellationToken = default)
     {
-        var waste = await _wasteRepository.GetByIdAsync(wasteId.ToString(), cancellationToken);
+        var waste = await _wasteRepository.GetByIdAsync(wasteId, cancellationToken);
         if (waste == null)
             throw new KeyNotFoundException($"Waste with ID {wasteId} not found");
 
@@ -164,7 +164,7 @@ public class ManagementService : IManagementService
             WasteId = dto.WasteId,
             Quantity = dto.Quantity,
             Unit = UnitOfMeasure.Kilogram,
-            ExecutedById = Guid.Empty, // Should be passed
+            ExecutedById = string.Empty, // Should be passed
             DestinationLocationId = dto.LocationId,
             DestinationFacilityId = dto.FacilityId,
             Notes = dto.Notes
@@ -192,7 +192,7 @@ public class ManagementService : IManagementService
     public async Task<ManagementDto> TransformWasteAsync(TransformWasteDto dto, CancellationToken cancellationToken = default)
     {
         // Create new waste for result
-        var sourceWaste = await _wasteRepository.GetByIdAsync(dto.SourceWasteId.ToString(), cancellationToken);
+        var sourceWaste = await _wasteRepository.GetByIdAsync(dto.SourceWasteId, cancellationToken);
         if (sourceWaste == null)
             throw new KeyNotFoundException($"Source waste with ID {dto.SourceWasteId} not found");
 
@@ -218,7 +218,7 @@ public class ManagementService : IManagementService
             SourceWasteId = dto.SourceWasteId,
             SourceQuantity = dto.SourceQuantity,
             SourceUnit = UnitOfMeasure.Kilogram,
-            ResultWasteId = Guid.Parse(newWaste.Id),
+            ResultWasteId = newWaste.Id,
             ResultQuantity = dto.ResultQuantity,
             ResultUnit = UnitOfMeasure.Kilogram,
             TreatmentId = dto.TreatmentId,
@@ -245,9 +245,9 @@ public class ManagementService : IManagementService
         return await CreateManagementAsync(managementDto, cancellationToken);
     }
 
-    public async Task<ManagementDto> ClassifyWasteAsync(Guid wasteId, Guid wasteTypeId, Guid classifiedById, CancellationToken cancellationToken = default)
+    public async Task<ManagementDto> ClassifyWasteAsync(string wasteId, string wasteTypeId, string classifiedById, CancellationToken cancellationToken = default)
     {
-        var waste = await _wasteRepository.GetByIdAsync(wasteId.ToString(), cancellationToken);
+        var waste = await _wasteRepository.GetByIdAsync(wasteId, cancellationToken);
         if (waste == null)
             throw new KeyNotFoundException($"Waste with ID {wasteId} not found");
 
@@ -267,9 +267,9 @@ public class ManagementService : IManagementService
         return await CreateManagementAsync(managementDto, cancellationToken);
     }
 
-    public async Task<ManagementDto> SellWasteAsync(Guid wasteId, Guid buyerId, decimal price, CancellationToken cancellationToken = default)
+    public async Task<ManagementDto> SellWasteAsync(string wasteId, string buyerId, decimal price, CancellationToken cancellationToken = default)
     {
-        var waste = await _wasteRepository.GetByIdAsync(wasteId.ToString(), cancellationToken);
+        var waste = await _wasteRepository.GetByIdAsync(wasteId, cancellationToken);
         if (waste == null)
             throw new KeyNotFoundException($"Waste with ID {wasteId} not found");
 
@@ -289,9 +289,9 @@ public class ManagementService : IManagementService
         return await CreateManagementAsync(managementDto, cancellationToken);
     }
 
-    public async Task<ManagementDto> DeliverToThirdPartyAsync(Guid wasteId, Guid recipientId, string notes, CancellationToken cancellationToken = default)
+    public async Task<ManagementDto> DeliverToThirdPartyAsync(string wasteId, string recipientId, string notes, CancellationToken cancellationToken = default)
     {
-        var waste = await _wasteRepository.GetByIdAsync(wasteId.ToString(), cancellationToken);
+        var waste = await _wasteRepository.GetByIdAsync(wasteId, cancellationToken);
         if (waste == null)
             throw new KeyNotFoundException($"Waste with ID {wasteId} not found");
 
@@ -311,9 +311,9 @@ public class ManagementService : IManagementService
         return await CreateManagementAsync(managementDto, cancellationToken);
     }
 
-    private async Task UpdateWasteStatus(Guid wasteId, ManagementType type, Guid? locationId, Guid? facilityId, CancellationToken cancellationToken)
+    private async Task UpdateWasteStatus(string wasteId, ManagementType type, string? locationId, string? facilityId, CancellationToken cancellationToken)
     {
-        var waste = await _wasteRepository.GetByIdAsync(wasteId.ToString(), cancellationToken);
+        var waste = await _wasteRepository.GetByIdAsync(wasteId, cancellationToken);
         if (waste == null) return;
 
         waste.Status = type switch
@@ -330,9 +330,9 @@ public class ManagementService : IManagementService
             _ => waste.Status
         };
 
-        if (locationId.HasValue)
+        if (!string.IsNullOrEmpty(locationId))
             waste.CurrentLocationId = locationId;
-        if (facilityId.HasValue)
+        if (!string.IsNullOrEmpty(facilityId))
             waste.CurrentFacilityId = facilityId;
 
         await _wasteRepository.UpdateAsync(waste, cancellationToken);
@@ -345,8 +345,8 @@ public class ManagementService : IManagementService
         
         try
         {
-            waste = await _wasteRepository.GetByIdAsync(management.WasteId.ToString(), cancellationToken);
-            executedBy = await _personRepository.GetByIdAsync(management.ExecutedById.ToString(), cancellationToken);
+            waste = await _wasteRepository.GetByIdAsync(management.WasteId, cancellationToken);
+            executedBy = await _personRepository.GetByIdAsync(management.ExecutedById, cancellationToken);
         }
         catch
         {

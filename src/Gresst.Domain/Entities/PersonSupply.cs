@@ -11,13 +11,13 @@ public class PersonSupply : BaseEntity
     /// <summary>
     /// Person who uses/manages this supply (account person)
     /// </summary>
-    public Guid PersonId { get; set; }
+    public string PersonId { get; set; } = string.Empty;
     public virtual Person Person { get; set; } = null!;
     
     /// <summary>
     /// Supply that the person uses
     /// </summary>
-    public Guid SupplyId { get; set; }
+    public string SupplyId { get; set; } = string.Empty;
     public virtual Supply Supply { get; set; } = null!;
     
     /// <summary>

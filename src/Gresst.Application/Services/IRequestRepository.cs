@@ -10,11 +10,11 @@ public interface IRequestRepository
     /// <summary>
     /// Gets mobile transport waste data implementing the fnResiduosTransporteMovil logic
     /// </summary>
-    /// <param name="personId">Person ID (Domain Guid)</param>
+    /// <param name="personId">Person ID (Domain string)</param>
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>List of mobile transport waste data</returns>
     Task<IEnumerable<MobileTransportWasteDto>> GetMobileTransportWasteAsync(
-        Guid personId, 
+        string personId, 
         CancellationToken cancellationToken = default);
 }
 

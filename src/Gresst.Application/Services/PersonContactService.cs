@@ -40,18 +40,18 @@ public class PersonContactService : IPersonContactService
     {
         var accountId = _currentUserService.GetCurrentAccountId();
         var account = await _accountRepository.GetByIdAsync(accountId, cancellationToken);
-        if (account == null || account.PersonId == Guid.Empty)
+        if (account == null || string.IsNullOrEmpty(account.PersonId))
             return Enumerable.Empty<PersonContactDto>();
 
         var contacts = await _personContactRepository.GetContactsByPersonIdAsync(account.PersonId, cancellationToken);
         return contacts.Select(MapToDto);
     }
 
-    public async Task<PersonContactDto?> GetAccountPersonContactAsync(Guid contactId, string? relationshipType = null, CancellationToken cancellationToken = default)
+    public async Task<PersonContactDto?> GetAccountPersonContactAsync(string contactId, string? relationshipType = null, CancellationToken cancellationToken = default)
     {
         var accountId = _currentUserService.GetCurrentAccountId();
         var account = await _accountRepository.GetByIdAsync(accountId, cancellationToken);
-        if (account == null || account.PersonId == Guid.Empty)
+        if (account == null || string.IsNullOrEmpty(account.PersonId))
             return null;
 
         var contact = await _personContactRepository.GetByPersonAndContactIdAsync(
@@ -64,7 +64,7 @@ public class PersonContactService : IPersonContactService
     {
         var accountId = _currentUserService.GetCurrentAccountId();
         var account = await _accountRepository.GetByIdAsync(accountId, cancellationToken);
-        if (account == null || account.PersonId == Guid.Empty)
+        if (account == null || string.IsNullOrEmpty(account.PersonId))
             throw new InvalidOperationException("Account or Account Person not found");
 
         var personContact = new PersonContact
@@ -72,7 +72,7 @@ public class PersonContactService : IPersonContactService
             Id = string.Empty,
             AccountId = accountId,
             PersonId = account.PersonId,
-            ContactId = Guid.Parse(dto.ContactId),
+            ContactId = dto.ContactId,
             RelationshipType = dto.RelationshipType,
             StartDate = dto.StartDate,
             EndDate = dto.EndDate,
@@ -87,7 +87,7 @@ public class PersonContactService : IPersonContactService
             JobTitle = dto.JobTitle,
             WebPage = dto.WebPage,
             Signature = dto.Signature,
-            LocationId = string.IsNullOrEmpty(dto.LocationId) ? null : Guid.Parse(dto.LocationId),
+            LocationId = dto.LocationId,
             Notes = dto.Notes,
             AdditionalData = dto.AdditionalData,
             CreatedAt = DateTime.UtcNow,
@@ -98,7 +98,7 @@ public class PersonContactService : IPersonContactService
         await _unitOfWork.SaveChangesAsync(cancellationToken);
 
         var created = await _personContactRepository.GetByPersonAndContactIdAsync(
-            account.PersonId, Guid.Parse(dto.ContactId), dto.RelationshipType, cancellationToken);
+            account.PersonId, dto.ContactId, dto.RelationshipType, cancellationToken);
         
         return created != null ? MapToDto(created) : throw new InvalidOperationException("Failed to create contact");
     }
@@ -107,11 +107,11 @@ public class PersonContactService : IPersonContactService
     {
         var accountId = _currentUserService.GetCurrentAccountId();
         var account = await _accountRepository.GetByIdAsync(accountId, cancellationToken);
-        if (account == null || account.PersonId == Guid.Empty)
+        if (account == null || string.IsNullOrEmpty(account.PersonId))
             return null;
 
         var personContact = await _personContactRepository.GetByPersonAndContactIdAsync(
-            account.PersonId, Guid.Parse(dto.ContactId), dto.RelationshipType, cancellationToken);
+            account.PersonId, dto.ContactId, dto.RelationshipType, cancellationToken);
         
         if (personContact == null)
             return null;
@@ -146,7 +146,7 @@ public class PersonContactService : IPersonContactService
         if (dto.Signature != null)
             personContact.Signature = dto.Signature;
         if (!string.IsNullOrEmpty(dto.LocationId))
-            personContact.LocationId = Guid.Parse(dto.LocationId);
+            personContact.LocationId = dto.LocationId;
         if (dto.Notes != null)
             personContact.Notes = dto.Notes;
         if (dto.AdditionalData != null)
@@ -160,16 +160,16 @@ public class PersonContactService : IPersonContactService
         await _unitOfWork.SaveChangesAsync(cancellationToken);
 
         var updated = await _personContactRepository.GetByPersonAndContactIdAsync(
-            account.PersonId, Guid.Parse(dto.ContactId), dto.RelationshipType, cancellationToken);
+            account.PersonId, dto.ContactId, dto.RelationshipType, cancellationToken);
         
         return updated != null ? MapToDto(updated) : null;
     }
 
-    public async Task<bool> DeleteAccountPersonContactAsync(Guid contactId, string? relationshipType = null, CancellationToken cancellationToken = default)
+    public async Task<bool> DeleteAccountPersonContactAsync(string contactId, string? relationshipType = null, CancellationToken cancellationToken = default)
     {
         var accountId = _currentUserService.GetCurrentAccountId();
         var account = await _accountRepository.GetByIdAsync(accountId, cancellationToken);
-        if (account == null || account.PersonId == Guid.Empty)
+        if (account == null || string.IsNullOrEmpty(account.PersonId))
             return false;
 
         var personContact = await _personContactRepository.GetByPersonAndContactIdAsync(
@@ -188,9 +188,9 @@ public class PersonContactService : IPersonContactService
 
     #region Person Contacts (Generic - works for any person)
 
-    public async Task<IEnumerable<PersonContactDto>> GetPersonContactsAsync(Guid personId, CancellationToken cancellationToken = default)
+    public async Task<IEnumerable<PersonContactDto>> GetPersonContactsAsync(string personId, CancellationToken cancellationToken = default)
     {
-        var person = await _personRepository.GetByIdAsync(personId.ToString(), cancellationToken);
+        var person = await _personRepository.GetByIdAsync(personId, cancellationToken);
         if (person == null)
             return Enumerable.Empty<PersonContactDto>();
 
@@ -198,9 +198,9 @@ public class PersonContactService : IPersonContactService
         return contacts.Select(MapToDto);
     }
 
-    public async Task<PersonContactDto?> GetPersonContactAsync(Guid personId, Guid contactId, string? relationshipType = null, CancellationToken cancellationToken = default)
+    public async Task<PersonContactDto?> GetPersonContactAsync(string personId, string contactId, string? relationshipType = null, CancellationToken cancellationToken = default)
     {
-        var person = await _personRepository.GetByIdAsync(personId.ToString(), cancellationToken);
+        var person = await _personRepository.GetByIdAsync(personId, cancellationToken);
         if (person == null)
             return null;
 
@@ -210,9 +210,9 @@ public class PersonContactService : IPersonContactService
         return contact != null ? MapToDto(contact) : null;
     }
 
-    public async Task<PersonContactDto> CreatePersonContactAsync(Guid personId, CreatePersonContactDto dto, CancellationToken cancellationToken = default)
+    public async Task<PersonContactDto> CreatePersonContactAsync(string personId, CreatePersonContactDto dto, CancellationToken cancellationToken = default)
     {
-        var person = await _personRepository.GetByIdAsync(personId.ToString(), cancellationToken);
+        var person = await _personRepository.GetByIdAsync(personId, cancellationToken);
         if (person == null)
             throw new InvalidOperationException("Person not found");
 
@@ -222,7 +222,7 @@ public class PersonContactService : IPersonContactService
             Id = string.Empty,
             AccountId = accountId,
             PersonId = personId,
-            ContactId = Guid.Parse(dto.ContactId),
+            ContactId = dto.ContactId,
             RelationshipType = dto.RelationshipType,
             StartDate = dto.StartDate,
             EndDate = dto.EndDate,
@@ -237,7 +237,7 @@ public class PersonContactService : IPersonContactService
             JobTitle = dto.JobTitle,
             WebPage = dto.WebPage,
             Signature = dto.Signature,
-            LocationId = string.IsNullOrEmpty(dto.LocationId) ? null : Guid.Parse(dto.LocationId),
+            LocationId = dto.LocationId,
             Notes = dto.Notes,
             AdditionalData = dto.AdditionalData,
             CreatedAt = DateTime.UtcNow,
@@ -248,19 +248,19 @@ public class PersonContactService : IPersonContactService
         await _unitOfWork.SaveChangesAsync(cancellationToken);
 
         var created = await _personContactRepository.GetByPersonAndContactIdAsync(
-            personId, Guid.Parse(dto.ContactId), dto.RelationshipType, cancellationToken);
+            personId, dto.ContactId, dto.RelationshipType, cancellationToken);
         
         return created != null ? MapToDto(created) : throw new InvalidOperationException("Failed to create contact");
     }
 
-    public async Task<PersonContactDto?> UpdatePersonContactAsync(Guid personId, UpdatePersonContactDto dto, CancellationToken cancellationToken = default)
+    public async Task<PersonContactDto?> UpdatePersonContactAsync(string personId, UpdatePersonContactDto dto, CancellationToken cancellationToken = default)
     {
-        var person = await _personRepository.GetByIdAsync(personId.ToString(), cancellationToken);
+        var person = await _personRepository.GetByIdAsync(personId, cancellationToken);
         if (person == null)
             return null;
 
         var personContact = await _personContactRepository.GetByPersonAndContactIdAsync(
-            personId, Guid.Parse(dto.ContactId), dto.RelationshipType, cancellationToken);
+            personId, dto.ContactId, dto.RelationshipType, cancellationToken);
         
         if (personContact == null)
             return null;
@@ -272,14 +272,14 @@ public class PersonContactService : IPersonContactService
         await _unitOfWork.SaveChangesAsync(cancellationToken);
 
         var updated = await _personContactRepository.GetByPersonAndContactIdAsync(
-            personId, Guid.Parse(dto.ContactId), dto.RelationshipType, cancellationToken);
+            personId, dto.ContactId, dto.RelationshipType, cancellationToken);
         
         return updated != null ? MapToDto(updated) : null;
     }
 
-    public async Task<bool> DeletePersonContactAsync(Guid personId, Guid contactId, string? relationshipType = null, CancellationToken cancellationToken = default)
+    public async Task<bool> DeletePersonContactAsync(string personId, string contactId, string? relationshipType = null, CancellationToken cancellationToken = default)
     {
-        var person = await _personRepository.GetByIdAsync(personId.ToString(), cancellationToken);
+        var person = await _personRepository.GetByIdAsync(personId, cancellationToken);
         if (person == null)
             return false;
 
@@ -299,27 +299,27 @@ public class PersonContactService : IPersonContactService
 
     #region Client Contacts (Legacy - delegate to generic methods)
 
-    public async Task<IEnumerable<PersonContactDto>> GetClientContactsAsync(Guid clientId, CancellationToken cancellationToken = default)
+    public async Task<IEnumerable<PersonContactDto>> GetClientContactsAsync(string clientId, CancellationToken cancellationToken = default)
     {
         return await GetPersonContactsAsync(clientId, cancellationToken);
     }
 
-    public async Task<PersonContactDto?> GetClientContactAsync(Guid clientId, Guid contactId, string? relationshipType = null, CancellationToken cancellationToken = default)
+    public async Task<PersonContactDto?> GetClientContactAsync(string clientId, string contactId, string? relationshipType = null, CancellationToken cancellationToken = default)
     {
         return await GetPersonContactAsync(clientId, contactId, relationshipType, cancellationToken);
     }
 
-    public async Task<PersonContactDto> CreateClientContactAsync(Guid clientId, CreatePersonContactDto dto, CancellationToken cancellationToken = default)
+    public async Task<PersonContactDto> CreateClientContactAsync(string clientId, CreatePersonContactDto dto, CancellationToken cancellationToken = default)
     {
         return await CreatePersonContactAsync(clientId, dto, cancellationToken);
     }
 
-    public async Task<PersonContactDto?> UpdateClientContactAsync(Guid clientId, UpdatePersonContactDto dto, CancellationToken cancellationToken = default)
+    public async Task<PersonContactDto?> UpdateClientContactAsync(string clientId, UpdatePersonContactDto dto, CancellationToken cancellationToken = default)
     {
         return await UpdatePersonContactAsync(clientId, dto, cancellationToken);
     }
 
-    public async Task<bool> DeleteClientContactAsync(Guid clientId, Guid contactId, string? relationshipType = null, CancellationToken cancellationToken = default)
+    public async Task<bool> DeleteClientContactAsync(string clientId, string contactId, string? relationshipType = null, CancellationToken cancellationToken = default)
     {
         return await DeletePersonContactAsync(clientId, contactId, relationshipType, cancellationToken);
     }
@@ -328,27 +328,27 @@ public class PersonContactService : IPersonContactService
 
     #region Provider Contacts (Legacy - delegate to generic methods)
 
-    public async Task<IEnumerable<PersonContactDto>> GetProviderContactsAsync(Guid providerId, CancellationToken cancellationToken = default)
+    public async Task<IEnumerable<PersonContactDto>> GetProviderContactsAsync(string providerId, CancellationToken cancellationToken = default)
     {
         return await GetPersonContactsAsync(providerId, cancellationToken);
     }
 
-    public async Task<PersonContactDto?> GetProviderContactAsync(Guid providerId, Guid contactId, string? relationshipType = null, CancellationToken cancellationToken = default)
+    public async Task<PersonContactDto?> GetProviderContactAsync(string providerId, string contactId, string? relationshipType = null, CancellationToken cancellationToken = default)
     {
         return await GetPersonContactAsync(providerId, contactId, relationshipType, cancellationToken);
     }
 
-    public async Task<PersonContactDto> CreateProviderContactAsync(Guid providerId, CreatePersonContactDto dto, CancellationToken cancellationToken = default)
+    public async Task<PersonContactDto> CreateProviderContactAsync(string providerId, CreatePersonContactDto dto, CancellationToken cancellationToken = default)
     {
         return await CreatePersonContactAsync(providerId, dto, cancellationToken);
     }
 
-    public async Task<PersonContactDto?> UpdateProviderContactAsync(Guid providerId, UpdatePersonContactDto dto, CancellationToken cancellationToken = default)
+    public async Task<PersonContactDto?> UpdateProviderContactAsync(string providerId, UpdatePersonContactDto dto, CancellationToken cancellationToken = default)
     {
         return await UpdatePersonContactAsync(providerId, dto, cancellationToken);
     }
 
-    public async Task<bool> DeleteProviderContactAsync(Guid providerId, Guid contactId, string? relationshipType = null, CancellationToken cancellationToken = default)
+    public async Task<bool> DeleteProviderContactAsync(string providerId, string contactId, string? relationshipType = null, CancellationToken cancellationToken = default)
     {
         return await DeletePersonContactAsync(providerId, contactId, relationshipType, cancellationToken);
     }
@@ -389,7 +389,7 @@ public class PersonContactService : IPersonContactService
         if (dto.Signature != null)
             personContact.Signature = dto.Signature;
         if (!string.IsNullOrEmpty(dto.LocationId))
-            personContact.LocationId = Guid.Parse(dto.LocationId);
+            personContact.LocationId = dto.LocationId;
         if (dto.Notes != null)
             personContact.Notes = dto.Notes;
         if (dto.AdditionalData != null)
@@ -406,9 +406,9 @@ public class PersonContactService : IPersonContactService
         {
             Id = personContact.Id,
             AccountId = personContact.AccountId,
-            PersonId = personContact.PersonId.ToString(),
+            PersonId = personContact.PersonId,
             PersonName = personContact.Person?.Name,
-            ContactId = personContact.ContactId.ToString(),
+            ContactId = personContact.ContactId,
             ContactName = personContact.Contact?.Name,
             ContactDocumentNumber = personContact.Contact?.DocumentNumber,
             RelationshipType = personContact.RelationshipType,
@@ -425,7 +425,7 @@ public class PersonContactService : IPersonContactService
             JobTitle = personContact.JobTitle,
             WebPage = personContact.WebPage,
             Signature = personContact.Signature,
-            LocationId = personContact.LocationId?.ToString(),
+            LocationId = personContact.LocationId,
             LocationName = personContact.Location?.Name,
             Notes = personContact.Notes,
             AdditionalData = personContact.AdditionalData,

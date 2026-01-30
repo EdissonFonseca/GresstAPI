@@ -5,10 +5,10 @@ namespace Gresst.Domain.Interfaces;
 /// </summary>
 public interface ICurrentUserService
 {
-    Guid GetCurrentUserId();
+    string GetCurrentUserId();
     string GetCurrentAccountId();
     string GetCurrentUsername();
-    Guid GetCurrentPersonId();
-    Guid GetCurrentAccountPersonId();
+    string GetCurrentPersonId();
+    string GetCurrentAccountPersonId();
 }
 

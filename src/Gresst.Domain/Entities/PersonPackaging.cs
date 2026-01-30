@@ -11,13 +11,13 @@ public class PersonPackaging : BaseEntity
     /// <summary>
     /// Person who manages this packaging (account person)
     /// </summary>
-    public Guid PersonId { get; set; }
+    public string PersonId { get; set; } = string.Empty;
     public virtual Person Person { get; set; } = null!;
     
     /// <summary>
     /// Packaging type that the person manages
     /// </summary>
-    public Guid PackagingId { get; set; }
+    public string PackagingId { get; set; } = string.Empty;
     public virtual Packaging Packaging { get; set; } = null!;
     
     /// <summary>

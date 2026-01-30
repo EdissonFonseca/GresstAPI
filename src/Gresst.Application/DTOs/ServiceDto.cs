@@ -30,9 +30,9 @@ public class UpdateServiceDto
 public class PersonServiceDto
 {
     public string Id { get; set; } = string.Empty;
-    public Guid PersonId { get; set; }
+    public string PersonId { get; set; } = string.Empty;
     public string? PersonName { get; set; }
-    public Guid ServiceId { get; set; }
+    public string ServiceId { get; set; } = string.Empty;
     public string? ServiceName { get; set; }
     public DateTime StartDate { get; set; }
     public DateTime? EndDate { get; set; }
@@ -43,15 +43,15 @@ public class PersonServiceDto
 
 public class CreatePersonServiceDto
 {
-    public Guid ServiceId { get; set; }
+    public string ServiceId { get; set; } = string.Empty;
     public DateTime StartDate { get; set; }
     public DateTime? EndDate { get; set; }
 }
 
 public class UpdatePersonServiceDto
 {
-    public Guid PersonId { get; set; }
-    public Guid ServiceId { get; set; }
+    public string PersonId { get; set; } = string.Empty;
+    public string ServiceId { get; set; } = string.Empty;
     public DateTime StartDate { get; set; }
     public DateTime? EndDate { get; set; }
     public bool? IsActive { get; set; }

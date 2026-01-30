@@ -1,4 +1,4 @@
-﻿using Gresst.Domain.Common;
+using Gresst.Domain.Common;
 using Gresst.Domain.Enums;
 
 namespace Gresst.Domain.Entities;
@@ -34,13 +34,13 @@ public class Account : BaseEntity
     /// <summary>
     /// Legal representative or owner person
     /// </summary>
-    public Guid PersonId { get; set; }
+    public string PersonId { get; set; } = string.Empty;
     public virtual Person? Person { get; set; }
     
     /// <summary>
     /// Parent account (for organizational hierarchies)
     /// </summary>
-    public Guid? ParentAccountId { get; set; }
+    public string? ParentAccountId { get; set; }
     public virtual Account? ParentAccount { get; set; }
     
     // Business Capabilities (computed from Role)

@@ -10,7 +10,7 @@ public class FacilityDto
     public string? Address { get; set; }
     public decimal? Latitude { get; set; }
     public decimal? Longitude { get; set; }
-    public Guid PersonId { get; set; }
+    public string PersonId { get; set; } = string.Empty;
     public string? PersonName { get; set; }
     
     // Capabilities
@@ -27,7 +27,7 @@ public class FacilityDto
     public decimal? CurrentCapacity { get; set; }
     
     // Hierarchical structure
-    public Guid? ParentFacilityId { get; set; }
+    public string? ParentFacilityId { get; set; }
     public string? ParentFacilityName { get; set; }
     public bool IsVirtual { get; set; }
     
@@ -48,7 +48,7 @@ public class CreateFacilityDto
     /// <summary>
     /// PersonId is optional. If not provided, uses the Account Person (persona de la cuenta).
     /// </summary>
-    public Guid? PersonId { get; set; }
+    public string? PersonId { get; set; }
     
     // Capabilities
     public bool CanCollect { get; set; }
@@ -66,7 +66,7 @@ public class CreateFacilityDto
     /// <summary>
     /// Parent facility ID (for hierarchical structures). Optional.
     /// </summary>
-    public Guid? ParentFacilityId { get; set; }
+    public string? ParentFacilityId { get; set; }
     
     /// <summary>
     /// Whether this facility is virtual (e.g., for vehicles)
@@ -99,7 +99,7 @@ public class UpdateFacilityDto
     /// <summary>
     /// Parent facility ID (for hierarchical structures). Optional.
     /// </summary>
-    public Guid? ParentFacilityId { get; set; }
+    public string? ParentFacilityId { get; set; }
     
     /// <summary>
     /// Whether this facility is virtual (e.g., for vehicles)

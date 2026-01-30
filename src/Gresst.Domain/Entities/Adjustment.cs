@@ -13,7 +13,7 @@ public class Adjustment : BaseEntity
     public DateTime AdjustmentDate { get; set; }
     
     // Waste Type
-    public Guid WasteClassId { get; set; }
+    public string WasteClassId { get; set; } = string.Empty;
     public virtual WasteClass WasteClass { get; set; } = null!;
     
     // Quantity
@@ -21,21 +21,21 @@ public class Adjustment : BaseEntity
     public UnitOfMeasure Unit { get; set; }
     
     // Origin (for transfers)
-    public Guid? OriginLocationId { get; set; }
+    public string? OriginLocationId { get; set; }
     public virtual Location? OriginLocation { get; set; }
     
-    public Guid? OriginFacilityId { get; set; }
+    public string? OriginFacilityId { get; set; }
     public virtual Facility? OriginFacility { get; set; }
     
     // Destination (for transfers)
-    public Guid? DestinationLocationId { get; set; }
+    public string? DestinationLocationId { get; set; }
     public virtual Location? DestinationLocation { get; set; }
     
-    public Guid? DestinationFacilityId { get; set; }
+    public string? DestinationFacilityId { get; set; }
     public virtual Facility? DestinationFacility { get; set; }
     
     // Performed by
-    public Guid PerformedById { get; set; }
+    public string PerformedById { get; set; } = string.Empty;
     public virtual Person PerformedBy { get; set; } = null!;
     
     // Reason

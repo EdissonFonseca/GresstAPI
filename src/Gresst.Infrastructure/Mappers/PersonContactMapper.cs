@@ -24,13 +24,11 @@ public class PersonContactMapper : MapperBase<PersonContact, PersonaContacto>
             Id = Guid.NewGuid().ToString(),
             AccountId = dbEntity.IdCuenta.ToString(),
             
-            // Relations
-            PersonId = GuidStringConverter.ToGuid(dbEntity.IdPersona),
-            ContactId = GuidStringConverter.ToGuid(dbEntity.IdContacto),
+            // Relations - DB IdPersona/IdContacto/IdLocalizacion are string
+            PersonId = dbEntity.IdPersona ?? string.Empty,
+            ContactId = dbEntity.IdContacto ?? string.Empty,
             RelationshipType = dbEntity.IdRelacion ?? string.Empty,
-            LocationId = !string.IsNullOrEmpty(dbEntity.IdLocalizacion)
-                ? GuidStringConverter.ToGuid(dbEntity.IdLocalizacion)
-                : null,
+            LocationId = dbEntity.IdLocalizacion,
             
             // Dates
             StartDate = dbEntity.FechaInicio,
@@ -73,8 +71,8 @@ public class PersonContactMapper : MapperBase<PersonContact, PersonaContacto>
         return new PersonaContacto
         {
             // IDs (composite key)
-            IdPersona = GuidStringConverter.ToString(domainEntity.PersonId),
-            IdContacto = GuidStringConverter.ToString(domainEntity.ContactId),
+            IdPersona = domainEntity.PersonId ?? string.Empty,
+            IdContacto = domainEntity.ContactId ?? string.Empty,
             IdRelacion = domainEntity.RelationshipType,
             IdCuenta = long.TryParse(domainEntity.AccountId, out var pcAc) ? pcAc : 0,
             
@@ -96,9 +94,7 @@ public class PersonContactMapper : MapperBase<PersonContact, PersonaContacto>
             Cargo = domainEntity.JobTitle,
             Pagina = domainEntity.WebPage,
             Firma = domainEntity.Signature,
-            IdLocalizacion = domainEntity.LocationId.HasValue
-                ? GuidStringConverter.ToString(domainEntity.LocationId.Value)
-                : null,
+            IdLocalizacion = domainEntity.LocationId,
             Notas = domainEntity.Notes,
             DatosAdicionales = domainEntity.AdditionalData,
             
@@ -142,9 +138,7 @@ public class PersonContactMapper : MapperBase<PersonContact, PersonaContacto>
         dbEntity.Cargo = domainEntity.JobTitle;
         dbEntity.Pagina = domainEntity.WebPage;
         dbEntity.Firma = domainEntity.Signature;
-        dbEntity.IdLocalizacion = domainEntity.LocationId.HasValue
-            ? GuidStringConverter.ToString(domainEntity.LocationId.Value)
-            : null;
+        dbEntity.IdLocalizacion = domainEntity.LocationId;
         dbEntity.Notas = domainEntity.Notes;
         dbEntity.DatosAdicionales = domainEntity.AdditionalData;
         dbEntity.Activo = domainEntity.IsActive;

@@ -39,9 +39,9 @@ public class WasteClassService : IWasteClassService
         return wasteClasses.Select(MapWasteClassToDto).ToList();
     }
 
-    public async Task<WasteClassDto?> GetWasteClassByIdAsync(Guid id, CancellationToken cancellationToken = default)
+    public async Task<WasteClassDto?> GetWasteClassByIdAsync(string id, CancellationToken cancellationToken = default)
     {
-        var wasteClass = await _wasteClassRepository.GetByIdAsync(id.ToString(), cancellationToken);
+        var wasteClass = await _wasteClassRepository.GetByIdAsync(id, cancellationToken);
         if (wasteClass == null)
             return null;
 
@@ -81,7 +81,7 @@ public class WasteClassService : IWasteClassService
             wasteClass.Name = dto.Name;
         if (dto.Description != null)
             wasteClass.Description = dto.Description;
-        if (dto.ClassificationId.HasValue)
+        if (!string.IsNullOrEmpty(dto.ClassificationId))
             wasteClass.ClassificationId = dto.ClassificationId;
         if (dto.IsHazardous.HasValue)
             wasteClass.IsHazardous = dto.IsHazardous.Value;
@@ -89,7 +89,7 @@ public class WasteClassService : IWasteClassService
             wasteClass.RequiresSpecialHandling = dto.RequiresSpecialHandling.Value;
         if (dto.PhysicalState != null)
             wasteClass.PhysicalState = dto.PhysicalState;
-        if (dto.TreatmentId.HasValue)
+        if (!string.IsNullOrEmpty(dto.TreatmentId))
             wasteClass.TreatmentId = dto.TreatmentId;
         if (dto.IsActive.HasValue)
             wasteClass.IsActive = dto.IsActive.Value;
@@ -102,9 +102,9 @@ public class WasteClassService : IWasteClassService
         return MapWasteClassToDto(wasteClass);
     }
 
-    public async Task<bool> DeleteWasteClassAsync(Guid id, CancellationToken cancellationToken = default)
+    public async Task<bool> DeleteWasteClassAsync(string id, CancellationToken cancellationToken = default)
     {
-        var wasteClass = await _wasteClassRepository.GetByIdAsync(id.ToString(), cancellationToken);
+        var wasteClass = await _wasteClassRepository.GetByIdAsync(id, cancellationToken);
         if (wasteClass == null)
             return false;
 
@@ -115,11 +115,11 @@ public class WasteClassService : IWasteClassService
     }
 
     // PersonWasteClass - Account Person
-    private async Task<Guid> GetAccountPersonIdAsync(CancellationToken cancellationToken)
+    private async Task<string> GetAccountPersonIdAsync(CancellationToken cancellationToken)
     {
         var accountId = _currentUserService.GetCurrentAccountId();
         var account = await _accountRepository.GetByIdAsync(accountId, cancellationToken);
-        if (account == null || account.PersonId == Guid.Empty)
+        if (account == null || string.IsNullOrEmpty(account.PersonId))
             throw new InvalidOperationException("Account or Account Person not found");
         return account.PersonId;
     }
@@ -143,36 +143,36 @@ public class WasteClassService : IWasteClassService
         return await UpdatePersonWasteClassAsync(dto, cancellationToken);
     }
 
-    public async Task<bool> DeleteAccountPersonWasteClassAsync(Guid wasteClassId, CancellationToken cancellationToken = default)
+    public async Task<bool> DeleteAccountPersonWasteClassAsync(string wasteClassId, CancellationToken cancellationToken = default)
     {
         var accountPersonId = await GetAccountPersonIdAsync(cancellationToken);
         return await DeletePersonWasteClassAsync(accountPersonId, wasteClassId, cancellationToken);
     }
 
     // PersonWasteClass - Provider
-    public async Task<IEnumerable<PersonWasteClassDto>> GetProviderWasteClassesAsync(Guid providerId, CancellationToken cancellationToken = default)
+    public async Task<IEnumerable<PersonWasteClassDto>> GetProviderWasteClassesAsync(string providerId, CancellationToken cancellationToken = default)
     {
         return await GetPersonWasteClassesAsync(providerId, cancellationToken);
     }
 
-    public async Task<PersonWasteClassDto> CreateProviderWasteClassAsync(Guid providerId, CreatePersonWasteClassDto dto, CancellationToken cancellationToken = default)
+    public async Task<PersonWasteClassDto> CreateProviderWasteClassAsync(string providerId, CreatePersonWasteClassDto dto, CancellationToken cancellationToken = default)
     {
         return await CreatePersonWasteClassAsync(providerId, dto, cancellationToken);
     }
 
-    public async Task<PersonWasteClassDto?> UpdateProviderWasteClassAsync(Guid providerId, UpdatePersonWasteClassDto dto, CancellationToken cancellationToken = default)
+    public async Task<PersonWasteClassDto?> UpdateProviderWasteClassAsync(string providerId, UpdatePersonWasteClassDto dto, CancellationToken cancellationToken = default)
     {
         dto.PersonId = providerId;
         return await UpdatePersonWasteClassAsync(dto, cancellationToken);
     }
 
-    public async Task<bool> DeleteProviderWasteClassAsync(Guid providerId, Guid wasteClassId, CancellationToken cancellationToken = default)
+    public async Task<bool> DeleteProviderWasteClassAsync(string providerId, string wasteClassId, CancellationToken cancellationToken = default)
     {
         return await DeletePersonWasteClassAsync(providerId, wasteClassId, cancellationToken);
     }
 
     // Helper methods
-    private async Task<IEnumerable<PersonWasteClassDto>> GetPersonWasteClassesAsync(Guid personId, CancellationToken cancellationToken)
+    private async Task<IEnumerable<PersonWasteClassDto>> GetPersonWasteClassesAsync(string personId, CancellationToken cancellationToken)
     {
         var personWasteClasses = await _personWasteClassRepository.FindAsync(
             pwc => pwc.PersonId == personId,
@@ -181,7 +181,7 @@ public class WasteClassService : IWasteClassService
         return personWasteClasses.Select(MapPersonWasteClassToDto).ToList();
     }
 
-    private async Task<PersonWasteClassDto> CreatePersonWasteClassAsync(Guid personId, CreatePersonWasteClassDto dto, CancellationToken cancellationToken)
+    private async Task<PersonWasteClassDto> CreatePersonWasteClassAsync(string personId, CreatePersonWasteClassDto dto, CancellationToken cancellationToken)
     {
         var personWasteClass = new PersonWasteClass
         {
@@ -219,7 +219,7 @@ public class WasteClassService : IWasteClassService
         return await MapPersonWasteClassToDtoWithNamesAsync(personWasteClass, cancellationToken);
     }
 
-    private async Task<bool> DeletePersonWasteClassAsync(Guid personId, Guid wasteClassId, CancellationToken cancellationToken)
+    private async Task<bool> DeletePersonWasteClassAsync(string personId, string wasteClassId, CancellationToken cancellationToken)
     {
         var personWasteClasses = await _personWasteClassRepository.FindAsync(
             pwc => pwc.PersonId == personId && pwc.WasteClassId == wasteClassId,

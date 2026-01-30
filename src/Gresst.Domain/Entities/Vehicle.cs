@@ -11,7 +11,7 @@ public class Vehicle : BaseEntity
     public int? Year { get; set; }
     
     // Owner
-    public Guid PersonId { get; set; }
+    public string PersonId { get; set; } = string.Empty;
     public virtual Person Person { get; set; } = null!;
     
     // Capacity
@@ -26,7 +26,7 @@ public class Vehicle : BaseEntity
     /// Virtual facility associated with this vehicle
     /// Allows inventory movements to/from vehicles as if they were facilities
     /// </summary>
-    public Guid? VirtualFacilityId { get; set; }
+    public string? VirtualFacilityId { get; set; }
     public virtual Facility? VirtualFacility { get; set; }
     
     // Navigation properties

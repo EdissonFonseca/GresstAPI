@@ -12,13 +12,13 @@ public class MaterialTransformation : BaseEntity
     /// <summary>
     /// Source material (the material being decomposed or transformed)
     /// </summary>
-    public Guid SourceMaterialId { get; set; }
+    public string SourceMaterialId { get; set; } = string.Empty;
     public virtual Material SourceMaterial { get; set; } = null!;
     
     /// <summary>
     /// Result material (the material resulting from decomposition or transformation)
     /// </summary>
-    public Guid ResultMaterialId { get; set; }
+    public string ResultMaterialId { get; set; } = string.Empty;
     public virtual Material ResultMaterial { get; set; } = null!;
     
     /// <summary>

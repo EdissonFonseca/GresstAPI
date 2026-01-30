@@ -22,7 +22,7 @@ public class PackagingMapper : MapperBase<DomainPackaging, DbPackaging>
         {
             // IDs - Domain BaseEntity uses string
             Id = dbEntity.IdEmbalaje != 0 
-                ? GuidLongConverter.ToGuid(dbEntity.IdEmbalaje).ToString() 
+                ? IdConversion.ToStringFromLong(dbEntity.IdEmbalaje) 
                 : string.Empty,
             
             // Basic Info
@@ -64,10 +64,8 @@ public class PackagingMapper : MapperBase<DomainPackaging, DbPackaging>
 
         return new DbPackaging
         {
-            // IDs - Conversión de Guid a long
-            IdEmbalaje = !string.IsNullOrEmpty(domainEntity.Id) && Guid.TryParse(domainEntity.Id, out var pkgGuid)
-                ? GuidLongConverter.ToLong(pkgGuid) 
-                : 0,
+            // IDs - Domain Id is string
+            IdEmbalaje = IdConversion.ToLongFromString(domainEntity.Id),
             
             // Parent packaging (hierarchical structure)
             IdEmbalajeSuperior = null, // Se puede agregar si se necesita

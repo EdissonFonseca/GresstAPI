@@ -41,8 +41,8 @@ public class MaterialRepository : IRepository<Material>
     {
         var accountId = _currentUserService.GetCurrentAccountId();
         var accountPersonId = _currentUserService.GetCurrentAccountPersonId();
-        var accountIdLong = string.IsNullOrEmpty(accountId) ? 0L : long.Parse(accountId);
-        var accountPersonIdString = GuidStringConverter.ToString(accountPersonId);
+        var accountIdLong = IdConversion.ToLongFromString(accountId);
+        var accountPersonIdString = accountPersonId ?? string.Empty;
 
         var dbEntities = await (
             from m in _context.Materials
@@ -158,7 +158,7 @@ public class MaterialRepository : IRepository<Material>
     private long GetCurrentUserIdAsLong()
     {
         var userId = _currentUserService.GetCurrentUserId();
-        return GuidLongConverter.ToLong(userId);
+        return IdConversion.ToLongFromString(userId);
     }
 }
 

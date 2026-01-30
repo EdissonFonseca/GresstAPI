@@ -8,7 +8,7 @@ public class MaterialDto
     public string? Description { get; set; }
     public string? Synonyms { get; set; }
     public string? Reference { get; set; }
-    public Guid? WasteClassId { get; set; }
+    public string? WasteClassId { get; set; }
     public string? WasteClassName { get; set; }
     public string? Image { get; set; }
     public string? Measurement { get; set; } // P = Peso, V = Volumen
@@ -40,7 +40,7 @@ public class CreateMaterialDto
     public string? Description { get; set; }
     public string? Synonyms { get; set; }
     public string? Reference { get; set; }
-    public Guid? WasteClassId { get; set; }
+    public string? WasteClassId { get; set; }
     public string? Image { get; set; }
     public string? Measurement { get; set; } // P = Peso, V = Volumen
     public bool IsPublic { get; set; } = true;
@@ -67,7 +67,7 @@ public class UpdateMaterialDto
     public string? Description { get; set; }
     public string? Synonyms { get; set; }
     public string? Reference { get; set; }
-    public Guid? WasteClassId { get; set; }
+    public string? WasteClassId { get; set; }
     public string? Image { get; set; }
     public string? Measurement { get; set; }
     public bool? IsPublic { get; set; }

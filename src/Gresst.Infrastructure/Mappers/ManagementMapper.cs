@@ -1,5 +1,6 @@
 using Gresst.Domain.Entities;
 using Gresst.Domain.Enums;
+using Gresst.Infrastructure.Common;
 using Gresst.Infrastructure.Data.Entities;
 
 namespace Gresst.Infrastructure.Mappers;
@@ -20,7 +21,7 @@ public class ManagementMapper : MapperBase<Management, Gestion>
         return new Management
         {
             // IDs - Domain BaseEntity uses string
-            Id = ConvertLongToGuid(dbEntity.IdMovimiento).ToString(),
+            Id = IdConversion.ToStringFromLong(dbEntity.IdMovimiento),
             AccountId = string.Empty, // Se obtiene del usuario actual en DbContext
             
             // Basic Info
@@ -29,37 +30,33 @@ public class ManagementMapper : MapperBase<Management, Gestion>
             ExecutedAt = dbEntity.Fecha,
             
             // Waste
-            WasteId = ConvertLongToGuid(dbEntity.IdResiduo),
+            WasteId = IdConversion.ToStringFromLong(dbEntity.IdResiduo),
             
             // Quantity
             Quantity = dbEntity.Peso ?? dbEntity.Cantidad ?? 0,
             Unit = UnitOfMeasure.Kilogram,
             
-            // Executor
-            ExecutedById = !string.IsNullOrEmpty(dbEntity.IdResponsable)
-                ? ConvertStringToGuid(dbEntity.IdResponsable)
-                : Guid.Empty,
+            // Executor - DB IdResponsable is string
+            ExecutedById = dbEntity.IdResponsable ?? string.Empty,
             
             // Origin and Destination
             OriginFacilityId = dbEntity.IdDepositoOrigen != 0 
-                ? ConvertLongToGuid(dbEntity.IdDepositoOrigen) 
+                ? IdConversion.ToStringFromLong(dbEntity.IdDepositoOrigen) 
                 : null,
             DestinationFacilityId = dbEntity.IdDepositoDestino.HasValue 
-                ? ConvertLongToGuid(dbEntity.IdDepositoDestino.Value) 
+                ? IdConversion.ToStringFromLong(dbEntity.IdDepositoDestino.Value) 
                 : null,
             
             // Related entities
             OrderId = dbEntity.IdOrden.HasValue 
-                ? ConvertLongToGuid(dbEntity.IdOrden.Value) 
+                ? IdConversion.ToStringFromLong(dbEntity.IdOrden.Value) 
                 : null,
-            VehicleId = !string.IsNullOrEmpty(dbEntity.IdVehiculo)
-                ? ConvertStringToGuid(dbEntity.IdVehiculo)
-                : null,
+            VehicleId = dbEntity.IdVehiculo ?? string.Empty,
             TreatmentId = dbEntity.IdTratamiento.HasValue 
-                ? ConvertLongToGuid(dbEntity.IdTratamiento.Value) 
+                ? IdConversion.ToStringFromLong(dbEntity.IdTratamiento.Value) 
                 : null,
             CertificateId = dbEntity.IdCertificado.HasValue 
-                ? ConvertLongToGuid(dbEntity.IdCertificado.Value) 
+                ? IdConversion.ToStringFromLong(dbEntity.IdCertificado.Value) 
                 : null,
             
             // Notes
@@ -86,16 +83,14 @@ public class ManagementMapper : MapperBase<Management, Gestion>
         return new Gestion
         {
             // IDs
-            IdMovimiento = string.IsNullOrEmpty(domainEntity.Id) ? 0 : ConvertGuidToLong(Guid.Parse(domainEntity.Id)),
-            IdResiduo = ConvertGuidToLong(domainEntity.WasteId),
+            IdMovimiento = IdConversion.ToLongFromString(domainEntity.Id),
+            IdResiduo = IdConversion.ToLongFromString(domainEntity.WasteId),
             
             // Service Type
             IdServicio = MapManagementTypeToService(domainEntity.Type),
             
-            // Executor
-            IdResponsable = domainEntity.ExecutedById != Guid.Empty
-                ? ConvertGuidToString(domainEntity.ExecutedById)
-                : null,
+            // Executor - DB IdResponsable is string
+            IdResponsable = string.IsNullOrEmpty(domainEntity.ExecutedById) ? null : domainEntity.ExecutedById,
             
             // Date
             Fecha = domainEntity.ExecutedAt,
@@ -106,28 +101,26 @@ public class ManagementMapper : MapperBase<Management, Gestion>
             Porcentaje = 100,
             
             // Origin and Destination
-            IdDepositoOrigen = domainEntity.OriginFacilityId.HasValue 
-                ? ConvertGuidToLong(domainEntity.OriginFacilityId.Value) 
+            IdDepositoOrigen = !string.IsNullOrEmpty(domainEntity.OriginFacilityId) 
+                ? IdConversion.ToLongFromString(domainEntity.OriginFacilityId) 
                 : 0,
-            IdDepositoDestino = domainEntity.DestinationFacilityId.HasValue 
-                ? ConvertGuidToLong(domainEntity.DestinationFacilityId.Value) 
+            IdDepositoDestino = !string.IsNullOrEmpty(domainEntity.DestinationFacilityId) 
+                ? IdConversion.ToLongFromString(domainEntity.DestinationFacilityId) 
                 : null,
-            IdPlanta = domainEntity.DestinationFacilityId.HasValue 
-                ? ConvertGuidToLong(domainEntity.DestinationFacilityId.Value) 
+            IdPlanta = !string.IsNullOrEmpty(domainEntity.DestinationFacilityId) 
+                ? IdConversion.ToLongFromString(domainEntity.DestinationFacilityId) 
                 : null,
             
             // Related
-            IdOrden = domainEntity.OrderId.HasValue 
-                ? ConvertGuidToLong(domainEntity.OrderId.Value) 
+            IdOrden = !string.IsNullOrEmpty(domainEntity.OrderId) 
+                ? IdConversion.ToLongFromString(domainEntity.OrderId) 
                 : null,
-            IdVehiculo = domainEntity.VehicleId.HasValue
-                ? ConvertGuidToString(domainEntity.VehicleId.Value)
+            IdVehiculo = string.IsNullOrEmpty(domainEntity.VehicleId) ? null : domainEntity.VehicleId,
+            IdTratamiento = !string.IsNullOrEmpty(domainEntity.TreatmentId) 
+                ? IdConversion.ToLongFromString(domainEntity.TreatmentId) 
                 : null,
-            IdTratamiento = domainEntity.TreatmentId.HasValue 
-                ? ConvertGuidToLong(domainEntity.TreatmentId.Value) 
-                : null,
-            IdCertificado = domainEntity.CertificateId.HasValue 
-                ? ConvertGuidToLong(domainEntity.CertificateId.Value) 
+            IdCertificado = !string.IsNullOrEmpty(domainEntity.CertificateId) 
+                ? IdConversion.ToLongFromString(domainEntity.CertificateId) 
                 : null,
             
             // Notes
@@ -206,37 +199,5 @@ public class ManagementMapper : MapperBase<Management, Gestion>
         };
     }
 
-    // Type conversion helpers
-    private Guid ConvertLongToGuid(long id)
-    {
-        if (id == 0) return Guid.Empty;
-        return new Guid(id.ToString().PadLeft(32, '0'));
-    }
-
-    private Guid ConvertStringToGuid(string id)
-    {
-        if (string.IsNullOrEmpty(id)) return Guid.Empty;
-        
-        if (Guid.TryParse(id, out var guid))
-            return guid;
-        
-        return new Guid(id.PadLeft(32, '0').Substring(0, 32));
-    }
-
-    private long ConvertGuidToLong(Guid guid)
-    {
-        if (guid == Guid.Empty) return 0;
-        
-        var guidString = guid.ToString().Replace("-", "");
-        var numericPart = new string(guidString.Where(char.IsDigit).Take(18).ToArray());
-        
-        return long.TryParse(numericPart, out var result) ? result : 0;
-    }
-
-    private string ConvertGuidToString(Guid guid)
-    {
-        if (guid == Guid.Empty) return string.Empty;
-        return guid.ToString().Replace("-", "").Substring(0, 40);
-    }
 }
 

@@ -8,7 +8,7 @@ public class VehicleDto
     public string? Model { get; set; }
     public string? Make { get; set; }
     public int? Year { get; set; }
-    public Guid PersonId { get; set; }
+    public string PersonId { get; set; } = string.Empty;
     public string? PersonName { get; set; }
     
     // Capacity
@@ -20,7 +20,7 @@ public class VehicleDto
     public string? SpecialEquipment { get; set; }
     
     // Virtual Facility
-    public Guid? VirtualFacilityId { get; set; }
+    public string? VirtualFacilityId { get; set; }
     public string? VirtualFacilityName { get; set; }
     
     public DateTime CreatedAt { get; set; }
@@ -38,7 +38,7 @@ public class CreateVehicleDto
     /// <summary>
     /// PersonId is optional. If not provided, uses the Account Person (persona de la cuenta).
     /// </summary>
-    public Guid? PersonId { get; set; }
+    public string? PersonId { get; set; }
     
     // Capacity
     public decimal? MaxCapacity { get; set; }
@@ -49,7 +49,7 @@ public class CreateVehicleDto
     public string? SpecialEquipment { get; set; }
     
     // Virtual Facility
-    public Guid? VirtualFacilityId { get; set; }
+    public string? VirtualFacilityId { get; set; }
 }
 
 public class UpdateVehicleDto
@@ -70,7 +70,7 @@ public class UpdateVehicleDto
     public string? SpecialEquipment { get; set; }
     
     // Virtual Facility
-    public Guid? VirtualFacilityId { get; set; }
+    public string? VirtualFacilityId { get; set; }
     
     public bool? IsActive { get; set; }
 }

@@ -31,7 +31,10 @@ public class AccountRepository : IAccountRepository
     // Métodos de IRepository<Account>
     public async Task<Account?> GetByIdAsync(string id, CancellationToken cancellationToken = default)
     {
-        if (string.IsNullOrEmpty(id) || !long.TryParse(id, out var idLong))
+        if (string.IsNullOrEmpty(id))
+            return null;
+        var idLong = IdConversion.ToLongFromString(id);
+        if (idLong == 0)
             return null;
         var dbEntity = await _context.Cuenta
             .Include(c => c.IdPersonaNavigation)
@@ -68,13 +71,13 @@ public class AccountRepository : IAccountRepository
         
         await _context.Cuenta.AddAsync(dbEntity, cancellationToken);
         
-        entity.Id = dbEntity.IdCuenta.ToString();
+        entity.Id = IdConversion.ToStringFromLong(dbEntity.IdCuenta);
         return entity;
     }
 
     public Task UpdateAsync(Account entity, CancellationToken cancellationToken = default)
     {
-        var idLong = string.IsNullOrEmpty(entity.Id) ? 0L : long.Parse(entity.Id);
+        var idLong = IdConversion.ToLongFromString(entity.Id);
         var dbEntity = _context.Cuenta.Find(idLong);
         
         if (dbEntity == null)
@@ -91,7 +94,7 @@ public class AccountRepository : IAccountRepository
 
     public Task DeleteAsync(Account entity, CancellationToken cancellationToken = default)
     {
-        var idLong = string.IsNullOrEmpty(entity.Id) ? 0L : long.Parse(entity.Id);
+        var idLong = IdConversion.ToLongFromString(entity.Id);
         var dbEntity = _context.Cuenta.Find(idLong);
         
         if (dbEntity == null)
@@ -120,9 +123,9 @@ public class AccountRepository : IAccountRepository
     }
 
     // Métodos específicos de IAccountRepository
-    public async Task<Account?> GetByUserIdAsync(Guid userId, CancellationToken cancellationToken = default)
+    public async Task<Account?> GetByUserIdAsync(string userId, CancellationToken cancellationToken = default)
     {
-        var userIdLong = GuidLongConverter.ToLong(userId);
+        var userIdLong = IdConversion.ToLongFromString(userId);
         
         var dbEntity = await _context.Cuenta
             .Include(c => c.IdPersonaNavigation)
@@ -146,7 +149,7 @@ public class AccountRepository : IAccountRepository
     private long GetCurrentUserIdAsLong()
     {
         var userId = _currentUserService.GetCurrentUserId();
-        return GuidLongConverter.ToLong(userId);
+        return IdConversion.ToLongFromString(userId);
     }
 }
 

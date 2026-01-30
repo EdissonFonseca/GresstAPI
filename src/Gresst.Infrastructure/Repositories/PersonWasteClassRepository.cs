@@ -60,7 +60,7 @@ public class PersonWasteClassRepository : IRepository<PersonWasteClass>
         
         dbEntity.IdCuenta = string.IsNullOrEmpty(_currentUserService.GetCurrentAccountId()) ? 0L : long.Parse(_currentUserService.GetCurrentAccountId());
         dbEntity.FechaCreacion = DateTime.UtcNow;
-        dbEntity.IdUsuarioCreacion = GuidLongConverter.ToLong(_currentUserService.GetCurrentUserId());
+        dbEntity.IdUsuarioCreacion = IdConversion.ToLongFromString(_currentUserService.GetCurrentUserId());
 
         await _context.PersonaTipoResiduos.AddAsync(dbEntity, cancellationToken);
         
@@ -70,10 +70,13 @@ public class PersonWasteClassRepository : IRepository<PersonWasteClass>
     public Task UpdateAsync(PersonWasteClass entity, CancellationToken cancellationToken = default)
     {
         var accountIdLong = string.IsNullOrEmpty(_currentUserService.GetCurrentAccountId()) ? 0L : long.Parse(_currentUserService.GetCurrentAccountId());
-        var personIdString = GuidStringConverter.ToString(entity.PersonId);
-        var wasteClassIdInt = (int)GuidLongConverter.ToLong(entity.WasteClassId);
+        var personIdString = entity.PersonId ?? string.Empty;
+        var wasteClassIdInt = (int)IdConversion.ToLongFromString(entity.WasteClassId);
 
-        var dbEntity = _context.PersonaTipoResiduos.Find(personIdString, wasteClassIdInt, accountIdLong);
+        var dbEntity = _context.PersonaTipoResiduos
+            .FirstOrDefault(pt => pt.IdPersona == personIdString
+                && pt.IdTipoResiduo == wasteClassIdInt
+                && pt.IdCuenta == accountIdLong);
         
         if (dbEntity == null)
             throw new KeyNotFoundException($"PersonWasteClass relationship for Person {entity.PersonId}, WasteClass {entity.WasteClassId} not found");
@@ -81,7 +84,7 @@ public class PersonWasteClassRepository : IRepository<PersonWasteClass>
         _mapper.UpdateDatabase(entity, dbEntity);
         
         dbEntity.FechaUltimaModificacion = DateTime.UtcNow;
-        dbEntity.IdUsuarioUltimaModificacion = GuidLongConverter.ToLong(_currentUserService.GetCurrentUserId());
+        dbEntity.IdUsuarioUltimaModificacion = IdConversion.ToLongFromString(_currentUserService.GetCurrentUserId());
         
         _context.PersonaTipoResiduos.Update(dbEntity);
         return Task.CompletedTask;
@@ -90,10 +93,13 @@ public class PersonWasteClassRepository : IRepository<PersonWasteClass>
     public Task DeleteAsync(PersonWasteClass entity, CancellationToken cancellationToken = default)
     {
         var accountIdLong = string.IsNullOrEmpty(_currentUserService.GetCurrentAccountId()) ? 0L : long.Parse(_currentUserService.GetCurrentAccountId());
-        var personIdString = GuidStringConverter.ToString(entity.PersonId);
-        var wasteClassIdInt = (int)GuidLongConverter.ToLong(entity.WasteClassId);
+        var personIdString = entity.PersonId ?? string.Empty;
+        var wasteClassIdInt = (int)IdConversion.ToLongFromString(entity.WasteClassId);
 
-        var dbEntity = _context.PersonaTipoResiduos.Find(personIdString, wasteClassIdInt, accountIdLong);
+        var dbEntity = _context.PersonaTipoResiduos
+            .FirstOrDefault(pt => pt.IdPersona == personIdString
+                && pt.IdTipoResiduo == wasteClassIdInt
+                && pt.IdCuenta == accountIdLong);
         
         if (dbEntity == null)
             throw new KeyNotFoundException($"PersonWasteClass relationship for Person {entity.PersonId}, WasteClass {entity.WasteClassId} not found");

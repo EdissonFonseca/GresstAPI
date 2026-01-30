@@ -3,13 +3,13 @@ namespace Gresst.Application.DTOs;
 public class BalanceDto
 {
     public string Id { get; set; } = string.Empty;
-    public Guid? PersonId { get; set; }
+    public string? PersonId { get; set; }
     public string? PersonName { get; set; }
-    public Guid? FacilityId { get; set; }
+    public string? FacilityId { get; set; }
     public string? FacilityName { get; set; }
-    public Guid? LocationId { get; set; }
+    public string? LocationId { get; set; }
     public string? LocationName { get; set; }
-    public Guid WasteClassId { get; set; }
+    public string WasteClassId { get; set; } = string.Empty;
     public string WasteClassName { get; set; } = string.Empty;
     public decimal Quantity { get; set; }
     public string Unit { get; set; } = string.Empty;
@@ -23,9 +23,9 @@ public class BalanceDto
 
 public class InventoryQueryDto
 {
-    public Guid? PersonId { get; set; }
-    public Guid? FacilityId { get; set; }
-    public Guid? LocationId { get; set; }
-    public Guid? WasteClassId { get; set; }
+    public string? PersonId { get; set; }
+    public string? FacilityId { get; set; }
+    public string? LocationId { get; set; }
+    public string? WasteClassId { get; set; }
 }
 

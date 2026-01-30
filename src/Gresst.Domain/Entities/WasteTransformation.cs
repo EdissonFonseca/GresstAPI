@@ -13,29 +13,29 @@ public class WasteTransformation : BaseEntity
     public DateTime TransformationDate { get; set; }
     
     // Source waste
-    public Guid SourceWasteId { get; set; }
+    public string SourceWasteId { get; set; } = string.Empty;
     public virtual Waste SourceWaste { get; set; } = null!;
     
     public decimal SourceQuantity { get; set; }
     public UnitOfMeasure SourceUnit { get; set; }
     
     // Result waste
-    public Guid ResultWasteId { get; set; }
+    public string ResultWasteId { get; set; } = string.Empty;
     public virtual Waste ResultWaste { get; set; } = null!;
     
     public decimal ResultQuantity { get; set; }
     public UnitOfMeasure ResultUnit { get; set; }
     
     // Process
-    public Guid? TreatmentId { get; set; }
+    public string? TreatmentId { get; set; }
     public virtual Treatment? Treatment { get; set; }
     
     // Performed at
-    public Guid? FacilityId { get; set; }
+    public string? FacilityId { get; set; }
     public virtual Facility? Facility { get; set; }
     
     // Performed by
-    public Guid PerformedById { get; set; }
+    public string PerformedById { get; set; } = string.Empty;
     public virtual Person PerformedBy { get; set; } = null!;
     
     // Details

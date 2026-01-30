@@ -22,8 +22,8 @@ public class AccountMapper : MapperBase<Account, Cuentum>
         return new Account
         {
             // IDs - Domain uses string for BaseEntity.Id/AccountId
-            Id = dbEntity.IdCuenta.ToString(),
-            AccountId = dbEntity.IdCuenta.ToString(),
+            Id = IdConversion.ToStringFromLong(dbEntity.IdCuenta),
+            AccountId = IdConversion.ToStringFromLong(dbEntity.IdCuenta),
             
             // Basic Info
             Name = dbEntity.Nombre,
@@ -31,8 +31,8 @@ public class AccountMapper : MapperBase<Account, Cuentum>
             Role = MapRole(dbEntity.IdRol),
             Status = MapStatus(dbEntity.IdEstado),
             
-            // Relations
-            PersonId = GuidStringConverter.ToGuid(dbEntity.IdPersona),
+            // Relations - DB IdPersona is string
+            PersonId = dbEntity.IdPersona ?? string.Empty,
             ParentAccountId = null, // Cuentum doesn't have parent relationship
             
             // Audit
@@ -55,15 +55,15 @@ public class AccountMapper : MapperBase<Account, Cuentum>
         return new Cuentum
         {
             // IDs - Domain Id is string, BD uses long
-            IdCuenta = string.IsNullOrEmpty(domainEntity.Id) ? 0 : long.Parse(domainEntity.Id),
+            IdCuenta = IdConversion.ToLongFromString(domainEntity.Id),
             
             // Basic Info
             Nombre = domainEntity.Name,
             IdRol = MapRoleToDb(domainEntity.Role),
             IdEstado = MapStatusToDb(domainEntity.Status),
             
-            // Relations
-            IdPersona = GuidStringConverter.ToString(domainEntity.PersonId),
+            // Relations - DB IdPersona is string
+            IdPersona = domainEntity.PersonId ?? string.Empty,
             IdUsuario = 0, // Usuario is for authentication, not directly from domain
             
             // Technical fields (in database but not in domain)
@@ -93,7 +93,7 @@ public class AccountMapper : MapperBase<Account, Cuentum>
         dbEntity.Nombre = domainEntity.Name;
         dbEntity.IdRol = MapRoleToDb(domainEntity.Role);
         dbEntity.IdEstado = MapStatusToDb(domainEntity.Status);
-        dbEntity.IdPersona = GuidStringConverter.ToString(domainEntity.PersonId);
+        dbEntity.IdPersona = domainEntity.PersonId ?? string.Empty;
         
         // Audit
         dbEntity.FechaUltimaModificacion = domainEntity.UpdatedAt;

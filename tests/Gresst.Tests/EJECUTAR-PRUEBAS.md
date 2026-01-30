@@ -33,8 +33,8 @@ dotnet test tests/Gresst.Tests/Gresst.Tests.csproj --filter "FullyQualifiedName~
 # Solo pruebas de WasteClassService
 dotnet test tests/Gresst.Tests/Gresst.Tests.csproj --filter "FullyQualifiedName~WasteClassServiceTests"
 
-# Solo pruebas de GuidLongConverter
-dotnet test tests/Gresst.Tests/Gresst.Tests.csproj --filter "FullyQualifiedName~GuidLongConverterTests"
+# Solo pruebas de IdConversion
+dotnet test tests/Gresst.Tests/Gresst.Tests.csproj --filter "FullyQualifiedName~IdConversionTests"
 ```
 
 ### Por nombre de método específico:

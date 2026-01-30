@@ -17,7 +17,7 @@ public class OptionDto
 /// </summary>
 public class UserPermissionDto
 {
-    public Guid UserId { get; set; }
+    public string UserId { get; set; } = string.Empty;
     public string UserName { get; set; } = string.Empty;
     public string OptionId { get; set; } = string.Empty;
     public string OptionDescription { get; set; } = string.Empty;
@@ -31,7 +31,7 @@ public class UserPermissionDto
 /// </summary>
 public class AssignPermissionDto
 {
-    public Guid UserId { get; set; }
+    public string UserId { get; set; } = string.Empty;
     public string OptionId { get; set; } = string.Empty;
     public bool IsEnabled { get; set; }
     public PermissionFlags Permissions { get; set; }

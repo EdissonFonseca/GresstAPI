@@ -11,13 +11,13 @@ public class PersonTreatment : BaseEntity
     /// <summary>
     /// Person who can perform/manage this treatment (account person, provider)
     /// </summary>
-    public Guid PersonId { get; set; }
+    public string PersonId { get; set; } = string.Empty;
     public virtual Person Person { get; set; } = null!;
     
     /// <summary>
     /// Treatment that the person can perform/manage
     /// </summary>
-    public Guid TreatmentId { get; set; }
+    public string TreatmentId { get; set; } = string.Empty;
     public virtual Treatment Treatment { get; set; } = null!;
     
     /// <summary>

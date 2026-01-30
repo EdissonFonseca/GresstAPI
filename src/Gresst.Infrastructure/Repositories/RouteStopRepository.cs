@@ -58,13 +58,13 @@ public class RouteStopRepository : IRepository<DomainRouteStop>
 
     public async Task<DomainRouteStop> AddAsync(DomainRouteStop entity, CancellationToken cancellationToken = default)
     {
-        if (!entity.FacilityId.HasValue)
+        if (string.IsNullOrEmpty(entity.FacilityId))
             throw new InvalidOperationException("RouteStop must have a FacilityId");
 
         var dbEntity = _mapper.ToDatabase(entity);
         
         dbEntity.FechaCreacion = DateTime.UtcNow;
-        dbEntity.IdUsuarioCreacion = GuidLongConverter.ToLong(_currentUserService.GetCurrentUserId());
+        dbEntity.IdUsuarioCreacion = IdConversion.ToLongFromString(_currentUserService.GetCurrentUserId());
 
         await _context.RutaDepositos.AddAsync(dbEntity, cancellationToken);
         
@@ -73,11 +73,11 @@ public class RouteStopRepository : IRepository<DomainRouteStop>
 
     public Task UpdateAsync(DomainRouteStop entity, CancellationToken cancellationToken = default)
     {
-        if (!entity.FacilityId.HasValue)
+        if (string.IsNullOrEmpty(entity.FacilityId))
             throw new InvalidOperationException("RouteStop must have a FacilityId");
 
-        var routeIdLong = GuidLongConverter.ToLong(entity.RouteId);
-        var facilityIdLong = GuidLongConverter.ToLong(entity.FacilityId.Value);
+        var routeIdLong = IdConversion.ToLongFromString(entity.RouteId);
+        var facilityIdLong = IdConversion.ToLongFromString(entity.FacilityId);
 
         var dbEntity = _context.RutaDepositos.Find(routeIdLong, facilityIdLong);
         
@@ -87,7 +87,7 @@ public class RouteStopRepository : IRepository<DomainRouteStop>
         _mapper.UpdateDatabase(entity, dbEntity);
         
         dbEntity.FechaUltimaModificacion = DateTime.UtcNow;
-        dbEntity.IdUsuarioUltimaModificacion = GuidLongConverter.ToLong(_currentUserService.GetCurrentUserId());
+        dbEntity.IdUsuarioUltimaModificacion = IdConversion.ToLongFromString(_currentUserService.GetCurrentUserId());
         
         _context.RutaDepositos.Update(dbEntity);
         return Task.CompletedTask;
@@ -95,11 +95,11 @@ public class RouteStopRepository : IRepository<DomainRouteStop>
 
     public Task DeleteAsync(DomainRouteStop entity, CancellationToken cancellationToken = default)
     {
-        if (!entity.FacilityId.HasValue)
+        if (string.IsNullOrEmpty(entity.FacilityId))
             throw new InvalidOperationException("RouteStop must have a FacilityId");
 
-        var routeIdLong = GuidLongConverter.ToLong(entity.RouteId);
-        var facilityIdLong = GuidLongConverter.ToLong(entity.FacilityId.Value);
+        var routeIdLong = IdConversion.ToLongFromString(entity.RouteId);
+        var facilityIdLong = IdConversion.ToLongFromString(entity.FacilityId);
 
         var dbEntity = _context.RutaDepositos.Find(routeIdLong, facilityIdLong);
         

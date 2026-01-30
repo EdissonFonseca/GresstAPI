@@ -24,7 +24,7 @@ public class ProcessDto
 public class SubProcessDto
 {
     public string Id { get; set; } = string.Empty;
-    public Guid ProcessId { get; set; }
+    public string ProcessId { get; set; } = string.Empty;
     public string Name { get; set; } = string.Empty;
     public string? Description { get; set; }
     public string Status { get; set; } = string.Empty;
@@ -42,8 +42,8 @@ public class SubProcessDto
 public class TaskDto
 {
     public string Id { get; set; } = string.Empty;
-    public Guid? ProcessId { get; set; }
-    public Guid? SubProcessId { get; set; }
+    public string? ProcessId { get; set; }
+    public string? SubProcessId { get; set; }
     public string Name { get; set; } = string.Empty;
     public string? Description { get; set; }
     public string Status { get; set; } = string.Empty;

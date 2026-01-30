@@ -10,19 +10,19 @@ public interface IVehicleService
     // GetById verifica que el usuario tenga acceso
     Task<VehicleDto?> GetByIdAsync(string id, CancellationToken cancellationToken = default);
     
-    Task<IEnumerable<VehicleDto>> GetByPersonAsync(Guid personId, CancellationToken cancellationToken = default);
+    Task<IEnumerable<VehicleDto>> GetByPersonAsync(string personId, CancellationToken cancellationToken = default);
     
     // Account Person (persona de la cuenta) - Default operations
     Task<IEnumerable<VehicleDto>> GetAccountPersonVehiclesAsync(CancellationToken cancellationToken = default);
     Task<VehicleDto> CreateAccountPersonVehicleAsync(CreateVehicleDto dto, CancellationToken cancellationToken = default);
     
     // Provider operations
-    Task<IEnumerable<VehicleDto>> GetProviderVehiclesAsync(Guid providerId, CancellationToken cancellationToken = default);
-    Task<VehicleDto> CreateProviderVehicleAsync(Guid providerId, CreateVehicleDto dto, CancellationToken cancellationToken = default);
+    Task<IEnumerable<VehicleDto>> GetProviderVehiclesAsync(string providerId, CancellationToken cancellationToken = default);
+    Task<VehicleDto> CreateProviderVehicleAsync(string providerId, CreateVehicleDto dto, CancellationToken cancellationToken = default);
     
     // Client operations
-    Task<IEnumerable<VehicleDto>> GetClientVehiclesAsync(Guid clientId, CancellationToken cancellationToken = default);
-    Task<VehicleDto> CreateClientVehicleAsync(Guid clientId, CreateVehicleDto dto, CancellationToken cancellationToken = default);
+    Task<IEnumerable<VehicleDto>> GetClientVehiclesAsync(string clientId, CancellationToken cancellationToken = default);
+    Task<VehicleDto> CreateClientVehicleAsync(string clientId, CreateVehicleDto dto, CancellationToken cancellationToken = default);
     
     Task<VehicleDto> CreateAsync(CreateVehicleDto dto, CancellationToken cancellationToken = default);
     Task<VehicleDto?> UpdateAsync(UpdateVehicleDto dto, CancellationToken cancellationToken = default);

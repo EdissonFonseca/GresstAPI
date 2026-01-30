@@ -11,10 +11,10 @@ public class License : BaseEntity
     public string LicenseType { get; set; } = string.Empty; // Collection, Transport, Disposal, Treatment, Storage
     
     // Holder
-    public Guid? PersonId { get; set; }
+    public string? PersonId { get; set; }
     public virtual Person? Person { get; set; }
     
-    public Guid? FacilityId { get; set; }
+    public string? FacilityId { get; set; }
     public virtual Facility? Facility { get; set; }
     
     // Issuing Authority

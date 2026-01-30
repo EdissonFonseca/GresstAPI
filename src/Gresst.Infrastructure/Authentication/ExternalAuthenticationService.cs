@@ -79,8 +79,8 @@ public class ExternalAuthenticationService : IAuthenticationService
                 Success = true,
                 AccessToken = tokenResponse.AccessToken,
                 RefreshToken = tokenResponse.RefreshToken, // External provider refresh token
-                UserId = GuidLongConverter.ToGuid(localUser.IdUsuario),
-                AccountId = GuidLongConverter.ToGuid(localUser.IdCuenta),
+                UserId = IdConversion.ToStringFromLong(localUser.IdUsuario),
+                AccountId = IdConversion.ToStringFromLong(localUser.IdCuenta),
                 Username = localUser.Nombre,
                 Email = localUser.Correo,
                 AccessTokenExpiresAt = DateTime.UtcNow.AddSeconds(tokenResponse.ExpiresIn)
@@ -143,8 +143,8 @@ public class ExternalAuthenticationService : IAuthenticationService
             {
                 Success = true,
                 AccessToken = token,
-                UserId = GuidLongConverter.ToGuid(localUser.IdUsuario),
-                AccountId = GuidLongConverter.ToGuid(localUser.IdCuenta),
+                UserId = IdConversion.ToStringFromLong(localUser.IdUsuario),
+                AccountId = IdConversion.ToStringFromLong(localUser.IdCuenta),
                 Username = localUser.Nombre,
                 Email = localUser.Correo
             };
@@ -171,20 +171,20 @@ public class ExternalAuthenticationService : IAuthenticationService
         return false;
     }
 
-    public Task<bool> LogoutAsync(Guid userId, string? refreshToken = null, CancellationToken cancellationToken = default)
+    public Task<bool> LogoutAsync(string userId, string? refreshToken = null, CancellationToken cancellationToken = default)
     {
         // Logout con proveedor externo si es necesario
         return Task.FromResult(true);
     }
 
-    public async Task<Guid> GetAccountIdForUserAsync(Guid userId, CancellationToken cancellationToken = default)
+    public async Task<string> GetAccountIdForUserAsync(string userId, CancellationToken cancellationToken = default)
     {
-        var userIdLong = GuidLongConverter.ToLong(userId);
+        var userIdLong = IdConversion.ToLongFromString(userId);
         var usuario = await _context.Usuarios.FindAsync(new object[] { userIdLong }, cancellationToken);
         
         return usuario != null 
-            ? GuidLongConverter.ToGuid(usuario.IdCuenta) 
-            : Guid.Empty;
+            ? IdConversion.ToStringFromLong(usuario.IdCuenta) 
+            : string.Empty;
     }
 
     // Helper methods
@@ -240,17 +240,17 @@ public class ExternalAuthenticationService : IAuthenticationService
         return null;
     }
     
-    public async Task<UserDto?> GetUserByIdAsync(Guid userId, CancellationToken cancellationToken = default)
+    public async Task<UserDto?> GetUserByIdAsync(string userId, CancellationToken cancellationToken = default)
     {
         return null;
     }
 
-    public async Task<bool> ChangeNameAsync(Guid userId, string name, CancellationToken cancellationToken = default)
+    public async Task<bool> ChangeNameAsync(string userId, string name, CancellationToken cancellationToken = default)
     {
         return false;
     }
 
-    public async Task<bool> ChangePasswordAsync(Guid userId, string password, CancellationToken cancellationToken = default)
+    public async Task<bool> ChangePasswordAsync(string userId, string password, CancellationToken cancellationToken = default)
     {
         return false;
     }

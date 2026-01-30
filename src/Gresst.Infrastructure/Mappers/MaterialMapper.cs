@@ -20,7 +20,7 @@ public class MaterialMapper : MapperBase<DomainMaterial, DbMaterial>
         return new DomainMaterial
         {
             // IDs - Domain uses string for BaseEntity.Id/AccountId
-            Id = dbEntity.IdMaterial.ToString(),
+            Id = IdConversion.ToStringFromLong(dbEntity.IdMaterial),
             AccountId = string.Empty,
             
             // Basic Info
@@ -37,7 +37,7 @@ public class MaterialMapper : MapperBase<DomainMaterial, DbMaterial>
             
             // Waste Type relationship
             WasteClassId = dbEntity.IdTipoResiduo.HasValue 
-                ? GuidLongConverter.ToGuid(dbEntity.IdTipoResiduo.Value) 
+                ? IdConversion.ToStringFromLong(dbEntity.IdTipoResiduo.Value) 
                 : null,
             
             // Audit fields
@@ -60,16 +60,16 @@ public class MaterialMapper : MapperBase<DomainMaterial, DbMaterial>
         return new DbMaterial
         {
             // IDs - Domain Id is string, BD uses long
-            IdMaterial = string.IsNullOrEmpty(domainEntity.Id) ? 0 : long.Parse(domainEntity.Id),
+            IdMaterial = IdConversion.ToLongFromString(domainEntity.Id),
             
             // Basic Info
             Nombre = domainEntity.Name,
             Descripcion = domainEntity.Description,
             Referencia = domainEntity.Code,
             
-            // Waste Type relationship
-            IdTipoResiduo = domainEntity.WasteClassId.HasValue 
-                ? (int?)GuidLongConverter.ToLong(domainEntity.WasteClassId.Value) 
+            // Waste Type relationship - Domain WasteClassId is string?
+            IdTipoResiduo = !string.IsNullOrEmpty(domainEntity.WasteClassId) 
+                ? (int?)IdConversion.ToLongFromString(domainEntity.WasteClassId) 
                 : null,
             
             // Properties - Mapeo a campos de BD
@@ -104,9 +104,9 @@ public class MaterialMapper : MapperBase<DomainMaterial, DbMaterial>
         dbEntity.Descripcion = domainEntity.Description;
         dbEntity.Referencia = domainEntity.Code;
         
-        // Waste Type
-        dbEntity.IdTipoResiduo = domainEntity.WasteClassId.HasValue 
-            ? (int?)GuidLongConverter.ToLong(domainEntity.WasteClassId.Value) 
+        // Waste Type - Domain WasteClassId is string?
+        dbEntity.IdTipoResiduo = !string.IsNullOrEmpty(domainEntity.WasteClassId) 
+            ? (int?)IdConversion.ToLongFromString(domainEntity.WasteClassId) 
             : null;
         
         // Properties

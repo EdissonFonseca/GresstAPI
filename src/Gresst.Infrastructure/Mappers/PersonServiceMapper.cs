@@ -25,8 +25,8 @@ public class PersonServiceMapper : MapperBase<PersonService, PersonaServicio>
             AccountId = dbEntity.IdCuenta.ToString(),
             
             // Relations
-            PersonId = GuidStringConverter.ToGuid(dbEntity.IdPersona),
-            ServiceId = GuidLongConverter.ToGuid(dbEntity.IdServicio),
+            PersonId = dbEntity.IdPersona ?? string.Empty,
+            ServiceId = IdConversion.ToStringFromLong(dbEntity.IdServicio),
             
             // Dates
             StartDate = dbEntity.FechaInicio.ToDateTime(TimeOnly.MinValue),
@@ -54,8 +54,8 @@ public class PersonServiceMapper : MapperBase<PersonService, PersonaServicio>
         return new PersonaServicio
         {
             // IDs (composite key)
-            IdPersona = GuidStringConverter.ToString(domainEntity.PersonId),
-            IdServicio = GuidLongConverter.ToLong(domainEntity.ServiceId),
+            IdPersona = domainEntity.PersonId ?? string.Empty,
+            IdServicio = IdConversion.ToLongFromString(domainEntity.ServiceId),
             FechaInicio = DateOnly.FromDateTime(domainEntity.StartDate),
             IdCuenta = long.TryParse(domainEntity.AccountId, out var psvAc) ? psvAc : 0,
             

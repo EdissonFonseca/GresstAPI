@@ -45,9 +45,9 @@ public class AuthorizationService : IAuthorizationService
     }
 
     // User permissions
-    public async Task<IEnumerable<UserPermissionDto>> GetUserPermissionsAsync(Guid userId, CancellationToken cancellationToken = default)
+    public async Task<IEnumerable<UserPermissionDto>> GetUserPermissionsAsync(string userId, CancellationToken cancellationToken = default)
     {
-        var userIdLong = GuidLongConverter.ToLong(userId);
+        var userIdLong = IdConversion.ToLongFromString(userId);
         
         var permissions = await _context.UsuarioOpcions
             .Include(uo => uo.IdOpcionNavigation)
@@ -58,9 +58,9 @@ public class AuthorizationService : IAuthorizationService
         return permissions.Select(MapPermissionToDto);
     }
 
-    public async Task<UserPermissionDto?> GetUserPermissionAsync(Guid userId, string optionId, CancellationToken cancellationToken = default)
+    public async Task<UserPermissionDto?> GetUserPermissionAsync(string userId, string optionId, CancellationToken cancellationToken = default)
     {
-        var userIdLong = GuidLongConverter.ToLong(userId);
+        var userIdLong = IdConversion.ToLongFromString(userId);
         
         var permission = await _context.UsuarioOpcions
             .Include(uo => uo.IdOpcionNavigation)
@@ -72,7 +72,7 @@ public class AuthorizationService : IAuthorizationService
 
     public async Task<bool> AssignPermissionAsync(AssignPermissionDto dto, CancellationToken cancellationToken = default)
     {
-        var userIdLong = GuidLongConverter.ToLong(dto.UserId);
+        var userIdLong = IdConversion.ToLongFromString(dto.UserId);
         
         // Check if already exists
         var existing = await _context.UsuarioOpcions
@@ -95,7 +95,7 @@ public class AuthorizationService : IAuthorizationService
                 Habilitado = dto.IsEnabled,
                 Permisos = PermissionHelper.ToString(dto.Permissions),
                 Settings = dto.Settings,
-                IdUsuarioCreacion = GuidLongConverter.ToLong(_currentUserService.GetCurrentUserId()),
+                IdUsuarioCreacion = IdConversion.ToLongFromString(_currentUserService.GetCurrentUserId()),
                 FechaCreacion = DateTime.UtcNow
             };
 
@@ -106,9 +106,9 @@ public class AuthorizationService : IAuthorizationService
         return true;
     }
 
-    public async Task<bool> RevokePermissionAsync(Guid userId, string optionId, CancellationToken cancellationToken = default)
+    public async Task<bool> RevokePermissionAsync(string userId, string optionId, CancellationToken cancellationToken = default)
     {
-        var userIdLong = GuidLongConverter.ToLong(userId);
+        var userIdLong = IdConversion.ToLongFromString(userId);
         
         var permission = await _context.UsuarioOpcions
             .FirstOrDefaultAsync(uo => uo.IdUsuario == userIdLong && uo.IdOpcion == optionId, cancellationToken);
@@ -121,9 +121,9 @@ public class AuthorizationService : IAuthorizationService
         return true;
     }
 
-    public async Task<bool> UpdatePermissionAsync(Guid userId, string optionId, AssignPermissionDto dto, CancellationToken cancellationToken = default)
+    public async Task<bool> UpdatePermissionAsync(string userId, string optionId, AssignPermissionDto dto, CancellationToken cancellationToken = default)
     {
-        var userIdLong = GuidLongConverter.ToLong(userId);
+        var userIdLong = IdConversion.ToLongFromString(userId);
         
         var permission = await _context.UsuarioOpcions
             .FirstOrDefaultAsync(uo => uo.IdUsuario == userIdLong && uo.IdOpcion == optionId, cancellationToken);
@@ -140,9 +140,9 @@ public class AuthorizationService : IAuthorizationService
     }
 
     // Permission checking
-    public async Task<bool> UserHasPermissionAsync(Guid userId, string optionId, PermissionFlags permission, CancellationToken cancellationToken = default)
+    public async Task<bool> UserHasPermissionAsync(string userId, string optionId, PermissionFlags permission, CancellationToken cancellationToken = default)
     {
-        var userIdLong = GuidLongConverter.ToLong(userId);
+        var userIdLong = IdConversion.ToLongFromString(userId);
         
         var userPermission = await _context.UsuarioOpcions
             .FirstOrDefaultAsync(uo => uo.IdUsuario == userIdLong && uo.IdOpcion == optionId && uo.Habilitado, cancellationToken);
@@ -176,7 +176,7 @@ public class AuthorizationService : IAuthorizationService
     {
         return new UserPermissionDto
         {
-            UserId = GuidLongConverter.ToGuid(usuarioOpcion.IdUsuario),
+            UserId = IdConversion.ToStringFromLong(usuarioOpcion.IdUsuario),
             UserName = usuarioOpcion.IdUsuarioNavigation?.Nombre ?? "Unknown",
             OptionId = usuarioOpcion.IdOpcion,
             OptionDescription = usuarioOpcion.IdOpcionNavigation?.Descripcion ?? usuarioOpcion.IdOpcion,

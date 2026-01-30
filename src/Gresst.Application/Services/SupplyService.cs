@@ -94,12 +94,12 @@ public class SupplyService : ISupplyService
             supply.CategoryUnitId = dto.CategoryUnitId;
         if (dto.IsPublic.HasValue)
             supply.IsPublic = dto.IsPublic.Value;
-        if (dto.ParentSupplyId.HasValue)
+        if (dto.ParentSupplyId != null)
         {
-            if (dto.ParentSupplyId.Value == Guid.Empty)
+            if (string.IsNullOrEmpty(dto.ParentSupplyId))
                 supply.ParentSupplyId = null;
             else
-                supply.ParentSupplyId = dto.ParentSupplyId.Value;
+                supply.ParentSupplyId = dto.ParentSupplyId;
         }
         if (dto.IsActive.HasValue)
             supply.IsActive = dto.IsActive.Value;

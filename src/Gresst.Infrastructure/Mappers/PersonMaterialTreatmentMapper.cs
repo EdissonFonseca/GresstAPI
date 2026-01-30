@@ -25,9 +25,9 @@ public class PersonMaterialTreatmentMapper : MapperBase<PersonMaterialTreatment,
             AccountId = dbEntity.IdCuenta.ToString(),
             
             // Relations
-            PersonId = GuidStringConverter.ToGuid(dbEntity.IdPersona),
-            MaterialId = GuidLongConverter.ToGuid(dbEntity.IdMaterial),
-            TreatmentId = GuidLongConverter.ToGuid(dbEntity.IdTratamiento),
+            PersonId = dbEntity.IdPersona ?? string.Empty,
+            MaterialId = IdConversion.ToStringFromLong(dbEntity.IdMaterial),
+            TreatmentId = IdConversion.ToStringFromLong(dbEntity.IdTratamiento),
             
             // Audit
             CreatedAt = dbEntity.FechaCreacion,
@@ -49,9 +49,9 @@ public class PersonMaterialTreatmentMapper : MapperBase<PersonMaterialTreatment,
         return new PersonaMaterialTratamiento
         {
             // IDs (composite key)
-            IdPersona = GuidStringConverter.ToString(domainEntity.PersonId),
-            IdMaterial = GuidLongConverter.ToLong(domainEntity.MaterialId),
-            IdTratamiento = GuidLongConverter.ToLong(domainEntity.TreatmentId),
+            IdPersona = domainEntity.PersonId ?? string.Empty,
+            IdMaterial = IdConversion.ToLongFromString(domainEntity.MaterialId),
+            IdTratamiento = IdConversion.ToLongFromString(domainEntity.TreatmentId),
             IdCuenta = long.TryParse(domainEntity.AccountId, out var pmtAc) ? pmtAc : 0,
             
             // Status

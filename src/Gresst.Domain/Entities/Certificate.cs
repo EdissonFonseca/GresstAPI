@@ -12,18 +12,18 @@ public class Certificate : BaseEntity
     public DateTime? ExpiryDate { get; set; }
     
     // Issuer
-    public Guid IssuedById { get; set; }
+    public string IssuedById { get; set; } = string.Empty;
     public virtual Person IssuedBy { get; set; } = null!;
     
     // Recipient
-    public Guid IssuedToId { get; set; }
+    public string IssuedToId { get; set; } = string.Empty;
     public virtual Person IssuedTo { get; set; } = null!;
     
     // Certificate Type
     public string CertificateType { get; set; } = string.Empty; // Collection, Transport, Disposal, Treatment, etc.
     
     // Related entities
-    public Guid? OrderId { get; set; }
+    public string? OrderId { get; set; }
     public virtual Order? Order { get; set; }
     
     // Content

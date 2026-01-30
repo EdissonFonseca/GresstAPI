@@ -36,7 +36,7 @@ public class Supply : BaseEntity
     /// <summary>
     /// Parent supply (for hierarchical categorization)
     /// </summary>
-    public Guid? ParentSupplyId { get; set; }
+    public string? ParentSupplyId { get; set; }
     public virtual Supply? ParentSupply { get; set; }
     
     /// <summary>

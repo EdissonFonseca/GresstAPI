@@ -24,9 +24,9 @@ public class UserService : IUserService
         _currentUserService = currentUserService;
     }
 
-    public async Task<UserDto?> GetUserByIdAsync(Guid userId, CancellationToken cancellationToken = default)
+    public async Task<UserDto?> GetUserByIdAsync(string userId, CancellationToken cancellationToken = default)
     {
-        var userIdLong = GuidLongConverter.ToLong(userId);
+        var userIdLong = IdConversion.ToLongFromString(userId);
         
         var usuario = await _context.Usuarios
             .Include(u => u.IdPersonaNavigation)
@@ -41,15 +41,15 @@ public class UserService : IUserService
     public async Task<UserDto?> GetCurrentUserAsync(CancellationToken cancellationToken = default)
     {
         var currentUserId = _currentUserService.GetCurrentUserId();
-        if (currentUserId == Guid.Empty)
+        if (string.IsNullOrEmpty(currentUserId))
             return null;
 
         return await GetUserByIdAsync(currentUserId, cancellationToken);
     }
 
-    public async Task<IEnumerable<UserDto>> GetUsersByAccountAsync(Guid accountId, CancellationToken cancellationToken = default)
+    public async Task<IEnumerable<UserDto>> GetUsersByAccountAsync(string accountId, CancellationToken cancellationToken = default)
     {
-        var accountIdLong = GuidLongConverter.ToLong(accountId);
+        var accountIdLong = IdConversion.ToLongFromString(accountId);
         
         var usuarios = await _context.Usuarios
             .Include(u => u.IdPersonaNavigation)
@@ -71,7 +71,7 @@ public class UserService : IUserService
             Correo = dto.Email,
             Clave = HashPassword(dto.Password),
             IdEstado = "A",
-            IdPersona = dto.PersonId.HasValue ? GuidStringConverter.ToString(dto.PersonId.Value) : null,
+            IdPersona = dto.PersonId,
             DatosAdicionales = dto.Roles != null && dto.Roles.Length > 0
                 ? JsonSerializer.Serialize(new { roles = dto.Roles })
                 : JsonSerializer.Serialize(new { roles = new[] { "User" } })
@@ -83,9 +83,9 @@ public class UserService : IUserService
         return MapToDto(usuario);
     }
 
-    public async Task<UserDto?> UpdateUserProfileAsync(Guid userId, UpdateUserProfileDto dto, CancellationToken cancellationToken = default)
+    public async Task<UserDto?> UpdateUserProfileAsync(string userId, UpdateUserProfileDto dto, CancellationToken cancellationToken = default)
     {
-        var userIdLong = GuidLongConverter.ToLong(userId);
+        var userIdLong = IdConversion.ToLongFromString(userId);
         
         var usuario = await _context.Usuarios.FindAsync(new object[] { userIdLong }, cancellationToken);
         if (usuario == null)
@@ -100,12 +100,12 @@ public class UserService : IUserService
         return MapToDto(usuario);
     }
 
-    public async Task<bool> ChangePasswordAsync(Guid userId, ChangePasswordDto dto, CancellationToken cancellationToken = default)
+    public async Task<bool> ChangePasswordAsync(string userId, ChangePasswordDto dto, CancellationToken cancellationToken = default)
     {
         if (dto.NewPassword != dto.ConfirmPassword)
             return false;
 
-        var userIdLong = GuidLongConverter.ToLong(userId);
+        var userIdLong = IdConversion.ToLongFromString(userId);
         var usuario = await _context.Usuarios.FindAsync(new object[] { userIdLong }, cancellationToken);
         
         if (usuario == null)
@@ -122,9 +122,9 @@ public class UserService : IUserService
         return true;
     }
 
-    public async Task<bool> DeactivateUserAsync(Guid userId, CancellationToken cancellationToken = default)
+    public async Task<bool> DeactivateUserAsync(string userId, CancellationToken cancellationToken = default)
     {
-        var userIdLong = GuidLongConverter.ToLong(userId);
+        var userIdLong = IdConversion.ToLongFromString(userId);
         var usuario = await _context.Usuarios.FindAsync(new object[] { userIdLong }, cancellationToken);
         
         if (usuario == null)
@@ -136,9 +136,9 @@ public class UserService : IUserService
         return true;
     }
 
-    public async Task<bool> ActivateUserAsync(Guid userId, CancellationToken cancellationToken = default)
+    public async Task<bool> ActivateUserAsync(string userId, CancellationToken cancellationToken = default)
     {
-        var userIdLong = GuidLongConverter.ToLong(userId);
+        var userIdLong = IdConversion.ToLongFromString(userId);
         var usuario = await _context.Usuarios.FindAsync(new object[] { userIdLong }, cancellationToken);
         
         if (usuario == null)
@@ -169,15 +169,13 @@ public class UserService : IUserService
 
         return new UserDto
         {
-            Id = GuidLongConverter.ToGuid(usuario.IdUsuario).ToString(),
+            Id = IdConversion.ToStringFromLong(usuario.IdUsuario),
             AccountId = usuario.IdCuenta.ToString(),
             Name = usuario.Nombre,
             LastName = usuario.Apellido,
             Email = usuario.Correo,
             Status = usuario.IdEstado,
-            PersonId = !string.IsNullOrEmpty(usuario.IdPersona) 
-                ? GuidStringConverter.ToGuid(usuario.IdPersona) 
-                : null,
+            PersonId = usuario.IdPersona,
             PersonName = usuario.IdPersonaNavigation?.Nombre,
             Roles = roles ?? new[] { "User" },
             CreatedAt = DateTime.UtcNow // Usuario no tiene FechaCreacion

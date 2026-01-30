@@ -46,7 +46,7 @@ public class WasteService : IWasteService
         return dtos;
     }
 
-    public async Task<IEnumerable<WasteDto>> GetByGeneratorAsync(Guid generatorId, CancellationToken cancellationToken = default)
+    public async Task<IEnumerable<WasteDto>> GetByGeneratorAsync(string generatorId, CancellationToken cancellationToken = default)
     {
         var wastes = await _wasteRepository.FindAsync(w => w.GeneratorId == generatorId, cancellationToken);
         var dtos = new List<WasteDto>();
@@ -125,9 +125,9 @@ public class WasteService : IWasteService
             waste.Description = dto.Description;
         if (dto.Quantity.HasValue)
             waste.Quantity = dto.Quantity.Value;
-        if (dto.CurrentLocationId.HasValue)
+        if (dto.CurrentLocationId != null)
             waste.CurrentLocationId = dto.CurrentLocationId;
-        if (dto.CurrentFacilityId.HasValue)
+        if (dto.CurrentFacilityId != null)
             waste.CurrentFacilityId = dto.CurrentFacilityId;
         if (dto.IsAvailableInBank.HasValue)
             waste.IsAvailableInBank = dto.IsAvailableInBank.Value;
@@ -152,7 +152,7 @@ public class WasteService : IWasteService
         await _unitOfWork.SaveChangesAsync(cancellationToken);
     }
 
-    public async Task PublishToWasteBankAsync(Guid wasteId, string description, decimal? price, CancellationToken cancellationToken = default)
+    public async Task PublishToWasteBankAsync(string wasteId, string description, decimal? price, CancellationToken cancellationToken = default)
     {
         var waste = await _wasteRepository.GetByIdAsync(wasteId.ToString(), cancellationToken);
         if (waste == null)
@@ -166,7 +166,7 @@ public class WasteService : IWasteService
         await _unitOfWork.SaveChangesAsync(cancellationToken);
     }
 
-    public async Task RemoveFromWasteBankAsync(Guid wasteId, CancellationToken cancellationToken = default)
+    public async Task RemoveFromWasteBankAsync(string wasteId, CancellationToken cancellationToken = default)
     {
         var waste = await _wasteRepository.GetByIdAsync(wasteId.ToString(), cancellationToken);
         if (waste == null)
