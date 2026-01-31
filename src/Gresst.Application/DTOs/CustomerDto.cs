@@ -25,8 +25,6 @@ public class CustomerDto
     public DateTime CreatedAt { get; set; }
     public DateTime? UpdatedAt { get; set; }
     public bool IsActive { get; set; }
-    public string IdPersona { get; set; } = string.Empty; // Backward compatibility
-    public string Nombre { get; set; } = string.Empty;  // Backward compatibility
 }
 
 public class CreateCustomerDto

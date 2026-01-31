@@ -16,11 +16,6 @@ public static class CustomerEndpoints
                 try
                 {
                     var list = await customerService.GetAllAsync(ct);
-                    foreach (var c in list)
-                    {
-                        c.IdPersona = c.Id ?? string.Empty;
-                        c.Nombre = c.Name ?? string.Empty;
-                    }
                     return Results.Ok(list);
                 }
                 catch (Exception ex)
@@ -38,8 +33,6 @@ public static class CustomerEndpoints
                     var customer = await customerService.GetByIdAsync(id, ct);
                     if (customer == null)
                         return Results.NotFound();
-                    customer.IdPersona = customer.Id ?? string.Empty;
-                    customer.Nombre = customer.Name ?? string.Empty;
                     return Results.Ok(customer);
                 }
                 catch (Exception ex)
