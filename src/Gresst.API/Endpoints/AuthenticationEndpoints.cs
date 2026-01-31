@@ -1,7 +1,10 @@
 using Gresst.API;
+using Gresst.Application.DTOs;
+using Gresst.Application.Services;
 using Gresst.Infrastructure.Authentication;
 using Gresst.Infrastructure.Authentication.Models;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
 namespace Gresst.API.Endpoints;
 
@@ -12,31 +15,8 @@ public static class AuthenticationEndpoints
         var auth = group.MapGroup("/authentication")
             .WithTags("Authentication");
 
-        auth.MapGet("ping", () => Results.Ok(true))
-            .AllowAnonymous()
-            .WithName("Ping")
-            .WithSummary("Health check");
 
-        auth.MapGet("validatetoken", () => Results.Ok(true))
-            .RequireAuthorization()
-            .WithName("ValidateToken");
-
-        auth.MapGet("isauthenticated", (System.Security.Claims.ClaimsPrincipal user) =>
-            {
-                if (!(user.Identity?.IsAuthenticated ?? false))
-                    return Results.Unauthorized();
-                var userId = user.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
-                if (string.IsNullOrWhiteSpace(userId))
-                    return Results.BadRequest();
-                var username = user.FindFirst(System.Security.Claims.ClaimTypes.Name)?.Value;
-                var accountId = user.FindFirst("AccountId")?.Value;
-                var email = user.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value;
-                var roles = user.FindAll(System.Security.Claims.ClaimTypes.Role).Select(c => c.Value).ToArray();
-                return Results.Ok(new { userId, username, accountId, email, roles, isAuthenticated = true });
-            })
-            .RequireAuthorization()
-            .WithName("IsAuthenticated");
-
+        // Human login (database or external based on config)
         auth.MapPost("login", async (
                 [FromBody] LoginRequest request,
                 AuthenticationServiceFactory factory,
@@ -49,7 +29,8 @@ public static class AuthenticationEndpoints
                 return Results.Ok(result);
             })
             .AllowAnonymous()
-            .WithName("Login");
+            .WithName("Login")
+            .WithSummary("Login with username/password; returns access and refresh tokens");
 
         auth.MapPost("login/database", async (
                 [FromBody] LoginRequest request,
@@ -63,7 +44,8 @@ public static class AuthenticationEndpoints
                 return Results.Ok(result);
             })
             .AllowAnonymous()
-            .WithName("LoginDatabase");
+            .WithName("LoginDatabase")
+            .WithSummary("Login against database only; returns access and refresh tokens");
 
         auth.MapPost("login/external", async (
                 [FromBody] LoginRequest request,
@@ -77,28 +59,84 @@ public static class AuthenticationEndpoints
                 return Results.Ok(result);
             })
             .AllowAnonymous()
-            .WithName("LoginExternal");
+            .WithName("LoginExternal")
+            .WithSummary("Login via external provider; returns access and refresh tokens");
 
-        auth.MapPost("authenticateforinterface", async (
-                [FromBody] LoginRequest login,
+        // Register a new user under an existing account (anonymous)
+        auth.MapPost("register", async (
+                [FromBody] RegisterRequest request,
+                IUserService userService,
+                CancellationToken ct) =>
+            {
+                if (request == null)
+                    return Results.BadRequest(new { error = "Request is required" });
+                if (string.IsNullOrWhiteSpace(request.AccountId))
+                    return Results.BadRequest(new { error = "AccountId is required" });
+                if (string.IsNullOrWhiteSpace(request.Email))
+                    return Results.BadRequest(new { error = "Email is required" });
+                if (string.IsNullOrWhiteSpace(request.Password))
+                    return Results.BadRequest(new { error = "Password is required" });
+                if (request.Password != request.ConfirmPassword)
+                    return Results.BadRequest(new { error = "Password and confirmation do not match" });
+                if (request.Password.Length < 6)
+                    return Results.BadRequest(new { error = "Password must be at least 6 characters" });
+
+                var accountExists = await userService.AccountExistsAsync(request.AccountId, ct);
+                if (!accountExists)
+                    return Results.BadRequest(new { error = "Account does not exist" });
+
+                var existingUser = await userService.GetUserByEmailAsync(request.Email, ct);
+                if (existingUser != null)
+                    return Results.BadRequest(new { error = "Email is already in use" });
+
+                var createDto = new CreateUserDto
+                {
+                    AccountId = request.AccountId,
+                    Name = string.IsNullOrWhiteSpace(request.Name) ? request.Email : request.Name,
+                    LastName = request.LastName,
+                    Email = request.Email,
+                    Password = request.Password,
+                    PersonId = request.PersonId,
+                    Roles = new[] { "User" }
+                };
+
+                var user = await userService.CreateUserAsync(createDto, ct);
+                return Results.CreatedAtRoute("GetUserById", new { id = user.Id }, user);
+            })
+            .AllowAnonymous()
+            .WithName("Register")
+            .WithSummary("Register a new user under an existing account");
+
+        // Service/client (machine-to-machine) token: interface + client token; optional user binding
+        auth.MapPost("service/token", async (
+                [FromBody] ServiceTokenRequest request,
                 AuthenticationServiceFactory factory,
                 CancellationToken ct) =>
             {
-                if (login == null)
+                if (request == null || string.IsNullOrWhiteSpace(request.Interface) || string.IsNullOrWhiteSpace(request.Token))
                     return Results.BadRequest();
                 var authService = factory.GetAuthenticationService();
-                var (result, token) = await authService.IsUserAuthorizedForInterfaceAsync(login.Interface, login.Username, login.Token, ct);
-                if (result && token != null)
-                    return Results.Ok(token);
-                var (result2, token2) = await authService.IsGuestAuthorizedForInterfaceAsync(login.Interface, login.Token, ct);
-                if (result2 && token2 != null)
-                    return Results.Ok(token2);
-                return Results.Unauthorized();
+                string? accessToken = null;
+                if (!string.IsNullOrWhiteSpace(request.Username))
+                {
+                    var (ok, token) = await authService.IsUserAuthorizedForInterfaceAsync(request.Interface, request.Username, request.Token, ct);
+                    if (ok && token != null) accessToken = token;
+                }
+                if (accessToken == null)
+                {
+                    var (ok, token) = await authService.IsGuestAuthorizedForInterfaceAsync(request.Interface, request.Token, ct);
+                    if (ok && token != null) accessToken = token;
+                }
+                if (accessToken == null)
+                    return Results.Unauthorized();
+                return Results.Ok(new ServiceTokenResponse { AccessToken = accessToken });
             })
             .AllowAnonymous()
-            .WithName("AuthenticateForInterface");
+            .WithName("GetServiceToken")
+            .WithSummary("Obtain an access token for a service/client using interface name and client token");
 
-        auth.MapPost("validate", async (
+        // Validate access token (introspection)
+        auth.MapPost("token/validate", async (
                 [FromBody] ValidateTokenRequest request,
                 AuthenticationServiceFactory factory,
                 CancellationToken ct) =>
@@ -109,9 +147,12 @@ public static class AuthenticationEndpoints
                     return Results.Unauthorized();
                 return Results.Ok(result);
             })
-            .WithName("ValidateTokenPost");
+            .AllowAnonymous()
+            .WithName("ValidateAccessToken")
+            .WithSummary("Validate an access token and return its claims if valid");
 
-        auth.MapPost("refresh", async (
+        // Exchange refresh token for new access + refresh tokens
+        auth.MapPost("token/refresh", async (
                 [FromBody] RefreshTokenRequest request,
                 AuthenticationServiceFactory factory,
                 CancellationToken ct) =>
@@ -125,120 +166,93 @@ public static class AuthenticationEndpoints
                 return Results.Ok(result);
             })
             .AllowAnonymous()
-            .WithName("RefreshToken");
+            .WithName("RefreshToken")
+            .WithSummary("Exchange refresh token for new access and refresh tokens");
 
-        auth.MapPost("isvalidrefreshtoken", async (
-                [FromBody] LoginRequest login,
+        // Check whether a refresh token is still valid (no new tokens issued)
+        auth.MapPost("refresh-token/validate", async (
+                [FromBody] ValidateRefreshTokenRequest request,
                 AuthenticationServiceFactory factory,
                 CancellationToken ct) =>
             {
-                if (login == null)
+                if (request == null || string.IsNullOrWhiteSpace(request.Username) || string.IsNullOrWhiteSpace(request.RefreshToken))
                     return Results.BadRequest();
                 var authService = factory.GetAuthenticationService();
-                var result = await authService.IsValidRefreshTokenAsync(login.Username, login.Token, ct);
-                return result ? Results.Ok() : Results.Unauthorized();
+                var result = await authService.IsValidRefreshTokenAsync(request.Username, request.RefreshToken, ct);
+                return result ? Results.Ok(new { valid = true }) : Results.Unauthorized();
             })
-            .WithName("IsValidRefreshToken");
+            .AllowAnonymous()
+            .WithName("ValidateRefreshToken")
+            .WithSummary("Check if a refresh token is still valid");
 
-        auth.MapPost("existuser", async (
-                [FromBody] LoginRequest login,
+        // Forgot password: request a reset token (always returns success to avoid email enumeration)
+        auth.MapPost("forgot-password", async (
+                [FromBody] ForgotPasswordRequest request,
                 AuthenticationServiceFactory factory,
                 CancellationToken ct) =>
             {
-                if (login == null)
-                    return Results.BadRequest();
+                if (request == null || string.IsNullOrWhiteSpace(request.Email))
+                    return Results.BadRequest(new { error = "Email is required" });
                 var authService = factory.GetAuthenticationService();
-                var user = await authService.GetUserByEmailAsync(login.Username, ct);
-                return user != null ? Results.Ok() : Results.Unauthorized();
+                await authService.RequestPasswordResetAsync(request.Email, ct);
+                return Results.Ok(new { message = "If an account exists for this email, you will receive instructions to reset your password." });
             })
-            .RequireAuthorization()
-            .WithName("ExistUser");
+            .AllowAnonymous()
+            .WithName("ForgotPassword")
+            .WithSummary("Request a password reset; always returns success to avoid email enumeration");
 
-        auth.MapGet("user", async (
-                System.Security.Claims.ClaimsPrincipal user,
+        // Reset password: set new password using the token from forgot-password flow
+        auth.MapPost("reset-password", async (
+                [FromBody] ResetPasswordRequest request,
                 AuthenticationServiceFactory factory,
                 CancellationToken ct) =>
             {
-                var userId = user.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
-                if (string.IsNullOrEmpty(userId))
-                    return Results.BadRequest();
+                if (request == null || string.IsNullOrWhiteSpace(request.Token))
+                    return Results.BadRequest(new { error = "Token is required" });
+                if (string.IsNullOrWhiteSpace(request.NewPassword))
+                    return Results.BadRequest(new { error = "New password is required" });
+                if (request.NewPassword != request.ConfirmPassword)
+                    return Results.BadRequest(new { error = "New password and confirmation do not match" });
                 var authService = factory.GetAuthenticationService();
-                var u = await authService.GetUserByIdAsync(userId, ct);
-                return u != null ? Results.Ok(u) : Results.NotFound();
+                var success = await authService.ResetPasswordAsync(request.Token, request.NewPassword, ct);
+                if (!success)
+                    return Results.BadRequest(new { error = "Invalid or expired reset token" });
+                return Results.Ok(new { message = "Password has been reset successfully." });
             })
-            .RequireAuthorization()
-            .WithName("GetUser");
+            .AllowAnonymous()
+            .WithName("ResetPassword")
+            .WithSummary("Set new password using the token received by email");
 
-        auth.MapGet("me", (System.Security.Claims.ClaimsPrincipal user) =>
-            {
-                var userId = user.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
-                var username = user.FindFirst(System.Security.Claims.ClaimTypes.Name)?.Value;
-                var accountId = user.FindFirst("AccountId")?.Value;
-                var email = user.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value;
-                var roles = user.FindAll(System.Security.Claims.ClaimTypes.Role).Select(c => c.Value).ToArray();
-                return Results.Ok(new { userId, username, accountId, email, roles, isAuthenticated = true });
-            })
-            .RequireAuthorization()
-            .WithName("Me");
-
-        auth.MapGet("account", async (
-                System.Security.Claims.ClaimsPrincipal user,
-                AuthenticationServiceFactory factory,
+        // Change password (logged-in user; requires current password)
+        auth.MapPost("change-password", async (
+                [FromBody] ChangePasswordDto request,
+                ClaimsPrincipal user,
+                IUserService userService,
                 CancellationToken ct) =>
             {
-                var userIdClaim = user.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+                if (request == null)
+                    return Results.BadRequest(new { error = "Request is required" });
+                if (request.NewPassword != request.ConfirmPassword)
+                    return Results.BadRequest(new { error = "New password and confirmation do not match" });
+                var userIdClaim = user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
                 if (string.IsNullOrEmpty(userIdClaim))
                     return Results.Unauthorized();
-                var authService = factory.GetAuthenticationService();
-                var account = await authService.GetAccountIdForUserAsync(userIdClaim, ct);
-                return Results.Ok(account);
+                var success = await userService.ChangePasswordAsync(userIdClaim, request, ct);
+                if (!success)
+                    return Results.BadRequest(new { error = "Current password is incorrect" });
+                return Results.Ok(new { message = "Password updated successfully" });
             })
             .RequireAuthorization()
-            .WithName("GetAccount");
-
-        auth.MapPost("changepassword", async (
-                [FromBody] LoginRequest userReq,
-                System.Security.Claims.ClaimsPrincipal user,
-                AuthenticationServiceFactory factory,
-                CancellationToken ct) =>
-            {
-                if (userReq == null)
-                    return Results.BadRequest();
-                var userId = user.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
-                if (string.IsNullOrEmpty(userId))
-                    return Results.BadRequest();
-                var authService = factory.GetAuthenticationService();
-                var changed = await authService.ChangePasswordAsync(userId, userReq.Password, ct);
-                return changed ? Results.Ok() : Results.NotFound();
-            })
-            .RequireAuthorization()
-            .WithName("ChangePassword");
-
-        auth.MapPost("changename", async (
-                [FromBody] LoginRequest userReq,
-                System.Security.Claims.ClaimsPrincipal user,
-                AuthenticationServiceFactory factory,
-                CancellationToken ct) =>
-            {
-                if (userReq == null)
-                    return Results.BadRequest();
-                var userId = user.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
-                if (string.IsNullOrEmpty(userId))
-                    return Results.BadRequest();
-                var authService = factory.GetAuthenticationService();
-                var changed = await authService.ChangePasswordAsync(userId, userReq.Name, ct);
-                return changed ? Results.Ok() : Results.NotFound();
-            })
-            .RequireAuthorization()
-            .WithName("ChangeName");
+            .WithName("ChangePassword")
+            .WithSummary("Change password for the current user (requires current password)");
 
         auth.MapPost("logout", async (
                 [FromBody] LogoutRequest? request,
-                System.Security.Claims.ClaimsPrincipal user,
+                ClaimsPrincipal user,
                 AuthenticationServiceFactory factory,
                 CancellationToken ct) =>
             {
-                var userIdClaim = user.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+                var userIdClaim = user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
                 if (!string.IsNullOrEmpty(userIdClaim))
                 {
                     var authService = factory.GetAuthenticationService();
@@ -247,7 +261,8 @@ public static class AuthenticationEndpoints
                 return Results.Ok(new { message = "Logged out successfully" });
             })
             .RequireAuthorization()
-            .WithName("Logout");
+            .WithName("Logout")
+            .WithSummary("Revoke refresh token(s) for the current user");
 
         return group;
     }

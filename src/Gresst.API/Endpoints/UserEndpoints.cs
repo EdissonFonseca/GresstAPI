@@ -12,14 +12,34 @@ public static class UserEndpoints
             .WithTags("User")
             .RequireAuthorization();
 
-        users.MapGet("by-email/{email}", async (string email, IUserService userService, CancellationToken ct) =>
+        // Get user by email (query param to avoid path encoding issues with @, +, etc.)
+        users.MapGet("", async ([FromQuery] string? email, IUserService userService, CancellationToken ct) =>
             {
+                if (string.IsNullOrWhiteSpace(email))
+                    return Results.BadRequest(new { error = "Query parameter 'email' is required" });
                 var user = await userService.GetUserByEmailAsync(email, ct);
                 if (user == null)
                     return Results.NotFound(new { error = "Usuario no encontrado" });
                 return Results.Ok(user);
             })
-            .WithName("GetUserByEmail");
+            .WithName("GetUserByEmail")
+            .WithSummary("Get user by email")
+            .WithDescription("Returns a single user by email. Use query parameter: GET /users?email=user@example.com. Required to avoid encoding issues with @ or + in the path.");
+
+        // All users of the authenticated user's account (only if the authenticated user is Admin)
+        users.MapGet("account", async (IUserService userService, CancellationToken ct) =>
+            {
+                var currentUser = await userService.GetCurrentUserAsync(ct);
+                if (currentUser == null)
+                    return Results.Unauthorized();
+                var isAdmin = currentUser.Roles?.Contains("Admin", StringComparer.OrdinalIgnoreCase) == true;
+                if (!isAdmin)
+                    return Results.Forbid();
+                var list = await userService.GetUsersByAccountAsync(currentUser.AccountId, ct);
+                return Results.Ok(list);
+            })
+            .WithName("GetUsersOfMyAccount")
+            .WithSummary("Get all users of the current user's account (Admin only)");
 
         users.MapGet("{id}", async (string id, IUserService userService, CancellationToken ct) =>
             {

@@ -33,13 +33,17 @@ public class MeService : IMeService
             ? await _accountRepository.GetByIdAsync(user.AccountId, cancellationToken)
             : null;
 
-        var person = account != null && !string.IsNullOrEmpty(account.PersonId)
-            ? await _personRepository.GetByIdAsync(account.PersonId, cancellationToken)
+        // Person corresponding to the user: user's linked person first, then account's legal rep
+        var personId = !string.IsNullOrEmpty(user.PersonId)
+            ? user.PersonId
+            : account?.PersonId;
+        var person = !string.IsNullOrEmpty(personId)
+            ? await _personRepository.GetByIdAsync(personId, cancellationToken)
             : null;
 
         return new MeResponseDto
         {
-            User = user,
+            Profile = user,
             Account = account != null ? MapAccount(account) : null,
             Person = person != null ? MapPerson(person) : null
         };

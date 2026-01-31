@@ -88,6 +88,12 @@ builder.Services.AddAuthorization(options =>
 {
     // Configurar política por defecto: permitir acceso anónimo (los controladores usarán [Authorize] explícitamente)
     options.FallbackPolicy = null; // No requerir autenticación por defecto
+
+    // Differentiate human (interactive user) vs service (machine/client) for policy-based authorization
+    options.AddPolicy("HumanOnly", policy =>
+        policy.RequireClaim(Gresst.Infrastructure.Authentication.ClaimConstants.SubjectType, Gresst.Infrastructure.Authentication.ClaimConstants.SubjectTypeHuman));
+    options.AddPolicy("ServiceOnly", policy =>
+        policy.RequireClaim(Gresst.Infrastructure.Authentication.ClaimConstants.SubjectType, Gresst.Infrastructure.Authentication.ClaimConstants.SubjectTypeService));
 });
 
 // Authentication Services - Dual provider (Database + External)
@@ -111,6 +117,9 @@ builder.Services.AddDbContext<InfrastructureDbContext>(options =>
             sqlOptions.UseNetTopologySuite(); // Support for geography/geometry types
         });
 });
+
+// Health checks (required for MapHealthChecks; add .AddDbContextCheck or .AddSqlServer for readiness)
+builder.Services.AddHealthChecks();
 
 // Mappers - Register all mappers
 builder.Services.AddScoped<AccountMapper>();
@@ -182,6 +191,7 @@ builder.Services.AddScoped<IWasteClassService, WasteClassService>();
 builder.Services.AddScoped<ITreatmentService, TreatmentService>();
 builder.Services.AddScoped<IRouteService, RouteService>();
 builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddScoped<IAccountRegistrationService, AccountRegistrationService>();
 builder.Services.AddScoped<IMeService, MeService>();
 builder.Services.AddScoped<IAuthorizationService, AuthorizationService>();
 
@@ -319,6 +329,9 @@ if (enableSwagger)
 // Authentication and Authorization
 app.UseAuthentication();
 app.UseAuthorization();
+
+// Health check endpoint: /health (anonymous; for load balancers, k8s, monitoring)
+app.MapHealthChecks("/health");
 
 // Minimal API endpoints (replaces MapControllers)
 app.MapApiEndpoints();

@@ -254,6 +254,16 @@ public class ExternalAuthenticationService : IAuthenticationService
     {
         return false;
     }
+
+    public Task<bool> RequestPasswordResetAsync(string email, CancellationToken cancellationToken = default)
+    {
+        return Task.FromResult(true); // Success to avoid enumeration; no-op for external provider
+    }
+
+    public Task<bool> ResetPasswordAsync(string token, string newPassword, CancellationToken cancellationToken = default)
+    {
+        return Task.FromResult(false); // Not supported for external provider
+    }
 }
 
 // DTOs para proveedor externo

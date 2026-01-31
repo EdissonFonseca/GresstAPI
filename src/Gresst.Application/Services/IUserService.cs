@@ -11,6 +11,7 @@ public interface IUserService
     Task<UserDto?> GetUserByEmailAsync(string email, CancellationToken cancellationToken = default);
     Task<UserDto?> GetCurrentUserAsync(CancellationToken cancellationToken = default);
     Task<IEnumerable<UserDto>> GetUsersByAccountAsync(string accountId, CancellationToken cancellationToken = default);
+    Task<bool> AccountExistsAsync(string accountId, CancellationToken cancellationToken = default);
     Task<UserDto> CreateUserAsync(CreateUserDto dto, CancellationToken cancellationToken = default);
     Task<UserDto?> UpdateUserProfileAsync(string userId, UpdateUserProfileDto dto, CancellationToken cancellationToken = default);
     Task<bool> ChangePasswordAsync(string userId, ChangePasswordDto dto, CancellationToken cancellationToken = default);

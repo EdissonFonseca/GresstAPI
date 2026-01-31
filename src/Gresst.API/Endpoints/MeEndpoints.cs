@@ -12,6 +12,7 @@ public static class MeEndpoints
             .WithTags("Me")
             .RequireAuthorization();
 
+        // Full context: profile + account + person (one round-trip; preferred for app shell)
         me.MapGet("", async (IMeService meService, CancellationToken ct) =>
             {
                 var context = await meService.GetCurrentContextAsync(ct);
@@ -19,8 +20,43 @@ public static class MeEndpoints
                     return Results.NotFound(new { error = "User not found" });
                 return Results.Ok(context);
             })
-            .WithName("GetMe");
+            .WithName("GetMe")
+            .WithSummary("Current user full context (profile, account, and person)");
 
+        // Profile only: user data without account or person
+        me.MapGet("profile", async (IMeService meService, CancellationToken ct) =>
+            {
+                var context = await meService.GetCurrentContextAsync(ct);
+                if (context == null)
+                    return Results.NotFound(new { error = "User not found" });
+                return Results.Ok(context.Profile);
+            })
+            .WithName("GetMyProfile")
+            .WithSummary("Current user profile only (no account or person)");
+
+        // Account for the current user (when only account is needed)
+        me.MapGet("account", async (IMeService meService, CancellationToken ct) =>
+            {
+                var context = await meService.GetCurrentContextAsync(ct);
+                if (context == null || context.Account == null)
+                    return Results.NotFound(new { error = "Account not found" });
+                return Results.Ok(context.Account);
+            })
+            .WithName("GetMyAccount")
+            .WithSummary("Account corresponding to the current user");
+
+        // Person for the current user (user's linked person or account's legal rep)
+        me.MapGet("person", async (IMeService meService, CancellationToken ct) =>
+            {
+                var context = await meService.GetCurrentContextAsync(ct);
+                if (context == null || context.Person == null)
+                    return Results.NotFound(new { error = "Person not found" });
+                return Results.Ok(context.Person);
+            })
+            .WithName("GetMyPerson")
+            .WithSummary("Person corresponding to the current user");
+
+        // Update full profile (PUT /me)
         me.MapPut("", async ([FromBody] UpdateUserProfileDto dto, System.Security.Claims.ClaimsPrincipal user, IUserService userService, CancellationToken ct) =>
             {
                 var userIdClaim = user.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
@@ -31,21 +67,22 @@ public static class MeEndpoints
                     return Results.NotFound(new { error = "User not found" });
                 return Results.Ok(u);
             })
-            .WithName("UpdateMyProfile");
+            .WithName("UpdateMyProfile")
+            .WithSummary("Update current user profile");
 
-        me.MapPost("password", async ([FromBody] ChangePasswordDto dto, System.Security.Claims.ClaimsPrincipal user, IUserService userService, CancellationToken ct) =>
+        // Update profile (same as PUT /me; preferred path for profile updates)
+        me.MapPut("profile", async ([FromBody] UpdateUserProfileDto dto, System.Security.Claims.ClaimsPrincipal user, IUserService userService, CancellationToken ct) =>
             {
-                if (dto.NewPassword != dto.ConfirmPassword)
-                    return Results.BadRequest(new { error = "Passwords do not match" });
                 var userIdClaim = user.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
                 if (string.IsNullOrEmpty(userIdClaim))
                     return Results.Unauthorized();
-                var success = await userService.ChangePasswordAsync(userIdClaim, dto, ct);
-                if (!success)
-                    return Results.BadRequest(new { error = "Current password is incorrect" });
-                return Results.Ok(new { message = "Password updated successfully" });
+                var u = await userService.UpdateUserProfileAsync(userIdClaim, dto, ct);
+                if (u == null)
+                    return Results.NotFound(new { error = "User not found" });
+                return Results.Ok(u);
             })
-            .WithName("ChangeMyPassword");
+            .WithName("UpdateMyProfileByPath")
+            .WithSummary("Update current user profile (name, email, etc.)");
 
         return group;
     }

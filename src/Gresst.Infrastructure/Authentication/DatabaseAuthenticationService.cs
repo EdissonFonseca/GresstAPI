@@ -13,6 +13,7 @@ using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
+using System.Text.Json.Nodes;
 
 namespace Gresst.Infrastructure.Authentication;
 
@@ -62,7 +63,7 @@ public class DatabaseAuthenticationService : IAuthenticationService
             }
 
             // Generar JWT Access Token y Refresh Token
-            var (accessToken, jwtId) = GenerateJwtToken(usuario);
+            var (accessToken, jwtId) = GenerateJwtToken(usuario, ClaimConstants.SubjectTypeHuman, null);
             var refreshToken = await GenerateRefreshTokenAsync(usuario.IdUsuario, jwtId, cancellationToken);
             
             var accessTokenExpiresAt = DateTime.UtcNow.AddMinutes(GetAccessTokenExpirationMinutes());
@@ -107,7 +108,7 @@ public class DatabaseAuthenticationService : IAuthenticationService
                 select c).FirstOrDefaultAsync(cancellationToken);
             if (cuenta != null)
             {
-                var (accessToken, jwtId) = GenerateJwtToken(usuario);
+                var (accessToken, _) = GenerateJwtToken(usuario, ClaimConstants.SubjectTypeService, interfaz);
                 return (true, accessToken);
             }
         }
@@ -133,7 +134,7 @@ public class DatabaseAuthenticationService : IAuthenticationService
                     .LoadAsync(cancellationToken);
             }
             
-            var (accessToken, jwtId) = GenerateJwtToken(user);
+            var (accessToken, _) = GenerateJwtToken(user, ClaimConstants.SubjectTypeService, interfaz);
             return (true, accessToken);
         }
 
@@ -256,7 +257,7 @@ public class DatabaseAuthenticationService : IAuthenticationService
             }
 
             // Generar nuevos tokens
-            var (newAccessToken, newJwtId) = GenerateJwtToken(usuario);
+            var (newAccessToken, newJwtId) = GenerateJwtToken(usuario, ClaimConstants.SubjectTypeHuman, null);
             var newRefreshToken = await GenerateRefreshTokenAsync(usuario.IdUsuario, newJwtId, cancellationToken);
             
             var accessTokenExpiresAt = DateTime.UtcNow.AddMinutes(GetAccessTokenExpirationMinutes());
@@ -429,8 +430,77 @@ public class DatabaseAuthenticationService : IAuthenticationService
         return true;
     }
 
+    public async Task<bool> RequestPasswordResetAsync(string email, CancellationToken cancellationToken = default)
+    {
+        var user = await _context.Usuarios
+            .FirstOrDefaultAsync(u => u.Correo == email && u.IdEstado == "A", cancellationToken);
+        if (user == null)
+            return true; // Always return success to avoid email enumeration
+
+        var token = Convert.ToBase64String(RandomNumberGenerator.GetBytes(32)).Replace("+", "-").Replace("/", "_").TrimEnd('=');
+        var expiresAt = DateTime.UtcNow.AddHours(1).ToString("O");
+
+        var node = string.IsNullOrEmpty(user.DatosAdicionales)
+            ? new JsonObject()
+            : JsonNode.Parse(user.DatosAdicionales) as JsonObject ?? new JsonObject();
+        node["passwordResetToken"] = token;
+        node["passwordResetExpiresAt"] = expiresAt;
+        user.DatosAdicionales = node.ToJsonString();
+        await _context.SaveChangesAsync(cancellationToken);
+
+        // TODO: Send email with reset link (e.g. https://app.example.com/reset-password?token=...)
+        // For now the token is stored; client can use a separate flow to send the email or get the token for testing
+        return true;
+    }
+
+    public async Task<bool> ResetPasswordAsync(string token, string newPassword, CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrWhiteSpace(token) || string.IsNullOrWhiteSpace(newPassword))
+            return false;
+
+        var users = await _context.Usuarios
+            .Where(u => u.DatosAdicionales != null)
+            .ToListAsync(cancellationToken);
+
+        Usuario? targetUser = null;
+        foreach (var u in users)
+        {
+            try
+            {
+                var node = JsonNode.Parse(u.DatosAdicionales!) as JsonObject;
+                var storedToken = node?["passwordResetToken"]?.GetValue<string>();
+                var expiresAtStr = node?["passwordResetExpiresAt"]?.GetValue<string>();
+                if (storedToken == token && !string.IsNullOrEmpty(expiresAtStr) &&
+                    DateTime.TryParse(expiresAtStr, null, System.Globalization.DateTimeStyles.RoundtripKind, out var expiresAt) &&
+                    expiresAt > DateTime.UtcNow)
+                {
+                    targetUser = u;
+                    break;
+                }
+            }
+            catch
+            {
+                // Ignore malformed JSON
+            }
+        }
+
+        if (targetUser == null)
+            return false;
+
+        targetUser.Clave = HashPassword(newPassword);
+        var dataNode = JsonNode.Parse(targetUser.DatosAdicionales ?? "{}") as JsonObject ?? new JsonObject();
+        dataNode.Remove("passwordResetToken");
+        dataNode.Remove("passwordResetExpiresAt");
+        targetUser.DatosAdicionales = dataNode.ToJsonString();
+        await _context.SaveChangesAsync(cancellationToken);
+        return true;
+    }
+
     // Helper methods
-    private (string token, string jwtId) GenerateJwtToken(Usuario usuario)
+    private (string token, string jwtId) GenerateJwtToken(
+        Usuario usuario,
+        string subjectType = ClaimConstants.SubjectTypeHuman,
+        string? interfaceName = null)
     {
         var tokenHandler = new JwtSecurityTokenHandler();
         var key = Encoding.UTF8.GetBytes(GetJwtSecret());
@@ -440,6 +510,7 @@ public class DatabaseAuthenticationService : IAuthenticationService
         var claims = new List<Claim>
         {
             new Claim(JwtRegisteredClaimNames.Jti, jwtId),
+            new Claim(ClaimConstants.SubjectType, subjectType),
             new Claim(ClaimTypes.NameIdentifier, usuario.IdUsuario.ToString()),
             new Claim(ClaimTypes.Name, usuario.Nombre ?? ""),
             new Claim(ClaimTypes.Email, usuario.Correo ?? ""),
@@ -447,6 +518,11 @@ public class DatabaseAuthenticationService : IAuthenticationService
             new Claim("AccountPersonId", usuario.IdCuentaNavigation?.IdPersona ?? ""),
             new Claim("PersonId", usuario.IdPersona ?? ""),
         };
+
+        if (!string.IsNullOrEmpty(interfaceName))
+        {
+            claims.Add(new Claim(ClaimConstants.Interface, interfaceName));
+        }
 
         // Agregar roles
         var roles = ParseRoles(usuario.DatosAdicionales);

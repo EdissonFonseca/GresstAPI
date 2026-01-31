@@ -21,5 +21,14 @@ public interface IAuthenticationService
     Task<bool> ChangeNameAsync(string userId, string name, CancellationToken cancellationToken = default);
     Task<bool> ChangePasswordAsync(string userId, string password, CancellationToken cancellationToken = default);
 
+    /// <summary>
+    /// Request a password reset for the given email. Always returns success to avoid email enumeration.
+    /// </summary>
+    Task<bool> RequestPasswordResetAsync(string email, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Reset password using the token sent by email. Returns true if token was valid and password was updated.
+    /// </summary>
+    Task<bool> ResetPasswordAsync(string token, string newPassword, CancellationToken cancellationToken = default);
 }
 

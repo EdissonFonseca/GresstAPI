@@ -28,11 +28,16 @@ public class PersonSummaryDto
 }
 
 /// <summary>
-/// Full "me" context: current user, account, and associated person.
+/// Full "me" context: profile (user data), account, and person in a clear structure.
 /// </summary>
 public class MeResponseDto
 {
-    public UserDto User { get; set; } = null!;
+    /// <summary>Current user data only (same as GET /me/profile).</summary>
+    public UserDto Profile { get; set; } = null!;
+
+    /// <summary>Account corresponding to the current user.</summary>
     public AccountSummaryDto? Account { get; set; }
+
+    /// <summary>Person corresponding to the current user (user's linked person or account's legal rep).</summary>
     public PersonSummaryDto? Person { get; set; }
 }

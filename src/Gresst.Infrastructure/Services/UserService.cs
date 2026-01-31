@@ -74,6 +74,13 @@ public class UserService : IUserService
         return usuarios.Select(MapToDto);
     }
 
+    public async Task<bool> AccountExistsAsync(string accountId, CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrWhiteSpace(accountId) || !long.TryParse(accountId, out var accountIdLong) || accountIdLong == 0)
+            return false;
+        return await _context.Cuenta.AnyAsync(c => c.IdCuenta == accountIdLong, cancellationToken);
+    }
+
     public async Task<UserDto> CreateUserAsync(CreateUserDto dto, CancellationToken cancellationToken = default)
     {
         var accountIdLong = long.TryParse(dto.AccountId, out var acLong) ? acLong : 0;
