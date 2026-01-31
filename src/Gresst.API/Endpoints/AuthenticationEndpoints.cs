@@ -135,21 +135,17 @@ public static class AuthenticationEndpoints
             .WithName("GetServiceToken")
             .WithSummary("Obtain an access token for a service/client using interface name and client token");
 
-        // Validate access token (introspection)
-        auth.MapPost("token/validate", async (
-                [FromBody] ValidateTokenRequest request,
-                AuthenticationServiceFactory factory,
-                CancellationToken ct) =>
+        // Validate access token: GET with Bearer token; returns 200 if token is valid and active, 401 otherwise
+        auth.MapGet("token/validate", (ClaimsPrincipal user) =>
             {
-                var authService = factory.GetAuthenticationService();
-                var result = await authService.ValidateTokenAsync(request.Token, ct);
-                if (!result.Success)
+                var userId = user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                if (string.IsNullOrEmpty(userId))
                     return Results.Unauthorized();
-                return Results.Ok(result);
+                return Results.Ok(new { valid = true, authenticated = true });
             })
-            .AllowAnonymous()
+            .RequireAuthorization()
             .WithName("ValidateAccessToken")
-            .WithSummary("Validate an access token and return its claims if valid");
+            .WithSummary("Validate that the access token (Bearer) is still active; returns 200 if authenticated, 401 if missing or expired");
 
         // Exchange refresh token for new access + refresh tokens
         auth.MapPost("token/refresh", async (

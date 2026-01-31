@@ -286,32 +286,31 @@ public class DatabaseAuthenticationService : IAuthenticationService
 
     public async Task<bool> IsValidRefreshTokenAsync(string email, string token, CancellationToken cancellationToken = default)
     {
-        var user = await (from u in _context.Usuarios
-                    where u.Correo == email
-                    select u).FirstOrDefaultAsync(cancellationToken);
-
-        if (user == null)
+        if (string.IsNullOrWhiteSpace(email) || string.IsNullOrWhiteSpace(token))
             return false;
 
-        Dictionary<string, object> settings = new Dictionary<string, object>();
-        if (user.DatosAdicionales != null)
+        var user = await (from u in _context.Usuarios
+                where u.Correo == email
+                select u).FirstOrDefaultAsync(cancellationToken);
+
+        if (user == null || string.IsNullOrEmpty(user.DatosAdicionales))
+            return false;
+
+        try
         {
-            //settings = JsonConvert.DeserializeObject<Dictionary<string, object>>(user.DatosAdicionales);
-            if (settings.ContainsKey("token") && settings["token"].ToString() == token)
-            {
-                if (settings.ContainsKey("expiresAt"))
-                {
-                    var date = settings["expiresAt"]?.ToString();
-                    if (date == null)
-                        return true;
-
-                    DateTime expiresAt = DateTime.Parse(date);
-                    return DateTime.UtcNow < expiresAt;
-                }
-            }
+            var node = JsonNode.Parse(user.DatosAdicionales) as JsonObject;
+            var storedToken = node?["token"]?.GetValue<string>();
+            var expiresAtStr = node?["expiresAt"]?.GetValue<string>();
+            if (storedToken != token || string.IsNullOrEmpty(expiresAtStr))
+                return false;
+            if (!DateTime.TryParse(expiresAtStr, null, System.Globalization.DateTimeStyles.RoundtripKind, out var expiresAt))
+                return false;
+            return DateTime.UtcNow < expiresAt;
         }
-
-        return false;
+        catch
+        {
+            return false;
+        }
     }
 
     public async Task<bool> LogoutAsync(string userId, string? refreshToken = null, CancellationToken cancellationToken = default)
