@@ -5,6 +5,7 @@ using Gresst.Domain.Interfaces;
 using Gresst.Infrastructure.Common;
 using Gresst.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
+using System.Data;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
@@ -28,7 +29,7 @@ public class UserService : IUserService
     public async Task<UserDto?> GetUserByIdAsync(string userId, CancellationToken cancellationToken = default)
     {
         var userIdLong = IdConversion.ToLongFromString(userId);
-        
+
         var usuario = await _context.Usuarios
             .Include(u => u.IdPersonaNavigation)
             .FirstOrDefaultAsync(u => u.IdUsuario == userIdLong, cancellationToken);
@@ -36,7 +37,18 @@ public class UserService : IUserService
         if (usuario == null)
             return null;
 
-        return MapToDto(usuario);
+        List<string> roles = new List<string>();
+
+        var idCuenta = await _context.Cuenta
+            .FirstOrDefaultAsync(c => c.IdCuenta == usuario.IdCuenta, cancellationToken);
+        if (idCuenta != null)
+            if (idCuenta.IdUsuario == usuario.IdUsuario) //Is administrator
+                roles.Add(ApiRoles.Admin);
+
+        if (roles.Count == 0)
+            roles.Add(ApiRoles.User);
+
+        return MapToDto(usuario, roles.ToArray());
     }
 
     public async Task<UserDto?> GetUserByEmailAsync(string email, CancellationToken cancellationToken = default)
@@ -51,7 +63,18 @@ public class UserService : IUserService
         if (usuario == null)
             return null;
 
-        return MapToDto(usuario);
+        List<string> roles = new List<string>();
+
+        var idCuenta = await _context.Cuenta
+            .FirstOrDefaultAsync(c => c.IdCuenta == usuario.IdCuenta, cancellationToken);
+        if (idCuenta != null)
+            if (idCuenta.IdUsuario == usuario.IdUsuario) //Is administrator
+                roles.Add(ApiRoles.Admin);
+
+        if (roles.Count == 0)
+            roles.Add(ApiRoles.User);
+
+        return MapToDto(usuario, roles.ToArray());
     }
 
     public async Task<UserDto?> GetCurrentUserAsync(CancellationToken cancellationToken = default)
@@ -72,7 +95,7 @@ public class UserService : IUserService
             .Where(u => u.IdCuenta == accountIdLong)
             .ToListAsync(cancellationToken);
 
-        return usuarios.Select(MapToDto);
+        return usuarios.Select(u => MapToDto(u, null));
     }
 
     public async Task<bool> AccountExistsAsync(string accountId, CancellationToken cancellationToken = default)
@@ -174,22 +197,8 @@ public class UserService : IUserService
     }
 
     // Helper methods
-    private UserDto MapToDto(Data.Entities.Usuario usuario)
+    private UserDto MapToDto(Data.Entities.Usuario usuario, string[]? roles = null)
     {
-        string[]? roles = null;
-        if (!string.IsNullOrEmpty(usuario.DatosAdicionales))
-        {
-            try
-            {
-                var json = JsonDocument.Parse(usuario.DatosAdicionales);
-                if (json.RootElement.TryGetProperty("roles", out var rolesElement))
-                {
-                    roles = JsonSerializer.Deserialize<string[]>(rolesElement.GetRawText());
-                }
-            }
-            catch { /* Ignorar errores de parseo */ }
-        }
-
         return new UserDto
         {
             Id = IdConversion.ToStringFromLong(usuario.IdUsuario),

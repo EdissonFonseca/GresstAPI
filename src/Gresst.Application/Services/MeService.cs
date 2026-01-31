@@ -44,16 +44,22 @@ public class MeService : IMeService
             ? await _personRepository.GetByIdAsync(personId, cancellationToken)
             : null;
 
-        var permissions = await _authorizationService.GetUserPermissionsAsync(user.Id, cancellationToken);
-
         return new MeResponseDto
         {
             Profile = MapToMeProfile(user),
             Account = account != null ? MapAccount(account) : null,
             Person = person != null ? MapPerson(person) : null,
             Roles = user.Roles ?? Array.Empty<string>(),
-            Permissions = permissions
         };
+    }
+
+    public async Task<IEnumerable<UserPermissionDto>> GetCurrentUserPermissionsAsync(CancellationToken cancellationToken = default)
+    {
+        var user = await _userService.GetCurrentUserAsync(cancellationToken);
+        if (user == null)
+            return Array.Empty<UserPermissionDto>();
+
+        return await _authorizationService.GetUserPermissionsAsync(user.Id, cancellationToken);
     }
 
     private static MeProfileDto MapToMeProfile(UserDto user)

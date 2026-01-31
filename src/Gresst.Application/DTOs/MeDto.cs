@@ -61,7 +61,4 @@ public class MeResponseDto
 
     /// <summary>Roles for the current user (same as GET /me/roles).</summary>
     public string[] Roles { get; set; } = Array.Empty<string>();
-
-    /// <summary>Permissions for the current user (same as GET /me/permissions).</summary>
-    public IEnumerable<UserPermissionDto> Permissions { get; set; } = Array.Empty<UserPermissionDto>();
 }
