@@ -94,6 +94,12 @@ builder.Services.AddAuthorization(options =>
         policy.RequireClaim(Gresst.Infrastructure.Authentication.ClaimConstants.SubjectType, Gresst.Infrastructure.Authentication.ClaimConstants.SubjectTypeHuman));
     options.AddPolicy("ServiceOnly", policy =>
         policy.RequireClaim(Gresst.Infrastructure.Authentication.ClaimConstants.SubjectType, Gresst.Infrastructure.Authentication.ClaimConstants.SubjectTypeService));
+
+    // Account-scoped roles (see docs/ROLES.md and Gresst.Application.Constants.ApiRoles)
+    options.AddPolicy(Gresst.Application.Constants.ApiRoles.PolicyAdminOnly, policy =>
+        policy.RequireRole(Gresst.Application.Constants.ApiRoles.Admin));
+    options.AddPolicy(Gresst.Application.Constants.ApiRoles.PolicyAdminOrUser, policy =>
+        policy.RequireRole(Gresst.Application.Constants.ApiRoles.Admin, Gresst.Application.Constants.ApiRoles.User));
 });
 
 // Authentication Services - Dual provider (Database + External)

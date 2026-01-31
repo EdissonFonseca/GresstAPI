@@ -1,3 +1,4 @@
+using Gresst.Application.Constants;
 using Gresst.Application.DTOs;
 using Gresst.Infrastructure.Authentication.Models;
 using Gresst.Infrastructure.Common;
@@ -226,7 +227,7 @@ public class ExternalAuthenticationService : IAuthenticationService
             IdEstado = "A",
             IdCuenta = defaultAccount.IdCuenta,
             Clave = Guid.NewGuid().ToString(), // Password placeholder (no se usa)
-            DatosAdicionales = JsonSerializer.Serialize(new { roles = new[] { "User" } })
+            DatosAdicionales = JsonSerializer.Serialize(new { roles = new[] { ApiRoles.DefaultRole } })
         };
 
         await _context.Usuarios.AddAsync(newUser, cancellationToken);

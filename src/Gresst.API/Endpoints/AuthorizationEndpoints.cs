@@ -1,3 +1,4 @@
+using Gresst.Application.Constants;
 using Gresst.Application.DTOs;
 using Gresst.Application.Services;
 using Microsoft.AspNetCore.Mvc;
@@ -40,7 +41,7 @@ public static class AuthorizationEndpoints
                 var permissions = await authzService.GetUserPermissionsAsync(userId, ct);
                 return Results.Ok(permissions);
             })
-            .RequireAuthorization(policy => policy.RequireRole("Admin"))
+            .RequireAuthorization(ApiRoles.PolicyAdminOnly)
             .WithName("GetUserPermissions");
 
         authz.MapGet("me/permissions", async (System.Security.Claims.ClaimsPrincipal user, Gresst.Application.Services.IAuthorizationService authzService, CancellationToken ct) =>
@@ -60,7 +61,7 @@ public static class AuthorizationEndpoints
                     return Results.NotFound(new { error = "Permission not found" });
                 return Results.Ok(permission);
             })
-            .RequireAuthorization(policy => policy.RequireRole("Admin"))
+            .RequireAuthorization(ApiRoles.PolicyAdminOnly)
             .WithName("GetUserPermission");
 
         authz.MapPost("assign", async ([FromBody] AssignPermissionDto dto, Gresst.Application.Services.IAuthorizationService authzService, CancellationToken ct) =>
@@ -72,7 +73,7 @@ public static class AuthorizationEndpoints
                     return Results.BadRequest(new { error = "Failed to assign permission" });
                 return Results.Ok(new { message = "Permission assigned successfully" });
             })
-            .RequireAuthorization(policy => policy.RequireRole("Admin"))
+            .RequireAuthorization(ApiRoles.PolicyAdminOnly)
             .WithName("AssignPermission");
 
         authz.MapPut("users/{userId}/permissions/{optionId}", async (string userId, string optionId, [FromBody] AssignPermissionDto dto, Gresst.Application.Services.IAuthorizationService authzService, CancellationToken ct) =>
@@ -82,7 +83,7 @@ public static class AuthorizationEndpoints
                     return Results.NotFound(new { error = "Permission not found" });
                 return Results.Ok(new { message = "Permission updated successfully" });
             })
-            .RequireAuthorization(policy => policy.RequireRole("Admin"))
+            .RequireAuthorization(ApiRoles.PolicyAdminOnly)
             .WithName("UpdatePermission");
 
         authz.MapDelete("users/{userId}/permissions/{optionId}", async (string userId, string optionId, Gresst.Application.Services.IAuthorizationService authzService, CancellationToken ct) =>
@@ -92,7 +93,7 @@ public static class AuthorizationEndpoints
                     return Results.NotFound(new { error = "Permission not found" });
                 return Results.Ok(new { message = "Permission revoked successfully" });
             })
-            .RequireAuthorization(policy => policy.RequireRole("Admin"))
+            .RequireAuthorization(ApiRoles.PolicyAdminOnly)
             .WithName("RevokePermission");
 
         authz.MapGet("check", async ([FromQuery] string optionId, [FromQuery] PermissionFlags permission, Gresst.Application.Services.IAuthorizationService authzService, CancellationToken ct) =>

@@ -1,3 +1,4 @@
+using Gresst.Application.Constants;
 using Gresst.Application.DTOs;
 using Gresst.Application.Services;
 using Microsoft.AspNetCore.Mvc;
@@ -16,7 +17,7 @@ public static class UserEndpoints
         users.MapGet("", async ([FromQuery] string? email, IUserService userService, CancellationToken ct) =>
             {
                 if (string.IsNullOrWhiteSpace(email))
-                    return Results.BadRequest(new { error = "Query parameter 'email' is required" });
+                    return Results.BadRequest(new { error = "Query parameter 'emaidotl' is required" });
                 var user = await userService.GetUserByEmailAsync(email, ct);
                 if (user == null)
                     return Results.NotFound(new { error = "Usuario no encontrado" });
@@ -32,7 +33,7 @@ public static class UserEndpoints
                 var currentUser = await userService.GetCurrentUserAsync(ct);
                 if (currentUser == null)
                     return Results.Unauthorized();
-                var isAdmin = currentUser.Roles?.Contains("Admin", StringComparer.OrdinalIgnoreCase) == true;
+                var isAdmin = ApiRoles.IsAdmin(currentUser.Roles);
                 if (!isAdmin)
                     return Results.Forbid();
                 var list = await userService.GetUsersByAccountAsync(currentUser.AccountId, ct);
@@ -57,7 +58,7 @@ public static class UserEndpoints
                 var user = await userService.CreateUserAsync(dto, ct);
                 return Results.CreatedAtRoute("GetUserById", new { id = user.Id }, user);
             })
-            .RequireAuthorization(policy => policy.RequireRole("Admin"))
+            .RequireAuthorization(ApiRoles.PolicyAdminOnly)
             .WithName("CreateUser");
 
         users.MapPut("{id}", async (string id, [FromBody] UpdateUserProfileDto dto, IUserService userService, CancellationToken ct) =>
@@ -67,7 +68,7 @@ public static class UserEndpoints
                     return Results.NotFound(new { error = "Usuario no encontrado" });
                 return Results.Ok(user);
             })
-            .RequireAuthorization(policy => policy.RequireRole("Admin"))
+            .RequireAuthorization(ApiRoles.PolicyAdminOnly)
             .WithName("UpdateUser");
 
         users.MapPost("{id}/deactivate", async (string id, IUserService userService, CancellationToken ct) =>
@@ -77,7 +78,7 @@ public static class UserEndpoints
                     return Results.NotFound(new { error = "Usuario no encontrado" });
                 return Results.Ok(new { message = "Usuario desactivado" });
             })
-            .RequireAuthorization(policy => policy.RequireRole("Admin"))
+            .RequireAuthorization(ApiRoles.PolicyAdminOnly)
             .WithName("DeactivateUser");
 
         users.MapPost("{id}/activate", async (string id, IUserService userService, CancellationToken ct) =>
@@ -87,7 +88,7 @@ public static class UserEndpoints
                     return Results.NotFound(new { error = "Usuario no encontrado" });
                 return Results.Ok(new { message = "Usuario activado" });
             })
-            .RequireAuthorization(policy => policy.RequireRole("Admin"))
+            .RequireAuthorization(ApiRoles.PolicyAdminOnly)
             .WithName("ActivateUser");
 
         return group;

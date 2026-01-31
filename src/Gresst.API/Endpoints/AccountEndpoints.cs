@@ -1,3 +1,4 @@
+using Gresst.Application.Constants;
 using Gresst.Application.DTOs;
 using Gresst.Application.Services;
 using Microsoft.AspNetCore.Mvc;
@@ -44,7 +45,7 @@ public static class AccountEndpoints
                 var list = await userService.GetUsersByAccountAsync(accountId, ct);
                 return Results.Ok(list);
             })
-            .RequireAuthorization(policy => policy.RequireRole("Admin"))
+            .RequireAuthorization(ApiRoles.PolicyAdminOnly)
             .WithName("GetUsersByAccount");
 
         return group;

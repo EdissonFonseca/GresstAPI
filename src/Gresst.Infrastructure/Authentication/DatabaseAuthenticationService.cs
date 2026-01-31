@@ -1,3 +1,4 @@
+using Gresst.Application.Constants;
 using Gresst.Application.DTOs;
 using Gresst.Infrastructure.Authentication.Models;
 using Gresst.Infrastructure.Common;
@@ -606,7 +607,7 @@ public class DatabaseAuthenticationService : IAuthenticationService
     private string[] ParseRoles(string? datosAdicionales)
     {
         if (string.IsNullOrEmpty(datosAdicionales))
-            return new[] { "User" };
+            return new[] { ApiRoles.DefaultRole };
 
         try
         {
@@ -614,13 +615,13 @@ public class DatabaseAuthenticationService : IAuthenticationService
             if (json.RootElement.TryGetProperty("roles", out var rolesElement))
             {
                 var roles = System.Text.Json.JsonSerializer.Deserialize<string[]>(rolesElement.GetRawText());
-                return roles ?? new[] { "User" };
+                return roles ?? new[] { ApiRoles.DefaultRole };
             }
-            return new[] { "User" };
+            return new[] { ApiRoles.DefaultRole };
         }
         catch
         {
-            return new[] { "User" };
+            return new[] { ApiRoles.DefaultRole };
         }
     }
 

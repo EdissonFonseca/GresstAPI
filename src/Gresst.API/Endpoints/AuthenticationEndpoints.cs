@@ -97,7 +97,7 @@ public static class AuthenticationEndpoints
                     Email = request.Email,
                     Password = request.Password,
                     PersonId = request.PersonId,
-                    Roles = new[] { "User" }
+                    Roles = new[] { Gresst.Application.Constants.ApiRoles.DefaultRole }
                 };
 
                 var user = await userService.CreateUserAsync(createDto, ct);

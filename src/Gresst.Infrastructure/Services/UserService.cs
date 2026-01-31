@@ -1,3 +1,4 @@
+using Gresst.Application.Constants;
 using Gresst.Application.DTOs;
 using Gresst.Application.Services;
 using Gresst.Domain.Interfaces;
@@ -96,7 +97,7 @@ public class UserService : IUserService
             IdPersona = dto.PersonId,
             DatosAdicionales = dto.Roles != null && dto.Roles.Length > 0
                 ? JsonSerializer.Serialize(new { roles = dto.Roles })
-                : JsonSerializer.Serialize(new { roles = new[] { "User" } })
+                : JsonSerializer.Serialize(new { roles = new[] { ApiRoles.DefaultRole } })
         };
 
         await _context.Usuarios.AddAsync(usuario, cancellationToken);
@@ -199,7 +200,7 @@ public class UserService : IUserService
             Status = usuario.IdEstado,
             PersonId = usuario.IdPersona,
             PersonName = usuario.IdPersonaNavigation?.Nombre,
-            Roles = roles ?? new[] { "User" },
+            Roles = roles ?? new[] { ApiRoles.DefaultRole },
             CreatedAt = DateTime.UtcNow // Usuario no tiene FechaCreacion
         };
     }

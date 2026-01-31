@@ -1,3 +1,4 @@
+using Gresst.Application.Constants;
 using Gresst.Application.DTOs;
 using Gresst.Application.Services;
 using Gresst.Infrastructure.Data;
@@ -81,7 +82,7 @@ public class AccountRegistrationService : IAccountRegistrationService
             Email = request.AdminEmail,
             Password = request.AdminPassword,
             PersonId = personId,
-            Roles = new[] { "Admin" }
+            Roles = new[] { ApiRoles.AccountAdminRole }
         };
 
         var adminUser = await _userService.CreateUserAsync(createUserDto, cancellationToken);

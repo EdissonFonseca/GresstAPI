@@ -1,3 +1,4 @@
+using Gresst.Application.Constants;
 using Gresst.Application.Services;
 using Gresst.Domain.Interfaces;
 using Gresst.Infrastructure.Common;
@@ -299,8 +300,8 @@ public class DataSegmentationService : IDataSegmentationService
                 var json = System.Text.Json.JsonDocument.Parse(usuario.DatosAdicionales);
                 if (json.RootElement.TryGetProperty("roles", out var rolesElement))
                 {
-                    var rolesJson = rolesElement.GetRawText();
-                    return rolesJson.Contains("Admin", StringComparison.OrdinalIgnoreCase);
+                    var roles = System.Text.Json.JsonSerializer.Deserialize<string[]>(rolesElement.GetRawText());
+                    return ApiRoles.IsAdmin(roles);
                 }
             }
             catch { }

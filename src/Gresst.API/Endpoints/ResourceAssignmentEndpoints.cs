@@ -1,3 +1,4 @@
+using Gresst.Application.Constants;
 using Gresst.Application.Services;
 using Microsoft.AspNetCore.Mvc;
 
@@ -9,7 +10,7 @@ public static class ResourceAssignmentEndpoints
     {
         var resourceAssignment = group.MapGroup("/resourceassignments")
             .WithTags("ResourceAssignment")
-            .RequireAuthorization(policy => policy.RequireRole("Admin"));
+            .RequireAuthorization(ApiRoles.PolicyAdminOnly);
 
         resourceAssignment.MapGet("users/{userId}/facilities", async (string userId, IDataSegmentationService segmentationService, CancellationToken ct) =>
             {
