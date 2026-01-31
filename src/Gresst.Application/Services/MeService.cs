@@ -78,7 +78,6 @@ public class MeService : IMeService
         {
             Id = account.Id,
             Name = account.Name,
-            Code = account.Code,
             Role = account.Role.ToString(),
             Status = account.Status.ToString(),
             PersonId = account.PersonId ?? string.Empty,
