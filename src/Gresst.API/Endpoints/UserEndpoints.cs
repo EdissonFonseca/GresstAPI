@@ -91,6 +91,50 @@ public static class UserEndpoints
             .RequireAuthorization(ApiRoles.PolicyAdminOnly)
             .WithName("ActivateUser");
 
+        // Permissions for a given user (best practice: under /users for user resource sub-resource)
+        users.MapGet("{userId}/permissions", async (string userId, IAuthorizationService authzService, CancellationToken ct) =>
+            {
+                var permissions = await authzService.GetUserPermissionsAsync(userId, ct);
+                return Results.Ok(permissions);
+            })
+            .RequireAuthorization(ApiRoles.PolicyAdminOnly)
+            .WithName("GetUserPermissions")
+            .WithSummary("Get permissions for a user (Admin only)")
+            .WithDescription("Returns the list of permissions for the specified user. For the current user's permissions use GET /me/permissions.");
+
+        users.MapGet("{userId}/permissions/{optionId}", async (string userId, string optionId, IAuthorizationService authzService, CancellationToken ct) =>
+            {
+                var permission = await authzService.GetUserPermissionAsync(userId, optionId, ct);
+                if (permission == null)
+                    return Results.NotFound(new { error = "Permission not found" });
+                return Results.Ok(permission);
+            })
+            .RequireAuthorization(ApiRoles.PolicyAdminOnly)
+            .WithName("GetUserPermission")
+            .WithSummary("Get a specific permission for a user (Admin only)");
+
+        users.MapPut("{userId}/permissions/{optionId}", async (string userId, string optionId, [FromBody] AssignPermissionDto dto, IAuthorizationService authzService, CancellationToken ct) =>
+            {
+                var success = await authzService.UpdatePermissionAsync(userId, optionId, dto, ct);
+                if (!success)
+                    return Results.NotFound(new { error = "Permission not found" });
+                return Results.Ok(new { message = "Permission updated successfully" });
+            })
+            .RequireAuthorization(ApiRoles.PolicyAdminOnly)
+            .WithName("UpdateUserPermission")
+            .WithSummary("Update a permission for a user (Admin only)");
+
+        users.MapDelete("{userId}/permissions/{optionId}", async (string userId, string optionId, IAuthorizationService authzService, CancellationToken ct) =>
+            {
+                var success = await authzService.RevokePermissionAsync(userId, optionId, ct);
+                if (!success)
+                    return Results.NotFound(new { error = "Permission not found" });
+                return Results.Ok(new { message = "Permission revoked successfully" });
+            })
+            .RequireAuthorization(ApiRoles.PolicyAdminOnly)
+            .WithName("RevokeUserPermission")
+            .WithSummary("Revoke a permission for a user (Admin only)");
+
         return group;
     }
 }

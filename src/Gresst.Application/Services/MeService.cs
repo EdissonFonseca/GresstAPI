@@ -5,22 +5,25 @@ using Gresst.Domain.Interfaces;
 namespace Gresst.Application.Services;
 
 /// <summary>
-/// Service for the current user's full context (user, account, person).
+/// Service for the current user's full context (user, account, person, roles, permissions).
 /// </summary>
 public class MeService : IMeService
 {
     private readonly IUserService _userService;
     private readonly IAccountRepository _accountRepository;
     private readonly IRepository<Person> _personRepository;
+    private readonly IAuthorizationService _authorizationService;
 
     public MeService(
         IUserService userService,
         IAccountRepository accountRepository,
-        IRepository<Person> personRepository)
+        IRepository<Person> personRepository,
+        IAuthorizationService authorizationService)
     {
         _userService = userService;
         _accountRepository = accountRepository;
         _personRepository = personRepository;
+        _authorizationService = authorizationService;
     }
 
     public async Task<MeResponseDto?> GetCurrentContextAsync(CancellationToken cancellationToken = default)
@@ -41,11 +44,31 @@ public class MeService : IMeService
             ? await _personRepository.GetByIdAsync(personId, cancellationToken)
             : null;
 
+        var permissions = await _authorizationService.GetUserPermissionsAsync(user.Id, cancellationToken);
+
         return new MeResponseDto
         {
-            Profile = user,
+            Profile = MapToMeProfile(user),
             Account = account != null ? MapAccount(account) : null,
-            Person = person != null ? MapPerson(person) : null
+            Person = person != null ? MapPerson(person) : null,
+            Roles = user.Roles ?? Array.Empty<string>(),
+            Permissions = permissions
+        };
+    }
+
+    private static MeProfileDto MapToMeProfile(UserDto user)
+    {
+        return new MeProfileDto
+        {
+            Id = user.Id,
+            AccountId = user.AccountId,
+            FirstName = user.Name ?? string.Empty,
+            LastName = user.LastName,
+            Email = user.Email,
+            Status = user.Status,
+            PersonId = user.PersonId,
+            LastAccess = user.LastAccess,
+            CreatedAt = user.CreatedAt
         };
     }
 

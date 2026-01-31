@@ -13,12 +13,10 @@ public class OptionDto
 }
 
 /// <summary>
-/// DTO for user permissions on options
+/// DTO for user permissions on options (option-level data only; user context is known from the request)
 /// </summary>
 public class UserPermissionDto
 {
-    public string UserId { get; set; } = string.Empty;
-    public string UserName { get; set; } = string.Empty;
     public string OptionId { get; set; } = string.Empty;
     public string OptionDescription { get; set; } = string.Empty;
     public bool IsEnabled { get; set; }

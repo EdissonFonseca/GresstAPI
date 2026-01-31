@@ -12,7 +12,7 @@ public static class MeEndpoints
             .WithTags("Me")
             .RequireAuthorization();
 
-        // Full context: profile + account + person (one round-trip; preferred for app shell)
+        // Full context: profile, account, person, roles, and permissions (one round-trip; preferred for app shell)
         me.MapGet("", async (IMeService meService, CancellationToken ct) =>
             {
                 var context = await meService.GetCurrentContextAsync(ct);
@@ -21,7 +21,7 @@ public static class MeEndpoints
                 return Results.Ok(context);
             })
             .WithName("GetMe")
-            .WithSummary("Current user full context (profile, account, and person)");
+            .WithSummary("Current user full context (profile, account, person, roles, and permissions)");
 
         // Profile only: user data without account or person
         me.MapGet("profile", async (IMeService meService, CancellationToken ct) =>
@@ -55,6 +55,31 @@ public static class MeEndpoints
             })
             .WithName("GetMyPerson")
             .WithSummary("Person corresponding to the current user");
+
+        // Roles for the current user (separate from profile to keep profile lean)
+        me.MapGet("roles", async (IUserService userService, CancellationToken ct) =>
+            {
+                var currentUser = await userService.GetCurrentUserAsync(ct);
+                if (currentUser == null)
+                    return Results.Unauthorized();
+                return Results.Ok(currentUser.Roles ?? Array.Empty<string>());
+            })
+            .WithName("GetMyRoles")
+            .WithSummary("Current user roles")
+            .WithDescription("Returns the list of roles for the currently authenticated user. Profile (GET /me, GET /me/profile) does not include roles.");
+
+        // Permissions for the current user (best practice: under /me for current-user context)
+        me.MapGet("permissions", async (System.Security.Claims.ClaimsPrincipal user, IAuthorizationService authzService, CancellationToken ct) =>
+            {
+                var userIdClaim = user.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+                if (string.IsNullOrEmpty(userIdClaim))
+                    return Results.Unauthorized();
+                var permissions = await authzService.GetUserPermissionsAsync(userIdClaim, ct);
+                return Results.Ok(permissions);
+            })
+            .WithName("GetMyPermissions")
+            .WithSummary("Current user permissions")
+            .WithDescription("Returns the list of permissions for the currently authenticated user. Prefer this over authorization/users/{userId}/permissions when the caller is asking for their own permissions.");
 
         // Update full profile (PUT /me)
         me.MapPut("", async ([FromBody] UpdateUserProfileDto dto, System.Security.Claims.ClaimsPrincipal user, IUserService userService, CancellationToken ct) =>

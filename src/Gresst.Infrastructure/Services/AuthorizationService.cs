@@ -51,7 +51,6 @@ public class AuthorizationService : IAuthorizationService
         
         var permissions = await _context.UsuarioOpcions
             .Include(uo => uo.IdOpcionNavigation)
-            .Include(uo => uo.IdUsuarioNavigation)
             .Where(uo => uo.IdUsuario == userIdLong)
             .ToListAsync(cancellationToken);
 
@@ -64,7 +63,6 @@ public class AuthorizationService : IAuthorizationService
         
         var permission = await _context.UsuarioOpcions
             .Include(uo => uo.IdOpcionNavigation)
-            .Include(uo => uo.IdUsuarioNavigation)
             .FirstOrDefaultAsync(uo => uo.IdUsuario == userIdLong && uo.IdOpcion == optionId, cancellationToken);
 
         return permission != null ? MapPermissionToDto(permission) : null;
@@ -176,8 +174,6 @@ public class AuthorizationService : IAuthorizationService
     {
         return new UserPermissionDto
         {
-            UserId = IdConversion.ToStringFromLong(usuarioOpcion.IdUsuario),
-            UserName = usuarioOpcion.IdUsuarioNavigation?.Nombre ?? "Unknown",
             OptionId = usuarioOpcion.IdOpcion,
             OptionDescription = usuarioOpcion.IdOpcionNavigation?.Descripcion ?? usuarioOpcion.IdOpcion,
             IsEnabled = usuarioOpcion.Habilitado,
