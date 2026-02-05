@@ -75,6 +75,7 @@ public class ExternalAuthenticationService : IAuthenticationService
             // Sincronizar con base de datos local
             var localUser = await SyncUserWithDatabaseAsync(userInfo, cancellationToken);
 
+            var fullName = (localUser.Nombre + " " + (localUser.Apellido ?? "")).Trim();
             return new AuthenticationResult
             {
                 Success = true,
@@ -82,8 +83,10 @@ public class ExternalAuthenticationService : IAuthenticationService
                 RefreshToken = tokenResponse.RefreshToken, // External provider refresh token
                 UserId = IdConversion.ToStringFromLong(localUser.IdUsuario),
                 AccountId = IdConversion.ToStringFromLong(localUser.IdCuenta),
-                Username = localUser.Nombre,
+                Name = fullName,
                 Email = localUser.Correo,
+                AccessTokenType = "Bearer",
+                SubjectType = ClaimConstants.SubjectTypeHuman,
                 AccessTokenExpiresAt = DateTime.UtcNow.AddSeconds(tokenResponse.ExpiresIn)
             };
         }
@@ -140,14 +143,17 @@ public class ExternalAuthenticationService : IAuthenticationService
                 return new AuthenticationResult { Success = false, Error = "Usuario no sincronizado" };
             }
 
+            var fullName = (localUser.Nombre + " " + (localUser.Apellido ?? "")).Trim();
             return new AuthenticationResult
             {
                 Success = true,
                 AccessToken = token,
                 UserId = IdConversion.ToStringFromLong(localUser.IdUsuario),
                 AccountId = IdConversion.ToStringFromLong(localUser.IdCuenta),
-                Username = localUser.Nombre,
-                Email = localUser.Correo
+                Name = fullName,
+                Email = localUser.Correo,
+                AccessTokenType = "Bearer",
+                SubjectType = ClaimConstants.SubjectTypeHuman
             };
         }
         catch (Exception ex)

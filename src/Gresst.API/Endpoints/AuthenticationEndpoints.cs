@@ -122,9 +122,13 @@ public static class AuthenticationEndpoints
                 return Results.Ok(new ServiceTokenResponse
                 {
                     AccessToken = result.AccessToken,
-                    TokenType = result.TokenType,
-                    ExpiresIn = result.ExpiresInSeconds,
-                    SubjectType = ClaimConstants.SubjectTypeService
+                    AccessTokenType = result.AccessTokenType,
+                    AccessTokenExpiresAt = result.AccessTokenExpiresAt,
+                    SubjectType = result.SubjectType,
+                    UserId = result.UserId,
+                    AccountId = result.AccountId,
+                    AccountPersonId = result.AccountPersonId,
+                    Roles = result.Roles
                 });
             })
             .AllowAnonymous()

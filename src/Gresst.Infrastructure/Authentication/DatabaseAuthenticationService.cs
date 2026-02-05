@@ -70,6 +70,7 @@ public class DatabaseAuthenticationService : IAuthenticationService
             var accessTokenExpiresAt = DateTime.UtcNow.AddMinutes(GetAccessTokenExpirationMinutes());
             var refreshTokenExpiresAt = DateTime.UtcNow.AddDays(GetRefreshTokenExpirationDays());
 
+            var fullName = (usuario.Nombre + " " + (usuario.Apellido ?? "")).Trim();
             return new AuthenticationResult
             {
                 Success = true,
@@ -78,10 +79,12 @@ public class DatabaseAuthenticationService : IAuthenticationService
                 UserId = IdConversion.ToStringFromLong(usuario.IdUsuario),
                 AccountId = IdConversion.ToStringFromLong(usuario.IdCuenta),
                 AccountPersonId = usuario.IdCuentaNavigation?.IdPersona ?? string.Empty,
-                Username = usuario.Nombre,
+                Name = fullName,
                 Email = usuario.Correo,
                 PersonId = usuario.IdPersona ?? string.Empty,
                 Roles = ParseRoles(usuario.DatosAdicionales),
+                AccessTokenType = "Bearer",
+                SubjectType = ClaimConstants.SubjectTypeHuman,
                 AccessTokenExpiresAt = accessTokenExpiresAt,
                 RefreshTokenExpiresAt = refreshTokenExpiresAt
             };
@@ -157,14 +160,23 @@ public class DatabaseAuthenticationService : IAuthenticationService
             return null;
 
         var accountId = usuario.IdCuenta.ToString();
+        var userId = IdConversion.ToStringFromLong(usuario.IdUsuario);
+        var accountPersonId = usuario.IdCuentaNavigation?.IdPersona ?? string.Empty;
+        var roles = ParseRoles(usuario.DatosAdicionales);
         var scopes = ParseScopesFromConfiguracion(usuario.DatosAdicionales);
         var expirationMinutes = (int)GetAccessTokenExpirationMinutes();
         var accessToken = GenerateServiceToken(request.ClientId, accountId, scopes, expirationMinutes);
+        var accessTokenExpiresAt = DateTime.UtcNow.AddMinutes(expirationMinutes);
         return new ServiceTokenResult
         {
             AccessToken = accessToken,
-            ExpiresInSeconds = expirationMinutes * 60,
-            TokenType = "Bearer"
+            AccessTokenType = "Bearer",
+            AccessTokenExpiresAt = accessTokenExpiresAt,
+            SubjectType = ClaimConstants.SubjectTypeService,
+            UserId = userId,
+            AccountId = accountId,
+            AccountPersonId = accountPersonId,
+            Roles = roles
         };
     }
 
@@ -188,7 +200,8 @@ public class DatabaseAuthenticationService : IAuthenticationService
             
             var userId = principal.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             var accountId = principal.FindFirst("AccountId")?.Value;
-            var username = principal.FindFirst(ClaimTypes.Name)?.Value;
+            var name = principal.FindFirst(ClaimTypes.Name)?.Value;
+            var subjectType = principal.FindFirst(ClaimConstants.SubjectType)?.Value ?? string.Empty;
 
             return new AuthenticationResult
             {
@@ -196,7 +209,9 @@ public class DatabaseAuthenticationService : IAuthenticationService
                 AccessToken = token,
                 UserId = userId ?? string.Empty,
                 AccountId = accountId ?? string.Empty,
-                Username = username
+                Name = name,
+                AccessTokenType = "Bearer",
+                SubjectType = subjectType
             };
         }
         catch
@@ -290,6 +305,7 @@ public class DatabaseAuthenticationService : IAuthenticationService
             var accessTokenExpiresAt = DateTime.UtcNow.AddMinutes(GetAccessTokenExpirationMinutes());
             var refreshTokenExpiresAt = DateTime.UtcNow.AddDays(GetRefreshTokenExpirationDays());
 
+            var fullName = (usuario.Nombre + " " + (usuario.Apellido ?? "")).Trim();
             return new AuthenticationResult
             {
                 Success = true,
@@ -297,9 +313,13 @@ public class DatabaseAuthenticationService : IAuthenticationService
                 RefreshToken = newRefreshToken,
                 UserId = IdConversion.ToStringFromLong(usuario.IdUsuario),
                 AccountId = IdConversion.ToStringFromLong(usuario.IdCuenta),
-                Username = usuario.Nombre,
+                AccountPersonId = usuario.IdCuentaNavigation?.IdPersona ?? string.Empty,
+                Name = fullName,
                 Email = usuario.Correo,
+                PersonId = usuario.IdPersona ?? string.Empty,
                 Roles = ParseRoles(usuario.DatosAdicionales),
+                AccessTokenType = "Bearer",
+                SubjectType = ClaimConstants.SubjectTypeHuman,
                 AccessTokenExpiresAt = accessTokenExpiresAt,
                 RefreshTokenExpiresAt = refreshTokenExpiresAt
             };
@@ -538,7 +558,7 @@ public class DatabaseAuthenticationService : IAuthenticationService
             new Claim(JwtRegisteredClaimNames.Jti, jwtId),
             new Claim(ClaimConstants.SubjectType, subjectType),
             new Claim(ClaimTypes.NameIdentifier, usuario.IdUsuario.ToString()),
-            new Claim(ClaimTypes.Name, usuario.Nombre ?? ""),
+            new Claim(ClaimTypes.Name, (usuario.Nombre + " " + (usuario.Apellido ?? "")).Trim()),
             new Claim(ClaimTypes.Email, usuario.Correo ?? ""),
             new Claim("AccountId", usuario.IdCuenta.ToString()),
             new Claim("AccountPersonId", usuario.IdCuentaNavigation?.IdPersona ?? ""),
