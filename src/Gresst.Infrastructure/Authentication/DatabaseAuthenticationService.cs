@@ -147,14 +147,17 @@ public class DatabaseAuthenticationService : IAuthenticationService
         if (request == null || string.IsNullOrWhiteSpace(request.ClientId) || string.IsNullOrWhiteSpace(request.ClientSecret))
             return null;
 
-        var cuentaInterfaz = await _context.CuentaInterfazs
-            .Where(ci => ci.Llave == request.ClientId && ci.Token == request.ClientSecret)
-            .FirstOrDefaultAsync(cancellationToken);
-        if (cuentaInterfaz == null)
+        var usuario = await _context.Usuarios
+            .Include(u => u.IdCuentaNavigation)
+            .FirstOrDefaultAsync(u => u.Correo == request.ClientId && u.IdEstado == "A", cancellationToken);
+        if (usuario == null)
             return null;
 
-        var accountId = cuentaInterfaz.IdCuenta.ToString();
-        var scopes = ParseScopesFromConfiguracion(cuentaInterfaz.Configuracion);
+        if (!VerifyPassword(request.ClientSecret, usuario.Clave))
+            return null;
+
+        var accountId = usuario.IdCuenta.ToString();
+        var scopes = ParseScopesFromConfiguracion(usuario.DatosAdicionales);
         var expirationMinutes = (int)GetAccessTokenExpirationMinutes();
         var accessToken = GenerateServiceToken(request.ClientId, accountId, scopes, expirationMinutes);
         return new ServiceTokenResult

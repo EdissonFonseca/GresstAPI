@@ -130,7 +130,7 @@ public static class AuthenticationEndpoints
             .AllowAnonymous()
             .WithName("GetServiceToken")
             .WithSummary("Obtain an access token for a service (Client Credentials: client_id + client_secret)")
-            .WithDescription("Send client_id and client_secret (stored in CuentaInterfaz as Llave and Token). If multiple rows match, the first is used. Scopes in CuentaInterfaz.Configuracion as JSON: {\"scopes\": [\"read:data\", \"write:logs\"]}. Token always includes exp.");
+            .WithDescription("Send client_id (Usuario.Correo) and client_secret (Usuario.Clave; same encryption as user passwords). User must be active (IdEstado = A). Scopes in Usuario.DatosAdicionales as JSON: {\"scopes\": [\"read:data\", \"write:logs\"]}. Token always includes exp.");
 
         // Validate access token: GET with Bearer token; returns 200 if token is valid and active, 401 otherwise
         auth.MapGet("token/validate", (ClaimsPrincipal user) =>

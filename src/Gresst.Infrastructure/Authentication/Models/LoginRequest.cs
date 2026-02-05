@@ -66,10 +66,10 @@ public class ValidateRefreshTokenRequest
 /// </summary>
 public class ServiceTokenRequest
 {
-    /// <summary>Client identifier (must match CuentaInterfaz.Llave).</summary>
+    /// <summary>Client identifier (must match Usuario.Correo / user email).</summary>
     public string ClientId { get; set; } = string.Empty;
 
-    /// <summary>Client secret (must match CuentaInterfaz.Token).</summary>
+    /// <summary>Client secret (must match Usuario.Clave; same encryption as user passwords).</summary>
     public string ClientSecret { get; set; } = string.Empty;
 }
 
