@@ -62,27 +62,35 @@ public class ValidateRefreshTokenRequest
 }
 
 /// <summary>
-/// Request for obtaining a token as a service/client (machine-to-machine).
-/// Validates interface name + client token; optionally binds to a user by email.
+/// Request for obtaining a token as a service/client (machine-to-machine). Client Credentials flow only.
 /// </summary>
 public class ServiceTokenRequest
 {
-    /// <summary>Interface/client identifier (e.g. "web-portal", "mobile-app").</summary>
-    public string Interface { get; set; } = string.Empty;
+    /// <summary>Client identifier (must match CuentaInterfaz.Llave).</summary>
+    public string ClientId { get; set; } = string.Empty;
 
-    /// <summary>Client token configured for this interface in CuentaInterfaz.</summary>
-    public string Token { get; set; } = string.Empty;
-
-    /// <summary>Optional. When provided, token is issued for this user (must match account-interface).</summary>
-    public string? Username { get; set; }
+    /// <summary>Client secret (must match CuentaInterfaz.Token).</summary>
+    public string ClientSecret { get; set; } = string.Empty;
 }
 
 /// <summary>
-/// Response for service token endpoint (access token only; no refresh token for services).
+/// Result of issuing a service token (used internally).
+/// </summary>
+public class ServiceTokenResult
+{
+    public string AccessToken { get; set; } = string.Empty;
+    public int ExpiresInSeconds { get; set; }
+    public string TokenType { get; set; } = "Bearer";
+}
+
+/// <summary>
+/// Response for service token endpoint (access token; no refresh token for services).
 /// </summary>
 public class ServiceTokenResponse
 {
     public string AccessToken { get; set; } = string.Empty;
+    public string TokenType { get; set; } = "Bearer";
+    public int ExpiresIn { get; set; }
     public string SubjectType { get; set; } = ClaimConstants.SubjectTypeService;
 }
 

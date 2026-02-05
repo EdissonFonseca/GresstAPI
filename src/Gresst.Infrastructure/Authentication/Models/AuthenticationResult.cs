@@ -36,12 +36,5 @@ public class AuthenticationResult
     /// When the RefreshToken expires
     /// </summary>
     public DateTime? RefreshTokenExpiresAt { get; set; }
-    
-    // Backward compatibility
-    [Obsolete("Use AccessToken instead")]
-    public string? Token => AccessToken;
-    
-    [Obsolete("Use AccessTokenExpiresAt instead")]
-    public DateTime? ExpiresAt => AccessTokenExpiresAt;
 }
 

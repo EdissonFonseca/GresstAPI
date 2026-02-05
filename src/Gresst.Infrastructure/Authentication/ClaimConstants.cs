@@ -24,4 +24,10 @@ public static class ClaimConstants
     /// Claim that indicates which interface/client obtained the token (only set for service tokens).
     /// </summary>
     public const string Interface = "interface";
+
+    /// <summary>OAuth 2.0 client identifier (service/client).</summary>
+    public const string ClientId = "client_id";
+
+    /// <summary>OAuth 2.0 scope claim (space-separated list of permissions).</summary>
+    public const string Scope = "scope";
 }

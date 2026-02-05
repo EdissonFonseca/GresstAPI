@@ -142,6 +142,29 @@ public class DatabaseAuthenticationService : IAuthenticationService
         return (false, String.Empty);
     }
 
+    public async Task<ServiceTokenResult?> IssueServiceTokenAsync(ServiceTokenRequest request, CancellationToken cancellationToken = default)
+    {
+        if (request == null || string.IsNullOrWhiteSpace(request.ClientId) || string.IsNullOrWhiteSpace(request.ClientSecret))
+            return null;
+
+        var cuentaInterfaz = await _context.CuentaInterfazs
+            .Where(ci => ci.Llave == request.ClientId && ci.Token == request.ClientSecret)
+            .FirstOrDefaultAsync(cancellationToken);
+        if (cuentaInterfaz == null)
+            return null;
+
+        var accountId = cuentaInterfaz.IdCuenta.ToString();
+        var scopes = ParseScopesFromConfiguracion(cuentaInterfaz.Configuracion);
+        var expirationMinutes = (int)GetAccessTokenExpirationMinutes();
+        var accessToken = GenerateServiceToken(request.ClientId, accountId, scopes, expirationMinutes);
+        return new ServiceTokenResult
+        {
+            AccessToken = accessToken,
+            ExpiresInSeconds = expirationMinutes * 60,
+            TokenType = "Bearer"
+        };
+    }
+
     public async Task<AuthenticationResult> ValidateTokenAsync(string token, CancellationToken cancellationToken = default)
     {
         try
@@ -544,6 +567,64 @@ public class DatabaseAuthenticationService : IAuthenticationService
 
         var token = tokenHandler.CreateToken(tokenDescriptor);
         return (tokenHandler.WriteToken(token), jwtId);
+    }
+
+    /// <summary>
+    /// Generates a JWT for service (client credentials) with sub, client_id, account_id, scope, subject_type. Always includes exp.
+    /// </summary>
+    private string GenerateServiceToken(string clientId, string accountId, IReadOnlyList<string> scopes, int expirationMinutes)
+    {
+        var tokenHandler = new JwtSecurityTokenHandler();
+        var key = Encoding.UTF8.GetBytes(GetJwtSecret());
+        var jwtId = Guid.NewGuid().ToString();
+        var scopeValue = scopes.Count > 0 ? string.Join(" ", scopes) : "read write";
+
+        var claims = new List<Claim>
+        {
+            new Claim(JwtRegisteredClaimNames.Jti, jwtId),
+            new Claim(JwtRegisteredClaimNames.Sub, clientId),
+            new Claim(ClaimTypes.NameIdentifier, clientId),
+            new Claim(ClaimConstants.ClientId, clientId),
+            new Claim("AccountId", accountId),
+            new Claim(ClaimConstants.Scope, scopeValue),
+            new Claim(ClaimConstants.SubjectType, ClaimConstants.SubjectTypeService)
+        };
+
+        var tokenDescriptor = new SecurityTokenDescriptor
+        {
+            Subject = new ClaimsIdentity(claims),
+            Expires = DateTime.UtcNow.AddMinutes(expirationMinutes),
+            SigningCredentials = new SigningCredentials(
+                new SymmetricSecurityKey(key),
+                SecurityAlgorithms.HmacSha256Signature),
+            Issuer = GetJwtIssuer(),
+            Audience = GetJwtAudience()
+        };
+
+        var token = tokenHandler.CreateToken(tokenDescriptor);
+        return tokenHandler.WriteToken(token);
+    }
+
+    private static IReadOnlyList<string> ParseScopesFromConfiguracion(string? configuracion)
+    {
+        if (string.IsNullOrWhiteSpace(configuracion))
+            return new[] { "read", "write" };
+        try
+        {
+            var node = JsonNode.Parse(configuracion);
+            var scopes = node?["scopes"]?.AsArray();
+            if (scopes != null && scopes.Count > 0)
+            {
+                var list = new List<string>();
+                foreach (var s in scopes)
+                    if (s?.GetValue<string>() is { } scope)
+                        list.Add(scope);
+                if (list.Count > 0)
+                    return list;
+            }
+        }
+        catch { /* ignore */ }
+        return new[] { "read", "write" };
     }
 
     private async Task<string?> GenerateRefreshTokenAsync(long userId, string jwtId, CancellationToken cancellationToken)

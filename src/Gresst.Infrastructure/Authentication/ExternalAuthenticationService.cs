@@ -265,6 +265,12 @@ public class ExternalAuthenticationService : IAuthenticationService
     {
         return Task.FromResult(false); // Not supported for external provider
     }
+
+    public Task<ServiceTokenResult?> IssueServiceTokenAsync(ServiceTokenRequest request, CancellationToken cancellationToken = default)
+    {
+        // Service tokens (client credentials) are issued only when using database authentication.
+        return Task.FromResult<ServiceTokenResult?>(null);
+    }
 }
 
 // DTOs para proveedor externo

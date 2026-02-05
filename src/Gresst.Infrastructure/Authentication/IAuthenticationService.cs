@@ -30,5 +30,11 @@ public interface IAuthenticationService
     /// Reset password using the token sent by email. Returns true if token was valid and password was updated.
     /// </summary>
     Task<bool> ResetPasswordAsync(string token, string newPassword, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Issue a service (machine-to-machine) token. Supports Client Credentials (client_id + client_secret) or legacy (interface + token).
+    /// Returns null if credentials are invalid.
+    /// </summary>
+    Task<ServiceTokenResult?> IssueServiceTokenAsync(ServiceTokenRequest request, CancellationToken cancellationToken = default);
 }
 

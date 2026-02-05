@@ -107,33 +107,30 @@ public static class AuthenticationEndpoints
             .WithName("Register")
             .WithSummary("Register a new user under an existing account");
 
-        // Service/client (machine-to-machine) token: interface + client token; optional user binding
+        // Service/client (machine-to-machine) token. Client Credentials only: client_id + client_secret.
         auth.MapPost("service/token", async (
                 [FromBody] ServiceTokenRequest request,
                 AuthenticationServiceFactory factory,
                 CancellationToken ct) =>
             {
-                if (request == null || string.IsNullOrWhiteSpace(request.Interface) || string.IsNullOrWhiteSpace(request.Token))
-                    return Results.BadRequest();
-                var authService = factory.GetAuthenticationService();
-                string? accessToken = null;
-                if (!string.IsNullOrWhiteSpace(request.Username))
-                {
-                    var (ok, token) = await authService.IsUserAuthorizedForInterfaceAsync(request.Interface, request.Username, request.Token, ct);
-                    if (ok && token != null) accessToken = token;
-                }
-                if (accessToken == null)
-                {
-                    var (ok, token) = await authService.IsGuestAuthorizedForInterfaceAsync(request.Interface, request.Token, ct);
-                    if (ok && token != null) accessToken = token;
-                }
-                if (accessToken == null)
+                if (request == null || string.IsNullOrWhiteSpace(request.ClientId) || string.IsNullOrWhiteSpace(request.ClientSecret))
+                    return Results.BadRequest(new { error = "client_id and client_secret are required" });
+                var authService = factory.GetDatabaseAuthenticationService();
+                var result = await authService.IssueServiceTokenAsync(request, ct);
+                if (result == null)
                     return Results.Unauthorized();
-                return Results.Ok(new ServiceTokenResponse { AccessToken = accessToken });
+                return Results.Ok(new ServiceTokenResponse
+                {
+                    AccessToken = result.AccessToken,
+                    TokenType = result.TokenType,
+                    ExpiresIn = result.ExpiresInSeconds,
+                    SubjectType = ClaimConstants.SubjectTypeService
+                });
             })
             .AllowAnonymous()
             .WithName("GetServiceToken")
-            .WithSummary("Obtain an access token for a service/client using interface name and client token");
+            .WithSummary("Obtain an access token for a service (Client Credentials: client_id + client_secret)")
+            .WithDescription("Send client_id and client_secret (stored in CuentaInterfaz as Llave and Token). If multiple rows match, the first is used. Scopes in CuentaInterfaz.Configuracion as JSON: {\"scopes\": [\"read:data\", \"write:logs\"]}. Token always includes exp.");
 
         // Validate access token: GET with Bearer token; returns 200 if token is valid and active, 401 otherwise
         auth.MapGet("token/validate", (ClaimsPrincipal user) =>
