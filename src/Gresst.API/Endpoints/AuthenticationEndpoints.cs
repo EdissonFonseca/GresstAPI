@@ -10,6 +10,9 @@ namespace Gresst.API.Endpoints;
 
 public static class AuthenticationEndpoints
 {
+    private const string CookieMessageAccessAndRefresh = "Access token and refresh token have been set in cookies. Save them for subsequent requests.";
+    private const string CookieMessageAccessOnly = "Access token has been set in cookie. Save it for subsequent requests.";
+
     private static void SetAccessTokenCookie(HttpContext httpContext, IConfiguration configuration, string accessToken, DateTime? expiresAt)
     {
         if (string.IsNullOrEmpty(accessToken))
@@ -24,6 +27,22 @@ public static class AuthenticationEndpoints
             Expires = expiresAt.HasValue ? new DateTimeOffset(expiresAt.Value) : DateTimeOffset.UtcNow.AddMinutes(15)
         };
         httpContext.Response.Cookies.Append(cookieName, accessToken, cookieOptions);
+    }
+
+    private static void SetRefreshTokenCookie(HttpContext httpContext, IConfiguration configuration, string refreshToken, DateTime? expiresAt)
+    {
+        if (string.IsNullOrEmpty(refreshToken))
+            return;
+        var cookieName = configuration["Authentication:RefreshTokenCookieName"] ?? "refresh_token";
+        var cookieOptions = new CookieOptions
+        {
+            HttpOnly = true,
+            Secure = !httpContext.Request.Host.Host.Equals("localhost", StringComparison.OrdinalIgnoreCase),
+            SameSite = SameSiteMode.Lax,
+            Path = "/",
+            Expires = expiresAt.HasValue ? new DateTimeOffset(expiresAt.Value) : DateTimeOffset.UtcNow.AddDays(7)
+        };
+        httpContext.Response.Cookies.Append(cookieName, refreshToken, cookieOptions);
     }
 
     public static RouteGroupBuilder Map(this RouteGroupBuilder group)
@@ -45,6 +64,8 @@ public static class AuthenticationEndpoints
                 if (!result.Success)
                     return Results.Unauthorized();
                 SetAccessTokenCookie(httpContext, configuration, result.AccessToken ?? "", result.AccessTokenExpiresAt);
+                SetRefreshTokenCookie(httpContext, configuration, result.RefreshToken ?? "", result.RefreshTokenExpiresAt);
+                result.CookieMessage = CookieMessageAccessAndRefresh;
                 return Results.Ok(result);
             })
             .AllowAnonymous()
@@ -63,6 +84,8 @@ public static class AuthenticationEndpoints
                 if (!result.Success)
                     return Results.Unauthorized();
                 SetAccessTokenCookie(httpContext, configuration, result.AccessToken ?? "", result.AccessTokenExpiresAt);
+                SetRefreshTokenCookie(httpContext, configuration, result.RefreshToken ?? "", result.RefreshTokenExpiresAt);
+                result.CookieMessage = CookieMessageAccessAndRefresh;
                 return Results.Ok(result);
             })
             .AllowAnonymous()
@@ -81,6 +104,8 @@ public static class AuthenticationEndpoints
                 if (!result.Success)
                     return Results.Unauthorized();
                 SetAccessTokenCookie(httpContext, configuration, result.AccessToken ?? "", result.AccessTokenExpiresAt);
+                SetRefreshTokenCookie(httpContext, configuration, result.RefreshToken ?? "", result.RefreshTokenExpiresAt);
+                result.CookieMessage = CookieMessageAccessAndRefresh;
                 return Results.Ok(result);
             })
             .AllowAnonymous()
@@ -135,6 +160,8 @@ public static class AuthenticationEndpoints
         // Service/client (machine-to-machine) token. Client Credentials only: client_id + client_secret.
         auth.MapPost("service/token", async (
                 [FromBody] ServiceTokenRequest request,
+                HttpContext httpContext,
+                IConfiguration configuration,
                 AuthenticationServiceFactory factory,
                 CancellationToken ct) =>
             {
@@ -144,7 +171,8 @@ public static class AuthenticationEndpoints
                 var result = await authService.IssueServiceTokenAsync(request, ct);
                 if (result == null)
                     return Results.Unauthorized();
-                return Results.Ok(new ServiceTokenResponse
+                SetAccessTokenCookie(httpContext, configuration, result.AccessToken, result.AccessTokenExpiresAt);
+                var response = new ServiceTokenResponse
                 {
                     AccessToken = result.AccessToken,
                     AccessTokenType = result.AccessTokenType,
@@ -153,8 +181,10 @@ public static class AuthenticationEndpoints
                     UserId = result.UserId,
                     AccountId = result.AccountId,
                     AccountPersonId = result.AccountPersonId,
-                    Roles = result.Roles
-                });
+                    Roles = result.Roles,
+                    CookieMessage = CookieMessageAccessOnly
+                };
+                return Results.Ok(response);
             })
             .AllowAnonymous()
             .WithName("GetServiceToken")
@@ -188,6 +218,8 @@ public static class AuthenticationEndpoints
                 if (!result.Success)
                     return Results.Unauthorized();
                 SetAccessTokenCookie(httpContext, configuration, result.AccessToken ?? "", result.AccessTokenExpiresAt);
+                SetRefreshTokenCookie(httpContext, configuration, result.RefreshToken ?? "", result.RefreshTokenExpiresAt);
+                result.CookieMessage = CookieMessageAccessAndRefresh;
                 return Results.Ok(result);
             })
             .AllowAnonymous()

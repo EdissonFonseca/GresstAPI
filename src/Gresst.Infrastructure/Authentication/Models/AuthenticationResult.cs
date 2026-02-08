@@ -26,6 +26,8 @@ public class AuthenticationResult
     public string? Name { get; set; }
     public string? Email { get; set; }
     public string[]? Roles { get; set; }
+    /// <summary>Hint for clients: access and refresh tokens have been set in cookies (when applicable).</summary>
+    public string? CookieMessage { get; set; }
 }
 
 // ----- Service token (client credentials) results -----
@@ -58,4 +60,6 @@ public class ServiceTokenResponse
     public string AccountId { get; set; } = string.Empty;
     public string AccountPersonId { get; set; } = string.Empty;
     public string[] Roles { get; set; } = Array.Empty<string>();
+    /// <summary>Hint for clients: access token has been set in cookie.</summary>
+    public string? CookieMessage { get; set; }
 }
