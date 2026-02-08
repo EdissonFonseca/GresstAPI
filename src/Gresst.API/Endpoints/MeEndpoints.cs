@@ -24,8 +24,18 @@ public static class MeEndpoints
             .WithSummary("Current user full context (profile, account, person, roles, and permissions)");
 
         // Profile only: user data without account or person
-        me.MapGet("profile", async (IMeService meService, CancellationToken ct) =>
+        me.MapGet("profile", async (IMeService meService, HttpContext httpContext, IConfiguration configuration, CancellationToken ct) =>
             {
+                var authHeader = httpContext.Request.Headers.Authorization.FirstOrDefault();
+                var hasBearer = !string.IsNullOrEmpty(authHeader) && authHeader.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase);
+                var cookieName = configuration["Authentication:AccessTokenCookieName"] ?? "access_token";
+                var hasCookie = httpContext.Request.Cookies.TryGetValue(cookieName, out var cookieValue) && !string.IsNullOrEmpty(cookieValue);
+                var authSource = httpContext.Items["AuthSource"]?.ToString() ?? "(not set)";
+                var logger = httpContext.RequestServices.GetRequiredService<ILogger<MeEndpoints>>();
+                logger.LogInformation(
+                    "[me/profile] Auth: Bearer={HasBearer}, Cookie({CookieName})={HasCookie}, AuthSource={AuthSource}",
+                    hasBearer, cookieName, hasCookie, authSource);
+
                 var context = await meService.GetCurrentContextAsync(ct);
                 if (context == null)
                     return Results.NotFound(new { error = "User not found" });

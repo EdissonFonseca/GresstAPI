@@ -98,6 +98,8 @@ Content-Type: application/json
 - Usa `accessToken` para todos los requests (Authorization: Bearer)
 - Usa `refreshToken` cuando `accessToken` expire
 
+**Cookie:** Si el cliente es un navegador, la API también envía el access token en una cookie (`Set-Cookie`). Los endpoints protegidos aceptan el token por **Authorization: Bearer** o por **cookie** (nombre por defecto: `access_token`). Si no llega Bearer, se lee el token desde la cookie.
+
 ---
 
 ### **2. Login específico (Base de Datos)**
@@ -226,6 +228,17 @@ Authorization: Bearer {token}
 4. Escribir: `Bearer {token}`
 5. Click en **Authorize**
 6. ✅ Todos los endpoints protegidos ahora funcionarán
+
+### **Postman: usar solo cookie (sin Bearer)**
+
+Para probar que la API acepta el token desde la cookie:
+
+1. **Login:** `POST /api/v1/authentication/login` con body `{ "username": "...", "password": "..." }`. La respuesta incluye `accessToken` y además envía `Set-Cookie` con el token.
+2. **Misma base URL:** Asegúrate de que la siguiente petición use **exactamente el mismo host y puerto** (ej. `http://localhost:49847`). Si usas `http://127.0.0.1:49847` en una y `http://localhost:49847` en otra, Postman no enviará la cookie.
+3. **Sin Authorization:** En la petición a `GET /api/v1/me/profile` (o cualquier protegido), en la pestaña **Authorization** elige **No Auth**. Postman enviará la cookie guardada para ese dominio.
+4. Si aun así obtienes 401, envía el token manualmente en la pestaña **Headers**: clave `Cookie`, valor `access_token=eyJ...` (pega el `accessToken` de la respuesta del login).
+
+Revisa los logs en la carpeta `logs/` (archivo `log-YYYYMMDD.txt`): verás líneas `[JWT] Token from cookie...` si la cookie llegó, o `[JWT] No Bearer and no cookie...` si no. Si aparece `[JWT] Authentication failed` es que el token llegó pero la validación falló (token expirado, firma incorrecta, etc.).
 
 ### **cURL**
 

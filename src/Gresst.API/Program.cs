@@ -25,10 +25,16 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Host.UseSerilog((context, services, loggerConfiguration) =>
 {
+    var logsPath = Path.Combine(AppContext.BaseDirectory, "logs");
     loggerConfiguration
         .MinimumLevel.Information()
         .Enrich.FromLogContext()
-        .WriteTo.Console();
+        .WriteTo.Console()
+        .WriteTo.File(
+            Path.Combine(logsPath, "log-.txt"),
+            rollingInterval: RollingInterval.Day,
+            retainedFileCountLimit: 31,
+            outputTemplate: "{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz} [{Level:u3}] {Message:lj}{NewLine}{Exception}");
 });
 
 // Minimal API - no controllers
@@ -74,12 +80,32 @@ builder.Services.AddAuthentication(options =>
         OnMessageReceived = context =>
         {
             var authHeader = context.Request.Headers.Authorization.FirstOrDefault();
-            if (!string.IsNullOrEmpty(authHeader) && authHeader.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase))
+            var hasBearer = !string.IsNullOrEmpty(authHeader) && authHeader.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase);
+            if (hasBearer)
+            {
+                context.HttpContext.Items["AuthSource"] = "Bearer";
+                Serilog.Log.Information("[JWT] Token from Authorization header (Bearer)");
                 return Task.CompletedTask;
+            }
 
             var token = context.Request.Cookies[accessTokenCookieName];
             if (!string.IsNullOrEmpty(token))
+            {
                 context.Token = token;
+                context.HttpContext.Items["AuthSource"] = "Cookie";
+                Serilog.Log.Information("[JWT] Token from cookie {CookieName} (length={Len})", accessTokenCookieName, token.Length);
+            }
+            else
+            {
+                context.HttpContext.Items["AuthSource"] = "None";
+                var cookieHeader = context.Request.Headers.Cookie.FirstOrDefault();
+                Serilog.Log.Warning("[JWT] No Bearer and no cookie {CookieName}. Request Cookie header present: {HasCookieHeader}", accessTokenCookieName, !string.IsNullOrEmpty(cookieHeader));
+            }
+            return Task.CompletedTask;
+        },
+        OnAuthenticationFailed = context =>
+        {
+            Serilog.Log.Warning(context.Exception, "[JWT] Authentication failed. AuthSource={AuthSource}", context.HttpContext.Items["AuthSource"]?.ToString() ?? "?");
             return Task.CompletedTask;
         }
     };
