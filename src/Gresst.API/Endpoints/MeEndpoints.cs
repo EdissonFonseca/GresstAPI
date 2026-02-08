@@ -31,7 +31,8 @@ public static class MeEndpoints
                 var cookieName = configuration["Authentication:AccessTokenCookieName"] ?? "access_token";
                 var hasCookie = httpContext.Request.Cookies.TryGetValue(cookieName, out var cookieValue) && !string.IsNullOrEmpty(cookieValue);
                 var authSource = httpContext.Items["AuthSource"]?.ToString() ?? "(not set)";
-                var logger = httpContext.RequestServices.GetRequiredService<ILogger<MeEndpoints>>();
+                var loggerFactory = httpContext.RequestServices.GetRequiredService<ILoggerFactory>();
+                var logger = loggerFactory.CreateLogger("Gresst.API.Endpoints.MeEndpoints");
                 logger.LogInformation(
                     "[me/profile] Auth: Bearer={HasBearer}, Cookie({CookieName})={HasCookie}, AuthSource={AuthSource}",
                     hasBearer, cookieName, hasCookie, authSource);
