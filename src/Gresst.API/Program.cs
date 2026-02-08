@@ -66,10 +66,27 @@ builder.Services.AddAuthentication(options =>
 {
     options.RequireHttpsMetadata = false; // Simplificado: no requerir HTTPS metadata
     options.SaveToken = true;
-    
+
+    // If no Bearer token in Authorization header, read token from cookie (e.g. for browser-based clients)
+    var accessTokenCookieName = builder.Configuration["Authentication:AccessTokenCookieName"] ?? "access_token";
+    options.Events = new JwtBearerEvents
+    {
+        OnMessageReceived = context =>
+        {
+            var authHeader = context.Request.Headers.Authorization.FirstOrDefault();
+            if (!string.IsNullOrEmpty(authHeader) && authHeader.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase))
+                return Task.CompletedTask;
+
+            var token = context.Request.Cookies[accessTokenCookieName];
+            if (!string.IsNullOrEmpty(token))
+                context.Token = token;
+            return Task.CompletedTask;
+        }
+    };
+
     var jwtIssuer = builder.Configuration["Authentication:JwtIssuer"];
     var jwtAudience = builder.Configuration["Authentication:JwtAudience"];
-    
+
     options.TokenValidationParameters = new TokenValidationParameters
     {
         ValidateIssuerSigningKey = true,

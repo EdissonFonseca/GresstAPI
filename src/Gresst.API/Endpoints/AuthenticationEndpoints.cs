@@ -10,6 +10,22 @@ namespace Gresst.API.Endpoints;
 
 public static class AuthenticationEndpoints
 {
+    private static void SetAccessTokenCookie(HttpContext httpContext, IConfiguration configuration, string accessToken, DateTime? expiresAt)
+    {
+        if (string.IsNullOrEmpty(accessToken))
+            return;
+        var cookieName = configuration["Authentication:AccessTokenCookieName"] ?? "access_token";
+        var cookieOptions = new CookieOptions
+        {
+            HttpOnly = true,
+            Secure = !httpContext.Request.Host.Host.Equals("localhost", StringComparison.OrdinalIgnoreCase),
+            SameSite = SameSiteMode.Lax,
+            Path = "/",
+            Expires = expiresAt.HasValue ? new DateTimeOffset(expiresAt.Value) : DateTimeOffset.UtcNow.AddMinutes(15)
+        };
+        httpContext.Response.Cookies.Append(cookieName, accessToken, cookieOptions);
+    }
+
     public static RouteGroupBuilder Map(this RouteGroupBuilder group)
     {
         var auth = group.MapGroup("/authentication")
@@ -19,6 +35,8 @@ public static class AuthenticationEndpoints
         // Human login (database or external based on config)
         auth.MapPost("login", async (
                 [FromBody] LoginRequest request,
+                HttpContext httpContext,
+                IConfiguration configuration,
                 AuthenticationServiceFactory factory,
                 CancellationToken ct) =>
             {
@@ -26,6 +44,7 @@ public static class AuthenticationEndpoints
                 var result = await authService.LoginAsync(request, ct);
                 if (!result.Success)
                     return Results.Unauthorized();
+                SetAccessTokenCookie(httpContext, configuration, result.AccessToken ?? "", result.AccessTokenExpiresAt);
                 return Results.Ok(result);
             })
             .AllowAnonymous()
@@ -34,6 +53,8 @@ public static class AuthenticationEndpoints
 
         auth.MapPost("login/database", async (
                 [FromBody] LoginRequest request,
+                HttpContext httpContext,
+                IConfiguration configuration,
                 AuthenticationServiceFactory factory,
                 CancellationToken ct) =>
             {
@@ -41,6 +62,7 @@ public static class AuthenticationEndpoints
                 var result = await authService.LoginAsync(request, ct);
                 if (!result.Success)
                     return Results.Unauthorized();
+                SetAccessTokenCookie(httpContext, configuration, result.AccessToken ?? "", result.AccessTokenExpiresAt);
                 return Results.Ok(result);
             })
             .AllowAnonymous()
@@ -49,6 +71,8 @@ public static class AuthenticationEndpoints
 
         auth.MapPost("login/external", async (
                 [FromBody] LoginRequest request,
+                HttpContext httpContext,
+                IConfiguration configuration,
                 AuthenticationServiceFactory factory,
                 CancellationToken ct) =>
             {
@@ -56,6 +80,7 @@ public static class AuthenticationEndpoints
                 var result = await authService.LoginAsync(request, ct);
                 if (!result.Success)
                     return Results.Unauthorized();
+                SetAccessTokenCookie(httpContext, configuration, result.AccessToken ?? "", result.AccessTokenExpiresAt);
                 return Results.Ok(result);
             })
             .AllowAnonymous()
@@ -151,6 +176,8 @@ public static class AuthenticationEndpoints
         // Exchange refresh token for new access + refresh tokens
         auth.MapPost("token/refresh", async (
                 [FromBody] RefreshTokenRequest request,
+                HttpContext httpContext,
+                IConfiguration configuration,
                 AuthenticationServiceFactory factory,
                 CancellationToken ct) =>
             {
@@ -160,6 +187,7 @@ public static class AuthenticationEndpoints
                 var result = await authService.RefreshTokenAsync(request, ct);
                 if (!result.Success)
                     return Results.Unauthorized();
+                SetAccessTokenCookie(httpContext, configuration, result.AccessToken ?? "", result.AccessTokenExpiresAt);
                 return Results.Ok(result);
             })
             .AllowAnonymous()
