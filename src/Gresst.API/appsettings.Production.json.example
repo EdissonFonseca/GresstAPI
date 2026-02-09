@@ -7,10 +7,10 @@
     }
   },
   "AllowedHosts": "tu-dominio.com,www.tu-dominio.com",
-  "Swagger": {
-    "Enabled": true,
-    "RequireAuth": true
+  "Cors": {
+    "AllowedOrigins": "https://gestor.gresst.com,https://gestor.app.gresst.com"
   },
+  "Swagger": { "Enabled": true, "RequireAuth": true },
   "ConnectionStrings": {
     "DefaultConnection": "Server=TU_SERVIDOR_PRODUCCION;Database=Gresst_Production;User Id=TU_USUARIO;Password=TU_PASSWORD_SEGURO;TrustServerCertificate=False;Encrypt=True;MultipleActiveResultSets=true"
   },

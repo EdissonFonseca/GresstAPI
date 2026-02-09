@@ -248,46 +248,41 @@ builder.Services.AddScoped<IRequestService, RequestService>();
 builder.Services.AddScoped<IOrderService, OrderService>();
 builder.Services.AddScoped<IProcessService, ProcessService>();
 
-// CORS
+// CORS (required for cross-origin requests with cookies/credentials; browser needs Access-Control-Allow-Origin + Access-Control-Allow-Credentials)
+// QA: appsettings.json has Cors:AllowedOrigins = https://gestor.qa.gresst.com
+// Production: use appsettings.Production.json (or env) with Cors:AllowedOrigins = https://gestor.app.gresst.com (or your production front URL)
 builder.Services.AddCors(options =>
 {
-    if (builder.Environment.IsDevelopment())
-    {
-        // En desarrollo: permitir todo
-        options.AddPolicy("AllowAll", policy =>
-        {
-            policy.AllowAnyOrigin()
-                  .AllowAnyMethod()
-                  .AllowAnyHeader();
-        });
-    }
-    else
-    {
-        // En producción: solo dominios específicos
-        var allowedHosts = builder.Configuration.GetValue<string>("AllowedHosts") ?? string.Empty;
-        var origins = allowedHosts.Split(',', StringSplitOptions.RemoveEmptyEntries)
-            .Select(origin => origin.Trim())
-            .Where(origin => !string.IsNullOrEmpty(origin))
-            .Select(origin => origin.StartsWith("http") ? origin : $"https://{origin}")
-            .ToArray();
+    // Cors:AllowedOrigins = comma or semicolon separated, e.g. "https://gestor.qa.gresst.com" or "https://gestor.app.gresst.com,https://gestor.gresst.com"
+    var allowedOrigins = builder.Configuration.GetValue<string>("Cors:AllowedOrigins")
+        ?? builder.Configuration.GetValue<string>("AllowedHosts")
+        ?? string.Empty;
+    var origins = allowedOrigins
+        .Split(',', ';', StringSplitOptions.RemoveEmptyEntries)
+        .Select(origin => origin.Trim())
+        .Where(origin => !string.IsNullOrEmpty(origin))
+        .Select(origin => origin.StartsWith("http") ? origin : $"https://{origin}")
+        .ToArray();
 
-        options.AddPolicy("AllowAll", policy =>
+    options.AddPolicy("AllowAll", policy =>
+    {
+        policy.AllowAnyMethod()
+              .AllowAnyHeader();
+
+        if (origins.Length > 0)
         {
-            if (origins.Length > 0)
-            {
-                policy.WithOrigins(origins)
-                      .AllowAnyMethod()
-                      .AllowAnyHeader()
-                      .AllowCredentials();
-            }
-            else
-            {
-                // Fallback: si no hay dominios configurados, no permitir nada
-                policy.AllowAnyMethod()
-                      .AllowAnyHeader();
-            }
-        });
-    }
+            policy.WithOrigins(origins).AllowCredentials();
+        }
+        else if (builder.Environment.IsDevelopment())
+        {
+            // Development fallback: allow any origin (cookies/credentials will not work cross-origin; set Cors:AllowedOrigins for local frontend)
+            policy.AllowAnyOrigin();
+        }
+        else
+        {
+            policy.SetIsOriginAllowed(_ => false);
+        }
+    });
 });
 
 // Detectar si estamos en Windows
