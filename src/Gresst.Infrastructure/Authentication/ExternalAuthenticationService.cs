@@ -75,6 +75,7 @@ public class ExternalAuthenticationService : IAuthenticationService
             // Sincronizar con base de datos local
             var localUser = await SyncUserWithDatabaseAsync(userInfo, cancellationToken);
 
+            var account = await _context.Cuenta.FindAsync(new object[] { localUser.IdCuenta }, cancellationToken);
             var fullName = (localUser.Nombre + " " + (localUser.Apellido ?? "")).Trim();
             return new AuthenticationResult
             {
@@ -83,6 +84,7 @@ public class ExternalAuthenticationService : IAuthenticationService
                 RefreshToken = tokenResponse.RefreshToken, // External provider refresh token
                 UserId = IdConversion.ToStringFromLong(localUser.IdUsuario),
                 AccountId = IdConversion.ToStringFromLong(localUser.IdCuenta),
+                AccountName = account?.Nombre,
                 Name = fullName,
                 Email = localUser.Correo,
                 AccessTokenType = "Bearer",

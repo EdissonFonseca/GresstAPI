@@ -137,7 +137,7 @@ public class UserService : IUserService
         if (usuario == null)
             return null;
 
-        usuario.Nombre = dto.Name;
+        usuario.Nombre = dto.FirstName;
         usuario.Apellido = dto.LastName;
         usuario.Correo = dto.Email;
 
