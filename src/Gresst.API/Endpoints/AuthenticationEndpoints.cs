@@ -77,6 +77,8 @@ public static class AuthenticationEndpoints
                 return Results.Ok(result);
             })
             .AllowAnonymous()
+            .Produces<AuthenticationResult>(StatusCodes.Status200OK)
+            .Produces(StatusCodes.Status401Unauthorized)
             .WithName("Login")
             .WithSummary("Login with username/password; returns access and refresh tokens");
 
@@ -97,6 +99,8 @@ public static class AuthenticationEndpoints
                 return Results.Ok(result);
             })
             .AllowAnonymous()
+            .Produces<AuthenticationResult>(StatusCodes.Status200OK)
+            .Produces(StatusCodes.Status401Unauthorized)
             .WithName("LoginDatabase")
             .WithSummary("Login against database only; returns access and refresh tokens");
 
@@ -117,6 +121,8 @@ public static class AuthenticationEndpoints
                 return Results.Ok(result);
             })
             .AllowAnonymous()
+            .Produces<AuthenticationResult>(StatusCodes.Status200OK)
+            .Produces(StatusCodes.Status401Unauthorized)
             .WithName("LoginExternal")
             .WithSummary("Login via external provider; returns access and refresh tokens");
 

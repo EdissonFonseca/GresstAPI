@@ -2,15 +2,13 @@ namespace Gresst.Infrastructure.Authentication.Models;
 
 // ----- Login -----
 
+/// <summary>
+/// Request body for POST /authentication/login (username/password only).
+/// </summary>
 public class LoginRequest
 {
     public string Username { get; set; } = string.Empty;
     public string Password { get; set; } = string.Empty;
-    public string Name { get; set; } = string.Empty;
-    public string Interface { get; set; } = string.Empty;
-    public string Token { get; set; } = string.Empty;
-    public string AccessToken { get; set; } = string.Empty;
-    public string RefreshToken { get; set; } = string.Empty;
 }
 
 public class ExternalLoginRequest
