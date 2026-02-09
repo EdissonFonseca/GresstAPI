@@ -25,7 +25,20 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Host.UseSerilog((context, services, loggerConfiguration) =>
 {
-    var logsPath = Path.Combine(AppContext.BaseDirectory, "logs");
+    // Log path: set "Logging:LogPath" in appsettings to a folder the process can write to (e.g. D:\Logs\GresstApi). Default: {BaseDirectory}/logs
+    var configuredLogPath = context.Configuration["Logging:LogPath"];
+    var logsPath = string.IsNullOrWhiteSpace(configuredLogPath)
+        ? Path.Combine(AppContext.BaseDirectory, "logs")
+        : Path.GetFullPath(configuredLogPath);
+    try
+    {
+        Directory.CreateDirectory(logsPath);
+    }
+    catch
+    {
+        logsPath = Path.Combine(AppContext.BaseDirectory, "logs");
+        try { Directory.CreateDirectory(logsPath); } catch { /* ignore */ }
+    }
     loggerConfiguration
         .MinimumLevel.Information()
         .Enrich.FromLogContext()
@@ -303,6 +316,10 @@ if (!isWindows)
 }
 
 var app = builder.Build();
+
+// Log CORS origins at startup (check logs to confirm server is using the right config)
+var corsOrigins = app.Configuration.GetValue<string>("Cors:AllowedOrigins") ?? string.Empty;
+Serilog.Log.Information("[Startup] CORS AllowedOrigins: {Origins}", string.IsNullOrEmpty(corsOrigins) ? "(none)" : corsOrigins);
 
 // Configure the HTTP request pipeline
 app.UseSerilogRequestLogging();

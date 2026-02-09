@@ -57,12 +57,20 @@ public static class AuthenticationEndpoints
                 HttpContext httpContext,
                 IConfiguration configuration,
                 AuthenticationServiceFactory factory,
+                ILoggerFactory loggerFactory,
                 CancellationToken ct) =>
             {
+                var logger = loggerFactory.CreateLogger("Gresst.API.Authentication");
+                var hasBody = request != null && (!string.IsNullOrEmpty(request.Username) || !string.IsNullOrEmpty(request.Password));
+                logger.LogInformation("[login] Request received. HasBody={HasBody}, Origin={Origin}", hasBody, httpContext.Request.Headers.Origin.ToString());
                 var authService = factory.GetAuthenticationService();
                 var result = await authService.LoginAsync(request, ct);
                 if (!result.Success)
+                {
+                    logger.LogWarning("[login] Unauthorized. Username present: {HasUsername}", request != null && !string.IsNullOrEmpty(request.Username));
                     return Results.Unauthorized();
+                }
+                logger.LogInformation("[login] Success for user {UserId}", result.UserId);
                 SetAccessTokenCookie(httpContext, configuration, result.AccessToken ?? "", result.AccessTokenExpiresAt);
                 SetRefreshTokenCookie(httpContext, configuration, result.RefreshToken ?? "", result.RefreshTokenExpiresAt);
                 result.CookieMessage = CookieMessageAccessAndRefresh;
