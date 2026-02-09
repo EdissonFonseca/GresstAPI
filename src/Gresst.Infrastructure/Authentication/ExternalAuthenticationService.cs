@@ -84,7 +84,7 @@ public class ExternalAuthenticationService : IAuthenticationService
                 RefreshToken = tokenResponse.RefreshToken, // External provider refresh token
                 UserId = IdConversion.ToStringFromLong(localUser.IdUsuario),
                 AccountId = IdConversion.ToStringFromLong(localUser.IdCuenta),
-                AccountName = account?.Nombre,
+                AccountName = account?.Nombre ?? string.Empty,
                 Name = fullName,
                 Email = localUser.Correo,
                 AccessTokenType = "Bearer",

@@ -21,7 +21,8 @@ public class AuthenticationResult
     public string SubjectType { get; set; } = string.Empty;
     public string UserId { get; set; } = string.Empty;
     public string AccountId { get; set; } = string.Empty;
-    public string? AccountName { get; set; }
+    /// <summary>Account display name. Always included in response (empty string if not set).</summary>
+    public string AccountName { get; set; } = string.Empty;
     public string AccountPersonId { get; set; } = string.Empty;
     public string PersonId { get; set; } = string.Empty;
     public string? Name { get; set; }
