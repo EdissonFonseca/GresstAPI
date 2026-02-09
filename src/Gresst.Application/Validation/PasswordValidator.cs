@@ -17,7 +17,7 @@ public static class PasswordValidator
     private static readonly Regex HasUppercase = new(@"[A-Z]", RegexOptions.Compiled);
     private static readonly Regex HasLowercase = new(@"[a-z]", RegexOptions.Compiled);
     private static readonly Regex HasDigit = new(@"\d", RegexOptions.Compiled);
-    private static readonly Regex HasSpecial = new(@"[!@#$%^&*(),.?\":{}|<>]", RegexOptions.Compiled);
+    private static readonly Regex HasSpecial = new(@"[!@#$%^&*(),.?"":{}|<>]", RegexOptions.Compiled);
 
     public static readonly IReadOnlyList<(string Id, string Message)> RequirementSpecs = new[]
     {
