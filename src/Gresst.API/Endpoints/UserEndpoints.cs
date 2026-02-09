@@ -1,6 +1,7 @@
 using Gresst.Application.Constants;
 using Gresst.Application.DTOs;
 using Gresst.Application.Services;
+using Gresst.Application.Validation;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Gresst.API.Endpoints;
@@ -55,6 +56,12 @@ public static class UserEndpoints
             {
                 if (dto == null)
                     return Results.BadRequest();
+                if (!string.IsNullOrEmpty(dto.Password))
+                {
+                    var createUserPasswordValidation = PasswordValidator.Validate(dto.Password);
+                    if (!createUserPasswordValidation.IsValid)
+                        return Results.BadRequest(new { error = "Password does not meet security requirements", validation = createUserPasswordValidation });
+                }
                 var user = await userService.CreateUserAsync(dto, ct);
                 return Results.CreatedAtRoute("GetUserById", new { id = user.Id }, user);
             })

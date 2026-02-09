@@ -1,6 +1,7 @@
 using Gresst.Application.Constants;
 using Gresst.Application.DTOs;
 using Gresst.Application.Services;
+using Gresst.Application.Validation;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Gresst.API.Endpoints;
@@ -27,8 +28,9 @@ public static class AccountEndpoints
                     return Results.BadRequest(new { error = "AdminPassword is required" });
                 if (request.AdminPassword != request.ConfirmPassword)
                     return Results.BadRequest(new { error = "Password and confirmation do not match" });
-                if (request.AdminPassword.Length < 6)
-                    return Results.BadRequest(new { error = "Password must be at least 6 characters" });
+                var adminPasswordValidation = PasswordValidator.Validate(request.AdminPassword);
+                if (!adminPasswordValidation.IsValid)
+                    return Results.BadRequest(new { error = "Password does not meet security requirements", validation = adminPasswordValidation });
 
                 var result = await registrationService.RegisterAccountAsync(request, ct);
                 if (result == null)

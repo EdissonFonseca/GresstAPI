@@ -1,6 +1,7 @@
 using Gresst.API;
 using Gresst.Application.DTOs;
 using Gresst.Application.Services;
+using Gresst.Application.Validation;
 using Gresst.Infrastructure.Authentication;
 using Gresst.Infrastructure.Authentication.Models;
 using Microsoft.AspNetCore.Mvc;
@@ -142,8 +143,9 @@ public static class AuthenticationEndpoints
                     return Results.BadRequest(new { error = "Password is required" });
                 if (request.Password != request.ConfirmPassword)
                     return Results.BadRequest(new { error = "Password and confirmation do not match" });
-                if (request.Password.Length < 6)
-                    return Results.BadRequest(new { error = "Password must be at least 6 characters" });
+                var registerPasswordValidation = PasswordValidator.Validate(request.Password);
+                if (!registerPasswordValidation.IsValid)
+                    return Results.BadRequest(new { error = "Password does not meet security requirements", validation = registerPasswordValidation });
 
                 var accountExists = await userService.AccountExistsAsync(request.AccountId, ct);
                 if (!accountExists)
@@ -284,6 +286,9 @@ public static class AuthenticationEndpoints
                     return Results.BadRequest(new { error = "New password is required" });
                 if (request.NewPassword != request.ConfirmPassword)
                     return Results.BadRequest(new { error = "New password and confirmation do not match" });
+                var resetPasswordValidation = PasswordValidator.Validate(request.NewPassword);
+                if (!resetPasswordValidation.IsValid)
+                    return Results.BadRequest(new { error = "Password does not meet security requirements", validation = resetPasswordValidation });
                 var authService = factory.GetAuthenticationService();
                 var success = await authService.ResetPasswordAsync(request.Token, request.NewPassword, ct);
                 if (!success)
@@ -305,6 +310,9 @@ public static class AuthenticationEndpoints
                     return Results.BadRequest(new { error = "Request is required" });
                 if (request.NewPassword != request.ConfirmPassword)
                     return Results.BadRequest(new { error = "New password and confirmation do not match" });
+                var passwordValidation = PasswordValidator.Validate(request.NewPassword);
+                if (!passwordValidation.IsValid)
+                    return Results.BadRequest(new { error = "Password does not meet security requirements", validation = passwordValidation });
                 var userIdClaim = user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
                 if (string.IsNullOrEmpty(userIdClaim))
                     return Results.Unauthorized();
