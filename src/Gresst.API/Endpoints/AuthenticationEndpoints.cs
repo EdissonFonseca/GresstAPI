@@ -62,13 +62,15 @@ public static class AuthenticationEndpoints
                 CancellationToken ct) =>
             {
                 var logger = loggerFactory.CreateLogger("Gresst.API.Authentication");
-                var hasBody = request != null && (!string.IsNullOrEmpty(request.Username) || !string.IsNullOrEmpty(request.Password));
+                if (request is null)
+                    return Results.BadRequest();
+                var hasBody = !string.IsNullOrEmpty(request.Username) || !string.IsNullOrEmpty(request.Password);
                 logger.LogInformation("[login] Request received. HasBody={HasBody}, Origin={Origin}", hasBody, httpContext.Request.Headers.Origin.ToString());
                 var authService = factory.GetAuthenticationService();
                 var result = await authService.LoginAsync(request, ct);
                 if (!result.Success)
                 {
-                    logger.LogWarning("[login] Unauthorized. Username present: {HasUsername}", request != null && !string.IsNullOrEmpty(request.Username));
+                    logger.LogWarning("[login] Unauthorized. Username present: {HasUsername}", !string.IsNullOrEmpty(request.Username));
                     return Results.Unauthorized();
                 }
                 logger.LogInformation("[login] Success for user {UserId}", result.UserId);
