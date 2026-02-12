@@ -27,6 +27,9 @@ public static class AuthenticationEndpoints
             Path = "/",
             Expires = expiresAt.HasValue ? new DateTimeOffset(expiresAt.Value) : DateTimeOffset.UtcNow.AddMinutes(15)
         };
+        var cookieDomain = configuration["Authentication:CookieDomain"];
+        if (!string.IsNullOrWhiteSpace(cookieDomain))
+            cookieOptions.Domain = cookieDomain;
         httpContext.Response.Cookies.Append(cookieName, accessToken, cookieOptions);
     }
 
@@ -43,6 +46,9 @@ public static class AuthenticationEndpoints
             Path = "/",
             Expires = expiresAt.HasValue ? new DateTimeOffset(expiresAt.Value) : DateTimeOffset.UtcNow.AddDays(7)
         };
+        var cookieDomain = configuration["Authentication:CookieDomain"];
+        if (!string.IsNullOrWhiteSpace(cookieDomain))
+            cookieOptions.Domain = cookieDomain;
         httpContext.Response.Cookies.Append(cookieName, refreshToken, cookieOptions);
     }
 
