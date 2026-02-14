@@ -7,6 +7,36 @@ namespace Gresst.Application.Services;
 /// </summary>
 public class ProcessService : IProcessService
 {
+    private readonly IRequestRepository _requestRepository;
+
+    public ProcessService(IRequestRepository requestRepository)
+    {
+        _requestRepository = requestRepository;
+    }
+
+    /// <summary>
+    /// Gets collection tasks for the mobile app (Recolecciones): only tasks where the driver (IdResponsable) is the given person.
+    /// </summary>
+    public async Task<IEnumerable<ProcessDto>> GetCollectionsForDriverAsync(
+        string personId,
+        DateTime? date,
+        CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrEmpty(personId))
+            return Array.Empty<ProcessDto>();
+
+        var allData = await _requestRepository.GetMobileTransportWasteAsync(personId, cancellationToken);
+        // Filter: only rows where this person is the assigned driver (IdResponsable or IdResponsable2)
+        var forDriver = allData.Where(d =>
+            (d.IdResponsable == personId || d.IdResponsable2 == personId));
+        // Optional date filter: process/order date (FechaInicio)
+        var filtered = date.HasValue
+            ? forDriver.Where(d => d.FechaInicio.HasValue && d.FechaInicio.Value.Date == date.Value.Date)
+            : forDriver;
+
+        return await MapTransportDataToProcessesAsync(filtered, cancellationToken);
+    }
+
     /// <summary>
     /// Maps transport waste data to process hierarchy:
     /// Process  = Order (IdOrden / vehicle)
