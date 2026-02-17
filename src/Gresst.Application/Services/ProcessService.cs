@@ -1,4 +1,5 @@
 using Gresst.Application.DTOs;
+using Gresst.Application.WasteManagement;
 
 namespace Gresst.Application.Services;
 
@@ -8,10 +9,336 @@ namespace Gresst.Application.Services;
 public class ProcessService : IProcessService
 {
     private readonly IRequestRepository _requestRepository;
+    private readonly IRequestFilterDefaults _requestFilterDefaults;
 
-    public ProcessService(IRequestRepository requestRepository)
+    public ProcessService(IRequestRepository requestRepository, IRequestFilterDefaults requestFilterDefaults)
     {
         _requestRepository = requestRepository;
+        _requestFilterDefaults = requestFilterDefaults;
+    }
+
+    /// <inheritdoc />
+    public async Task<IEnumerable<MobileTransportWasteDto>> GetMobileTransportWasteForAccountAsync(
+        string accountPersonId,
+        CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrEmpty(accountPersonId))
+            return Array.Empty<MobileTransportWasteDto>();
+
+        var filter = new SolicitudFilter
+        {
+            PersonIds = new[] { accountPersonId },
+            IdServicio = _requestFilterDefaults.GetTransportServiceId(),
+            Estados = _requestFilterDefaults.GetActiveEstadosForTransport(),
+            ExcludeRecurring = true
+        };
+
+        var solicitudes = await _requestRepository.GetSolicitudesAsync(filter, cancellationToken);
+        var list = solicitudes.ToList();
+
+        var filtered = list.Where(WasteManagementRules.IsIncludedInMobileTransport).ToList();
+
+        var keys = filtered
+            .Where(s => s.IdDepositoOrigen.HasValue && s.IdDepositoOrigen.Value != 0)
+            .Select(s => (s.IdSolicitud, s.IdDepositoOrigen!.Value))
+            .Distinct()
+            .ToList();
+
+        var planning = keys.Count > 0
+            ? await _requestRepository.GetOrdenPlanningForSolicitudesAsync(keys, cancellationToken)
+            : new List<OrdenPlanningDto>();
+        var planningDict = planning.ToDictionary(p => (p.IdSolicitud, p.IdDepositoOrigen));
+
+        return filtered.Select(s =>
+        {
+            var key = (IdSolicitud: s.IdSolicitud, IdDepositoOrigen: s.IdDepositoOrigen ?? 0L);
+            var plan = key.IdDepositoOrigen != 0 && planningDict.TryGetValue(key, out var p) ? p : null;
+            return new MobileTransportWasteDto
+            {
+                IdSolicitud = s.IdSolicitud,
+                NumeroSolicitud = s.NumeroSolicitud,
+                FechaSolicitud = s.FechaSolicitud,
+                Ocurrencia = s.Ocurrencia,
+                Recurrencia = s.Recurrencia,
+                IdOrden = plan?.IdOrden,
+                NumeroOrden = plan?.NumeroOrden,
+                Item = s.Item,
+                IdSolicitante = s.IdSolicitante,
+                IdDepositoOrigen = s.IdDepositoOrigen,
+                IdProveedor = s.IdProveedor,
+                IdDepositoDestino = s.IdDepositoDestino,
+                IdVehiculo = s.IdVehiculo,
+                IdResiduo = s.IdResiduo,
+                IdMaterial = s.IdMaterial,
+                Descripcion = s.Descripcion,
+                IdTratamiento = s.IdTratamiento,
+                FechaInicio = plan?.FechaInicio ?? s.FechaInicioDetalle ?? s.FechaSolicitud,
+                IdResponsable = plan?.IdResponsable,
+                IdResponsable2 = plan?.IdResponsable2,
+                CantidadOrden = s.CantidadSolicitud,
+                PesoOrden = s.PesoSolicitud,
+                VolumenOrden = s.VolumenSolicitud,
+                Cantidad = s.Cantidad,
+                Peso = s.Peso,
+                Volumen = s.Volumen,
+                IdEmbalaje = s.IdEmbalaje,
+                PrecioCompra = s.PrecioCompra,
+                PrecioServicio = s.PrecioServicio,
+                IdEstado = s.IdEstado,
+                MultiplesGeneradores = s.MultiplesGeneradores,
+                IdEtapa = s.IdEtapa,
+                IdFase = s.IdFase,
+                Soporte = s.Soporte,
+                Notas = s.Notas,
+                Procesado = s.Procesado,
+                IdCausa = s.IdCausa,
+                IdGrupo = s.IdGrupo,
+                Titulo = s.Titulo,
+                Material = s.Material,
+                Medicion = s.Medicion,
+                PesoUnitario = s.PesoUnitario,
+                PrecioUnitario = s.PrecioUnitario,
+                PrecioServicioUnitario = s.PrecioServicioUnitario,
+                Solicitante = s.Solicitante,
+                DireccionOrigen = s.DireccionOrigen,
+                LatitudOrigen = s.LatitudOrigen,
+                LongitudOrigen = s.LongitudOrigen,
+                DireccionDestino = s.DireccionDestino,
+                LatitudDestino = s.LatitudDestino,
+                LongitudDestino = s.LongitudDestino,
+                Proveedor = s.Proveedor,
+                DepositoOrigen = s.DepositoOrigen,
+                DepositoDestino = s.DepositoDestino,
+                Tratamiento = s.Tratamiento,
+                Embalaje = s.Embalaje,
+                EmbalajeSolicitud = s.EmbalajeSolicitud
+            };
+        }).ToList();
+    }
+
+    /// <inheritdoc />
+    public async Task<IEnumerable<SolicitudWithDetailsDto>> GetPendientesRecoleccionAsync(
+        string accountPersonId,
+        long? idServicio = null,
+        DateTime? dateFrom = null,
+        DateTime? dateTo = null,
+        CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrEmpty(accountPersonId))
+            return Array.Empty<SolicitudWithDetailsDto>();
+
+        var filter = new SolicitudFilter
+        {
+            PersonIds = new[] { accountPersonId },
+            IdServicio = idServicio ?? _requestFilterDefaults.GetTransportServiceId(),
+            Estados = _requestFilterDefaults.GetActiveEstadosForTransport(),
+            DateFrom = dateFrom,
+            DateTo = dateTo,
+            ExcludeRecurring = true
+        };
+        var solicitudes = await _requestRepository.GetSolicitudesAsync(filter, cancellationToken);
+        return solicitudes.Where(WasteManagementRules.IsPendingCollection).ToList();
+    }
+
+    /// <inheritdoc />
+    public async Task<IEnumerable<MobileTransportWasteDto>> GetPendientesRecoleccionWithPlanningAsync(
+        string accountPersonId,
+        DateTime? date = null,
+        string? driverId = null,
+        long? idServicio = null,
+        CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrEmpty(accountPersonId))
+            return Array.Empty<MobileTransportWasteDto>();
+
+        var dateFrom = date.HasValue ? date.Value.Date : (DateTime?)null;
+        var dateTo = date.HasValue ? date.Value.Date : (DateTime?)null;
+        var pendientes = await GetPendientesRecoleccionAsync(accountPersonId, idServicio, dateFrom, dateTo, cancellationToken);
+        var list = pendientes.ToList();
+        if (list.Count == 0)
+            return Array.Empty<MobileTransportWasteDto>();
+
+        var keys = list
+            .Where(s => s.IdDepositoOrigen.HasValue && s.IdDepositoOrigen.Value != 0)
+            .Select(s => (s.IdSolicitud, s.IdDepositoOrigen!.Value))
+            .Distinct()
+            .ToList();
+        var planning = keys.Count > 0
+            ? await _requestRepository.GetOrdenPlanningForSolicitudesAsync(keys, cancellationToken)
+            : new List<OrdenPlanningDto>();
+        var planningDict = planning.ToDictionary(p => (p.IdSolicitud, p.IdDepositoOrigen));
+
+        var result = list.Select(s =>
+        {
+            var key = (IdSolicitud: s.IdSolicitud, IdDepositoOrigen: s.IdDepositoOrigen ?? 0L);
+            var plan = key.IdDepositoOrigen != 0 && planningDict.TryGetValue(key, out var p) ? p : null;
+            return new MobileTransportWasteDto
+            {
+                IdSolicitud = s.IdSolicitud,
+                NumeroSolicitud = s.NumeroSolicitud,
+                FechaSolicitud = s.FechaSolicitud,
+                Ocurrencia = s.Ocurrencia,
+                Recurrencia = s.Recurrencia,
+                IdOrden = plan?.IdOrden,
+                NumeroOrden = plan?.NumeroOrden,
+                Item = s.Item,
+                IdSolicitante = s.IdSolicitante,
+                IdDepositoOrigen = s.IdDepositoOrigen,
+                IdProveedor = s.IdProveedor,
+                IdDepositoDestino = s.IdDepositoDestino,
+                IdVehiculo = s.IdVehiculo,
+                IdResiduo = s.IdResiduo,
+                IdMaterial = s.IdMaterial,
+                Descripcion = s.Descripcion,
+                IdTratamiento = s.IdTratamiento,
+                FechaInicio = plan?.FechaInicio ?? s.FechaInicioDetalle ?? s.FechaSolicitud,
+                IdResponsable = plan?.IdResponsable,
+                IdResponsable2 = plan?.IdResponsable2,
+                CantidadOrden = s.CantidadSolicitud,
+                PesoOrden = s.PesoSolicitud,
+                VolumenOrden = s.VolumenSolicitud,
+                Cantidad = s.Cantidad,
+                Peso = s.Peso,
+                Volumen = s.Volumen,
+                IdEmbalaje = s.IdEmbalaje,
+                PrecioCompra = s.PrecioCompra,
+                PrecioServicio = s.PrecioServicio,
+                IdEstado = s.IdEstado,
+                MultiplesGeneradores = s.MultiplesGeneradores,
+                IdEtapa = s.IdEtapa,
+                IdFase = s.IdFase,
+                Soporte = s.Soporte,
+                Notas = s.Notas,
+                Procesado = s.Procesado,
+                IdCausa = s.IdCausa,
+                IdGrupo = s.IdGrupo,
+                Titulo = s.Titulo,
+                Material = s.Material,
+                Medicion = s.Medicion,
+                PesoUnitario = s.PesoUnitario,
+                PrecioUnitario = s.PrecioUnitario,
+                PrecioServicioUnitario = s.PrecioServicioUnitario,
+                Solicitante = s.Solicitante,
+                DireccionOrigen = s.DireccionOrigen,
+                LatitudOrigen = s.LatitudOrigen,
+                LongitudOrigen = s.LongitudOrigen,
+                DireccionDestino = s.DireccionDestino,
+                LatitudDestino = s.LatitudDestino,
+                LongitudDestino = s.LongitudDestino,
+                Proveedor = s.Proveedor,
+                DepositoOrigen = s.DepositoOrigen,
+                DepositoDestino = s.DepositoDestino,
+                Tratamiento = s.Tratamiento,
+                Embalaje = s.Embalaje,
+                EmbalajeSolicitud = s.EmbalajeSolicitud
+            };
+        }).ToList();
+
+        if (date.HasValue)
+            result = result.Where(d => d.FechaInicio.HasValue && d.FechaInicio.Value.Date == date.Value.Date).ToList();
+        if (!string.IsNullOrEmpty(driverId))
+            result = result.Where(d => d.IdResponsable == driverId || d.IdResponsable2 == driverId).ToList();
+
+        return result;
+    }
+
+    /// <inheritdoc />
+    public async Task<IEnumerable<SolicitudWithDetailsDto>> GetPendientesRecepcionAsync(
+        string accountPersonId,
+        long? idServicio = null,
+        DateTime? dateFrom = null,
+        DateTime? dateTo = null,
+        CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrEmpty(accountPersonId))
+            return Array.Empty<SolicitudWithDetailsDto>();
+
+        var filter = new SolicitudFilter
+        {
+            PersonIds = new[] { accountPersonId },
+            IdServicio = idServicio ?? _requestFilterDefaults.GetTransportServiceId(),
+            Estados = _requestFilterDefaults.GetActiveEstadosForTransport(),
+            DateFrom = dateFrom,
+            DateTo = dateTo,
+            ExcludeRecurring = true
+        };
+        var solicitudes = await _requestRepository.GetSolicitudesAsync(filter, cancellationToken);
+        return solicitudes.Where(WasteManagementRules.IsPendingReception).ToList();
+    }
+
+    /// <inheritdoc />
+    public async Task<IEnumerable<SolicitudWithDetailsDto>> GetPendientesTratamientoAsync(
+        string accountPersonId,
+        long? idServicio = null,
+        DateTime? dateFrom = null,
+        DateTime? dateTo = null,
+        CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrEmpty(accountPersonId))
+            return Array.Empty<SolicitudWithDetailsDto>();
+
+        var filter = new SolicitudFilter
+        {
+            PersonIds = new[] { accountPersonId },
+            IdServicio = idServicio ?? _requestFilterDefaults.GetTransportServiceId(),
+            Estados = _requestFilterDefaults.GetActiveEstadosForTransport(),
+            DateFrom = dateFrom,
+            DateTo = dateTo,
+            ExcludeRecurring = true
+        };
+        var solicitudes = await _requestRepository.GetSolicitudesAsync(filter, cancellationToken);
+        return solicitudes.Where(WasteManagementRules.IsPendingTreatment).ToList();
+    }
+
+    /// <inheritdoc />
+    public Task<ResiduoNextPlanningDto?> GetNextPlannedActivityForResiduoAsync(
+        long idResiduo,
+        CancellationToken cancellationToken = default)
+    {
+        return _requestRepository.GetNextOrdenPlanningForResiduoAsync(idResiduo, cancellationToken);
+    }
+
+    /// <inheritdoc />
+    public async Task<IEnumerable<SolicitudWithDetailsDto>> GetPendientesSinActividadPlaneadaAsync(
+        string accountPersonId,
+        long? idServicio = null,
+        DateTime? dateFrom = null,
+        DateTime? dateTo = null,
+        CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrEmpty(accountPersonId))
+            return Array.Empty<SolicitudWithDetailsDto>();
+
+        var filter = new SolicitudFilter
+        {
+            PersonIds = new[] { accountPersonId },
+            IdServicio = idServicio ?? _requestFilterDefaults.GetTransportServiceId(),
+            Estados = _requestFilterDefaults.GetActiveEstadosForTransport(),
+            DateFrom = dateFrom,
+            DateTo = dateTo,
+            ExcludeRecurring = true
+        };
+        var solicitudes = await _requestRepository.GetSolicitudesAsync(filter, cancellationToken);
+        var pendientes = solicitudes.Where(s =>
+            WasteManagementRules.IsPendingCollection(s) ||
+            WasteManagementRules.IsPendingReception(s) ||
+            WasteManagementRules.IsPendingTreatment(s)).ToList();
+
+        var keys = pendientes
+            .Where(s => s.IdDepositoOrigen.HasValue && s.IdDepositoOrigen.Value != 0)
+            .Select(s => (s.IdSolicitud, s.IdDepositoOrigen!.Value))
+            .Distinct()
+            .ToList();
+        var planning = keys.Count > 0
+            ? await _requestRepository.GetOrdenPlanningForSolicitudesAsync(keys, cancellationToken)
+            : new List<OrdenPlanningDto>();
+        var planningSet = planning.Select(p => (IdSolicitud: p.IdSolicitud, IdDepositoOrigen: p.IdDepositoOrigen)).ToHashSet();
+
+        return pendientes.Where(s =>
+        {
+            var key = (IdSolicitud: s.IdSolicitud, IdDepositoOrigen: s.IdDepositoOrigen ?? 0L);
+            return key.IdDepositoOrigen == 0 || !planningSet.Contains(key);
+        }).ToList();
     }
 
     /// <summary>
@@ -25,11 +352,9 @@ public class ProcessService : IProcessService
         if (string.IsNullOrEmpty(personId))
             return Array.Empty<ProcessDto>();
 
-        var allData = await _requestRepository.GetMobileTransportWasteAsync(personId, cancellationToken);
-        // Filter: only rows where this person is the assigned driver (IdResponsable or IdResponsable2)
+        var allData = await GetMobileTransportWasteForAccountAsync(personId, cancellationToken);
         var forDriver = allData.Where(d =>
-            (d.IdResponsable == personId || d.IdResponsable2 == personId));
-        // Optional date filter: process/order date (FechaInicio)
+            d.IdResponsable == personId || d.IdResponsable2 == personId);
         var filtered = date.HasValue
             ? forDriver.Where(d => d.FechaInicio.HasValue && d.FechaInicio.Value.Date == date.Value.Date)
             : forDriver;

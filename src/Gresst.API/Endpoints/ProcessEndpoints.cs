@@ -19,9 +19,9 @@ public static class ProcessEndpoints
                     return Results.StatusCode(503);
                 if (processService == null)
                     return Results.StatusCode(503);
-                var personId = currentUserService.GetCurrentPersonId();
+                var personId = currentUserService.GetCurrentAccountPersonId();
                 if (string.IsNullOrEmpty(personId))
-                    return Results.BadRequest(new { message = "Person ID not found for current user" });
+                    return Results.BadRequest(new { message = "Account person ID not found for current user" });
                 var transportData = await requestService.GetMobileTransportWasteAsync(personId, ct);
                 var list = await processService.MapTransportDataToProcessesAsync(transportData, ct);
                 return Results.Ok(list);

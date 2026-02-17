@@ -70,6 +70,17 @@ public static class WasteEndpoints
             })
             .WithName("CreateWaste");
 
+        // POST /wastes/register-generated — company generates waste at its facility → Residuo + Saldo (no Request). See docs/waste-generation.md.
+        wastes.MapPost("register-generated", async ([FromBody] RegisterGeneratedWasteDto dto, IWasteGenerationService wasteGenerationService, CancellationToken ct) =>
+            {
+                if (dto == null || string.IsNullOrEmpty(dto.GeneratorPersonId) || dto.DepotId == 0 || dto.MaterialId == 0)
+                    return Results.BadRequest(new { message = "GeneratorPersonId, DepotId, and MaterialId are required." });
+                var result = await wasteGenerationService.RegisterGeneratedWasteAsync(dto, ct);
+                return Results.Created($"/wastes/{result.IdResiduo}", result);
+            })
+            .WithName("RegisterGeneratedWaste")
+            .WithSummary("Register waste generated at a company's facility. Creates Residuo and Saldo (inventory) directly; no Request.");
+
         wastes.MapPut("{id}", async (string id, [FromBody] UpdateWasteDto dto, IWasteService wasteService, CancellationToken ct) =>
             {
                 if (id != dto.Id)

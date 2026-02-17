@@ -1,16 +1,18 @@
 using Gresst.Application.DTOs;
 using Gresst.Application.Services;
-using Gresst.Infrastructure.Common;
+using Gresst.Domain.Enums;
 using Gresst.Infrastructure.Data;
 using Gresst.Infrastructure.Data.Entities;
 using Gresst.Infrastructure.Mappers;
+using Gresst.Infrastructure.WasteManagement;
 using Microsoft.EntityFrameworkCore;
 using NetTopologySuite.Geometries;
 
 namespace Gresst.Infrastructure.Repositories;
 
 /// <summary>
-/// Repository for operations related to Requests (Solicitudes)
+/// Repository for operations related to Requests (Solicitudes).
+/// Returns only current state; no join with Orden/OrdenPlaneacion (planning is applied in the application layer).
 /// </summary>
 public class RequestRepository : IRequestRepository
 {
@@ -21,29 +23,19 @@ public class RequestRepository : IRequestRepository
         _context = context;
     }
 
-    /// <summary>
-    /// Gets mobile transport waste data implementing the fnResiduosTransporteMovil logic
-    /// </summary>
-    /// <param name="personId">Person ID (domain string)</param>
-    /// <param name="cancellationToken">Cancellation token</param>
-    /// <returns>List of mobile transport waste data</returns>
-    public async Task<IEnumerable<MobileTransportWasteDto>> GetMobileTransportWasteAsync(
-        string personId, 
+    /// <inheritdoc />
+    public async Task<IEnumerable<SolicitudWithDetailsDto>> GetSolicitudesAsync(
+        SolicitudFilter filter,
         CancellationToken cancellationToken = default)
     {
-        var personIdString = personId ?? string.Empty;
-        
-        if (string.IsNullOrEmpty(personIdString))
-        {
-            return new List<MobileTransportWasteDto>();
-        }
+        var personIds = filter.PersonIds?.Where(id => !string.IsNullOrEmpty(id)).ToList() ?? new List<string>();
+        var hasPersonFilter = personIds.Count > 0;
+        var estados = filter.Estados?.Where(e => !string.IsNullOrEmpty(e)).ToList() ?? new List<string>();
+        var hasEstadoFilter = estados.Count > 0;
 
-        // Service ID = 8 (mobile transport)
-        const long servicioId = 8;
+        var results = new List<SolicitudWithDetailsDto>();
 
-        var results = new List<MobileTransportWasteDto>();
-
-        // First part: Solicitud with SolicitudDetalle
+        // Part 1: Solicitud with SolicitudDetalle
         var query1 = from s in _context.Solicituds
                      join sd in _context.SolicitudDetalles on s.IdSolicitud equals sd.IdSolicitud
                      join m in _context.Materials on sd.IdMaterial equals m.IdMaterial
@@ -61,11 +53,12 @@ public class RequestRepository : IRequestRepository
                      from e in eGroup.DefaultIfEmpty()
                      join em in _context.Embalajes on sd.IdEmbalaje equals em.IdEmbalaje into emGroup
                      from em in emGroup.DefaultIfEmpty()
-                     where (s.IdPersona == personIdString || s.IdTransportador == personIdString)
-                         && s.IdServicio == servicioId
-                         && (sd.IdEtapa == "T" || sd.IdEtapa == "R" || (sd.IdEtapa == "P" && sd.IdFase == "I") || (sd.IdEtapa == "F" && sd.IdFase == "F"))
-                         && (s.IdEstado == "M" || s.IdEstado == "A" || s.IdEstado == "R" || s.IdEstado == "T")
-                         && (s.Recurrencia == null || s.Recurrencia == "")
+                     where (!hasPersonFilter || personIds.Contains(s.IdPersona) || (s.IdTransportador != null && personIds.Contains(s.IdTransportador!)))
+                         && (!filter.IdServicio.HasValue || s.IdServicio == filter.IdServicio.Value)
+                         && (!hasEstadoFilter || (s.IdEstado != null && estados.Contains(s.IdEstado)))
+                         && (!filter.ExcludeRecurring || s.Recurrencia == null || s.Recurrencia == "")
+                         && (!filter.DateFrom.HasValue || s.FechaInicio >= filter.DateFrom.Value.Date)
+                         && (!filter.DateTo.HasValue || s.FechaInicio <= filter.DateTo.Value.Date)
                      select new
                      {
                          Solicitud = s,
@@ -77,145 +70,38 @@ public class RequestRepository : IRequestRepository
                          DepositoDestino = ddDep,
                          Tratamiento = trt,
                          EmbalajeSolicitud = e,
-                         Embalaje = em,
-                         IdDepositoOrigen = sd.IdDepositoOrigen
+                         Embalaje = em
                      };
 
         var data1 = await query1.ToListAsync(cancellationToken);
 
-        // Get OrdenPlaneacion data (MAX IdOrden per IdSolicitud and IdDeposito)
-        var ordenPlaneacionIds = data1
-            .Where(d => d.IdDepositoOrigen.HasValue)
-            .Select(d => new { IdSolicitud = d.Solicitud.IdSolicitud, IdDeposito = d.IdDepositoOrigen!.Value })
-            .GroupBy(x => new { x.IdSolicitud, x.IdDeposito })
-            .Select(g => g.Key)
-            .ToList();
-
-        // Get OrdenPlaneacion MAX IdOrden per IdSolicitud and IdDeposito
-        var solicitudIds = ordenPlaneacionIds.Select(x => x.IdSolicitud).Distinct().ToList();
-        var depositoIds = ordenPlaneacionIds.Select(x => x.IdDeposito).Distinct().ToList();
-        
-        var ordenPlaneacionMax = await (from op in _context.OrdenPlaneacions
-                                       where solicitudIds.Contains(op.IdSolicitud) && depositoIds.Contains(op.IdDeposito)
-                                       group op by new { op.IdSolicitud, op.IdDeposito } into g
-                                       select new
-                                       {
-                                           g.Key.IdSolicitud,
-                                           g.Key.IdDeposito,
-                                           MaxIdOrden = g.Max(x => x.IdOrden)
-                                       }).ToListAsync(cancellationToken);
-        
-        // Filter to only include the ones we need
-        ordenPlaneacionMax = ordenPlaneacionMax
-            .Where(x => ordenPlaneacionIds.Any(id => id.IdSolicitud == x.IdSolicitud && id.IdDeposito == x.IdDeposito))
-            .ToList();
-
-        var ordenPlaneacionDict = ordenPlaneacionMax.ToDictionary(x => new { x.IdSolicitud, x.IdDeposito });
-
-        // Get Orden data
-        var ordenIds = ordenPlaneacionMax.Select(x => x.MaxIdOrden).Distinct().ToList();
-        var ordenes = await _context.Ordens
-            .Where(o => ordenIds.Contains(o.IdOrden))
-            .ToListAsync(cancellationToken);
-        var ordenDict = ordenes.ToDictionary(o => o.IdOrden);
-
-        // Get PersonaMaterial data
         var materialIds = data1.Select(d => d.SolicitudDetalle.IdMaterial).Distinct().ToList();
-        var personaMaterials = await _context.PersonaMaterials
-            .Where(pm => pm.IdPersona == personIdString && materialIds.Contains(pm.IdMaterial))
-            .ToListAsync(cancellationToken);
+        var personIdForPricing = hasPersonFilter ? personIds.First() : null;
+        var personaMaterials = !string.IsNullOrEmpty(personIdForPricing) && materialIds.Count > 0
+            ? await _context.PersonaMaterials
+                .Where(pm => pm.IdPersona == personIdForPricing && materialIds.Contains(pm.IdMaterial))
+                .ToListAsync(cancellationToken)
+            : new List<PersonaMaterial>();
         var personaMaterialDict = personaMaterials.ToDictionary(pm => pm.IdMaterial);
 
-        // Get OrdenResiduo data
-        var residuoIds = data1.Where(d => d.SolicitudDetalle.IdResiduo.HasValue)
-            .Select(d => d.SolicitudDetalle.IdResiduo!.Value)
-            .Distinct()
-            .ToList();
-        var ordenResiduos = await _context.OrdenResiduos
-            .Where(or => residuoIds.Contains(or.IdResiduo))
-            .ToListAsync(cancellationToken);
-        var ordenResiduoDict = ordenResiduos.ToDictionary(or => or.IdResiduo);
-
-        // Map first part results
         foreach (var d in data1)
         {
-            var key = new { d.Solicitud.IdSolicitud, IdDeposito = d.IdDepositoOrigen ?? 0 };
-            var ordenPlaneacionKey = ordenPlaneacionDict.ContainsKey(key) ? ordenPlaneacionDict[key] : null;
-            var orden = ordenPlaneacionKey != null && ordenDict.ContainsKey(ordenPlaneacionKey.MaxIdOrden) 
-                ? ordenDict[ordenPlaneacionKey.MaxIdOrden] 
-                : null;
-            var personaMaterial = personaMaterialDict.ContainsKey(d.SolicitudDetalle.IdMaterial) 
-                ? personaMaterialDict[d.SolicitudDetalle.IdMaterial] 
-                : null;
-            var ordenResiduo = d.SolicitudDetalle.IdResiduo.HasValue && ordenResiduoDict.ContainsKey(d.SolicitudDetalle.IdResiduo.Value)
-                ? ordenResiduoDict[d.SolicitudDetalle.IdResiduo.Value]
-                : null;
-
-            var fechaInicio = orden?.FechaInicio ?? d.SolicitudDetalle.FechaInicio ?? d.Solicitud.FechaInicio;
-
-            results.Add(new MobileTransportWasteDto
-            {
-                IdSolicitud = d.Solicitud.IdSolicitud,
-                NumeroSolicitud = d.Solicitud.NumeroSolicitud,
-                FechaSolicitud = d.Solicitud.FechaInicio,
-                Ocurrencia = d.Solicitud.Ocurrencia,
-                Recurrencia = d.Solicitud.Recurrencia,
-                IdOrden = orden?.IdOrden,
-                NumeroOrden = orden?.NumeroOrden,
-                Item = d.SolicitudDetalle.Item,
-                IdSolicitante = d.SolicitudDetalle.IdSolicitante,
-                IdDepositoOrigen = d.SolicitudDetalle.IdDepositoOrigen,
-                IdProveedor = d.SolicitudDetalle.IdProveedor,
-                IdDepositoDestino = d.SolicitudDetalle.IdDepositoDestino,
-                IdVehiculo = d.SolicitudDetalle.IdVehiculo,
-                IdResiduo = d.SolicitudDetalle.IdResiduo,
-                IdMaterial = d.SolicitudDetalle.IdMaterial,
-                Descripcion = d.SolicitudDetalle.Descripcion,
-                IdTratamiento = d.SolicitudDetalle.IdTratamiento,
-                FechaInicio = fechaInicio.Date,
-                IdResponsable = orden?.IdResponsable,
-                IdResponsable2 = orden?.IdResponsable2,
-                CantidadOrden = d.SolicitudDetalle.CantidadSolicitud,
-                PesoOrden = d.SolicitudDetalle.PesoSolicitud,
-                VolumenOrden = d.SolicitudDetalle.VolumenSolicitud,
-                Cantidad = d.SolicitudDetalle.Cantidad ?? d.SolicitudDetalle.CantidadSolicitud,
-                Peso = d.SolicitudDetalle.Peso ?? d.SolicitudDetalle.PesoSolicitud,
-                Volumen = d.SolicitudDetalle.Volumen ?? d.SolicitudDetalle.VolumenSolicitud,
-                IdEmbalaje = d.SolicitudDetalle.IdEmbalaje,
-                PrecioCompra = d.SolicitudDetalle.PrecioCompra,
-                PrecioServicio = d.SolicitudDetalle.PrecioServicio,
-                IdEstado = d.Solicitud.IdEstado,
-                MultiplesGeneradores = d.Solicitud.MultiplesGeneradores,
-                IdEtapa = d.SolicitudDetalle.IdEtapa,
-                IdFase = d.SolicitudDetalle.IdFase,
-                Soporte = d.SolicitudDetalle.Soporte,
-                Notas = d.SolicitudDetalle.Notas,
-                Procesado = d.SolicitudDetalle.Procesado,
-                IdCausa = d.SolicitudDetalle.IdCausa?.ToString(),
-                IdGrupo = $"{d.Solicitud.IdSolicitud}-{d.SolicitudDetalle.IdDepositoOrigen ?? 0}",
-                Titulo = $"{d.Solicitud.NumeroSolicitud}-{d.Solicitante?.Nombre ?? "Sin solicitante ..."}-{d.DepositoOrigen?.Nombre ?? "Sin punto de recepción ..."}",
-                Material = d.Material.Nombre,
-                Medicion = d.Material.Medicion,
-                PesoUnitario = personaMaterial?.Peso ?? d.Material.Peso,
-                PrecioUnitario = personaMaterial?.PrecioCompra ?? d.Material.PrecioCompra,
-                PrecioServicioUnitario = personaMaterial?.PrecioServicio ?? d.Material.PrecioServicio,
-                Solicitante = d.Solicitante?.Nombre,
-                DireccionOrigen = d.DepositoOrigen?.Direccion,
-                LatitudOrigen = d.DepositoOrigen?.Ubicacion != null ? (double?)d.DepositoOrigen.Ubicacion.GetLatitude() : null,
-                LongitudOrigen = d.DepositoOrigen?.Ubicacion != null ? (double?)d.DepositoOrigen.Ubicacion.GetLongitude() : null,
-                DireccionDestino = d.DepositoDestino?.Direccion,
-                LatitudDestino = d.DepositoDestino?.Ubicacion != null ? (double?)d.DepositoDestino.Ubicacion.GetLatitude() : null,
-                LongitudDestino = d.DepositoDestino?.Ubicacion != null ? (double?)d.DepositoDestino.Ubicacion.GetLongitude() : null,
-                Proveedor = d.Proveedor?.Nombre,
-                DepositoOrigen = d.DepositoOrigen?.Nombre ?? "Sin punto de recolección ...",
-                DepositoDestino = d.DepositoDestino?.Nombre ?? "Sin punto de recepción ...",
-                Tratamiento = d.Tratamiento?.Nombre,
-                Embalaje = d.Embalaje?.Nombre,
-                EmbalajeSolicitud = d.EmbalajeSolicitud?.Nombre
-            });
+            var personaMaterial = personaMaterialDict.ContainsKey(d.SolicitudDetalle.IdMaterial) ? personaMaterialDict[d.SolicitudDetalle.IdMaterial] : null;
+            results.Add(MapToSolicitudWithDetails(
+                d.Solicitud,
+                d.SolicitudDetalle,
+                d.Material,
+                d.Solicitante,
+                d.DepositoOrigen,
+                d.Proveedor,
+                d.DepositoDestino,
+                d.Tratamiento,
+                d.EmbalajeSolicitud,
+                d.Embalaje,
+                personaMaterial));
         }
 
-        // Second part: Solicitud without SolicitudDetalle
+        // Part 2: Solicitud without SolicitudDetalle
         var solicitudesConDetalle = await _context.SolicitudDetalles
             .Select(sd => sd.IdSolicitud)
             .Distinct()
@@ -230,130 +116,255 @@ public class RequestRepository : IRequestRepository
                      from pp in ppGroup.DefaultIfEmpty()
                      join ddDep in _context.Depositos on s.IdDepositoDestino equals ddDep.IdDeposito into ddGroup
                      from ddDep in ddGroup.DefaultIfEmpty()
-                     where (s.IdPersona == personIdString || s.IdTransportador == personIdString)
-                         && s.IdServicio == servicioId
-                         && (s.IdEstado == "M" || s.IdEstado == "A" || s.IdEstado == "R" || s.IdEstado == "T")
-                         && (s.Recurrencia == null || s.Recurrencia == "")
+                     where (!hasPersonFilter || personIds.Contains(s.IdPersona) || (s.IdTransportador != null && personIds.Contains(s.IdTransportador!)))
+                         && (!filter.IdServicio.HasValue || s.IdServicio == filter.IdServicio.Value)
+                         && (!hasEstadoFilter || (s.IdEstado != null && estados.Contains(s.IdEstado)))
+                         && (!filter.ExcludeRecurring || s.Recurrencia == null || s.Recurrencia == "")
+                         && (!filter.DateFrom.HasValue || s.FechaInicio >= filter.DateFrom.Value.Date)
+                         && (!filter.DateTo.HasValue || s.FechaInicio <= filter.DateTo.Value.Date)
                          && !solicitudesConDetalle.Contains(s.IdSolicitud)
-                     select new
-                     {
-                         Solicitud = s,
-                         Solicitante = ps,
-                         DepositoOrigen = doDep,
-                         Proveedor = pp,
-                         DepositoDestino = ddDep,
-                         IdDepositoOrigen = s.IdDepositoOrigen
-                     };
+                     select new { Solicitud = s, Solicitante = ps, DepositoOrigen = doDep, Proveedor = pp, DepositoDestino = ddDep };
 
         var data2 = await query2.ToListAsync(cancellationToken);
 
-        // Get OrdenPlaneacion for second part
-        var ordenPlaneacionIds2 = data2
-            .Where(d => d.IdDepositoOrigen.HasValue)
-            .Select(d => new { IdSolicitud = d.Solicitud.IdSolicitud, IdDeposito = d.IdDepositoOrigen!.Value })
-            .GroupBy(x => new { x.IdSolicitud, x.IdDeposito })
-            .Select(g => g.Key)
-            .ToList();
-
-        // Get OrdenPlaneacion MAX IdOrden for second part
-        var solicitudIds2 = ordenPlaneacionIds2.Select(x => x.IdSolicitud).Distinct().ToList();
-        var depositoIds2 = ordenPlaneacionIds2.Select(x => x.IdDeposito).Distinct().ToList();
-        
-        var ordenPlaneacionMax2 = await (from op in _context.OrdenPlaneacions
-                                         where solicitudIds2.Contains(op.IdSolicitud) && depositoIds2.Contains(op.IdDeposito)
-                                         group op by new { op.IdSolicitud, op.IdDeposito } into g
-                                         select new
-                                         {
-                                             g.Key.IdSolicitud,
-                                             g.Key.IdDeposito,
-                                             MaxIdOrden = g.Max(x => x.IdOrden)
-                                         }).ToListAsync(cancellationToken);
-        
-        // Filter to only include the ones we need
-        ordenPlaneacionMax2 = ordenPlaneacionMax2
-            .Where(x => ordenPlaneacionIds2.Any(id => id.IdSolicitud == x.IdSolicitud && id.IdDeposito == x.IdDeposito))
-            .ToList();
-
-        var ordenPlaneacionDict2 = ordenPlaneacionMax2.ToDictionary(x => new { x.IdSolicitud, x.IdDeposito });
-
-        // Get Orden data for second part
-        var ordenIds2 = ordenPlaneacionMax2.Select(x => x.MaxIdOrden).Distinct().ToList();
-        var ordenes2 = await _context.Ordens
-            .Where(o => ordenIds2.Contains(o.IdOrden))
-            .ToListAsync(cancellationToken);
-        var ordenDict2 = ordenes2.ToDictionary(o => o.IdOrden);
-
-        // Map second part results
         foreach (var d in data2)
         {
-            var key = new { d.Solicitud.IdSolicitud, IdDeposito = d.IdDepositoOrigen ?? 0 };
-            var ordenPlaneacionKey = ordenPlaneacionDict2.ContainsKey(key) ? ordenPlaneacionDict2[key] : null;
-            var orden = ordenPlaneacionKey != null && ordenDict2.ContainsKey(ordenPlaneacionKey.MaxIdOrden)
-                ? ordenDict2[ordenPlaneacionKey.MaxIdOrden]
-                : null;
-
-            results.Add(new MobileTransportWasteDto
-            {
-                IdSolicitud = d.Solicitud.IdSolicitud,
-                NumeroSolicitud = d.Solicitud.NumeroSolicitud,
-                FechaSolicitud = d.Solicitud.FechaInicio,
-                Ocurrencia = d.Solicitud.Ocurrencia,
-                Recurrencia = d.Solicitud.Recurrencia,
-                IdOrden = orden?.IdOrden,
-                NumeroOrden = orden?.NumeroOrden,
-                Item = 0,
-                IdSolicitante = d.Solicitud.IdSolicitante,
-                IdDepositoOrigen = d.Solicitud.IdDepositoOrigen,
-                IdProveedor = d.Solicitud.IdProveedor,
-                IdDepositoDestino = d.Solicitud.IdDepositoDestino,
-                IdVehiculo = d.Solicitud.IdVehiculo,
-                IdResiduo = null,
-                IdMaterial = null,
-                Descripcion = null,
-                IdTratamiento = null,
-                FechaInicio = d.Solicitud.FechaInicio.Date,
-                IdResponsable = orden?.IdResponsable,
-                IdResponsable2 = orden?.IdResponsable2,
-                CantidadOrden = 0,
-                PesoOrden = 0,
-                VolumenOrden = 0,
-                Cantidad = 0,
-                Peso = 0,
-                Volumen = 0,
-                IdEmbalaje = null,
-                PrecioCompra = null,
-                PrecioServicio = null,
-                IdEstado = "A",
-                MultiplesGeneradores = d.Solicitud.MultiplesGeneradores,
-                IdEtapa = "T",
-                IdFase = "E",
-                Soporte = null,
-                Notas = null,
-                Procesado = null,
-                IdCausa = null,
-                IdGrupo = $"{d.Solicitud.IdSolicitud}-{d.Solicitud.IdDepositoOrigen ?? 0}",
-                Titulo = $"{d.Solicitud.NumeroSolicitud}-{d.Solicitante?.Nombre ?? "Sin solicitante ..."}-{d.DepositoOrigen?.Nombre ?? "Sin punto de recepción ..."}",
-                Material = null,
-                Medicion = null,
-                PesoUnitario = null,
-                PrecioUnitario = null,
-                PrecioServicioUnitario = null,
-                Solicitante = d.Solicitante?.Nombre,
-                DireccionOrigen = d.DepositoOrigen?.Direccion,
-                LatitudOrigen = d.DepositoOrigen?.Ubicacion != null ? (double?)d.DepositoOrigen.Ubicacion.GetLatitude() : null,
-                LongitudOrigen = d.DepositoOrigen?.Ubicacion != null ? (double?)d.DepositoOrigen.Ubicacion.GetLongitude() : null,
-                DireccionDestino = d.DepositoDestino?.Direccion,
-                LatitudDestino = d.DepositoDestino?.Ubicacion != null ? (double?)d.DepositoDestino.Ubicacion.GetLatitude() : null,
-                LongitudDestino = d.DepositoDestino?.Ubicacion != null ? (double?)d.DepositoDestino.Ubicacion.GetLongitude() : null,
-                Proveedor = d.Proveedor?.Nombre,
-                DepositoOrigen = d.DepositoOrigen?.Nombre ?? "Sin punto de recolección ...",
-                DepositoDestino = d.DepositoDestino?.Nombre ?? "Sin punto de recepción ...",
-                Tratamiento = null,
-                Embalaje = null,
-                EmbalajeSolicitud = null
-            });
+            results.Add(MapToSolicitudWithDetailsNoDetail(d.Solicitud, d.Solicitante, d.DepositoOrigen, d.Proveedor, d.DepositoDestino));
         }
 
         return results;
+    }
+
+    /// <inheritdoc />
+    public async Task<IReadOnlyList<OrdenPlanningDto>> GetOrdenPlanningForSolicitudesAsync(
+        IReadOnlyList<(long IdSolicitud, long IdDepositoOrigen)> keys,
+        CancellationToken cancellationToken = default)
+    {
+        if (keys.Count == 0)
+            return Array.Empty<OrdenPlanningDto>();
+
+        var solicitudIds = keys.Select(k => k.IdSolicitud).Distinct().ToList();
+        var depositoIds = keys.Select(k => k.IdDepositoOrigen).Distinct().ToList();
+
+        var maxOrden = await (from op in _context.OrdenPlaneacions
+                              where solicitudIds.Contains(op.IdSolicitud) && depositoIds.Contains(op.IdDeposito)
+                              group op by new { op.IdSolicitud, op.IdDeposito } into g
+                              select new
+                              {
+                                  g.Key.IdSolicitud,
+                                  g.Key.IdDeposito,
+                                  MaxIdOrden = g.Max(x => x.IdOrden)
+                              }).ToListAsync(cancellationToken);
+
+        var keySet = keys.Select(k => (k.IdSolicitud, k.IdDepositoOrigen)).ToHashSet();
+        maxOrden = maxOrden.Where(x => keySet.Contains((x.IdSolicitud, x.IdDeposito))).ToList();
+
+        var ordenIds = maxOrden.Select(x => x.MaxIdOrden).Distinct().ToList();
+        var ordenes = await _context.Ordens
+            .Where(o => ordenIds.Contains(o.IdOrden))
+            .ToListAsync(cancellationToken);
+        var ordenDict = ordenes.ToDictionary(o => o.IdOrden);
+
+        return maxOrden
+            .Select(x =>
+            {
+                var orden = ordenDict.GetValueOrDefault(x.MaxIdOrden);
+                return new OrdenPlanningDto
+                {
+                    IdSolicitud = x.IdSolicitud,
+                    IdDepositoOrigen = x.IdDeposito,
+                    IdOrden = x.MaxIdOrden,
+                    NumeroOrden = orden?.NumeroOrden,
+                    IdResponsable = orden?.IdResponsable,
+                    IdResponsable2 = orden?.IdResponsable2,
+                    FechaInicio = orden?.FechaInicio
+                };
+            })
+            .ToList();
+    }
+
+    /// <inheritdoc />
+    public async Task<ResiduoNextPlanningDto?> GetNextOrdenPlanningForResiduoAsync(
+        long idResiduo,
+        CancellationToken cancellationToken = default)
+    {
+        var today = DateTime.UtcNow.Date;
+        var next = await (from or in _context.OrdenResiduos
+                          join o in _context.Ordens on or.IdOrden equals o.IdOrden
+                          where or.IdResiduo == idResiduo
+                                && (o.FechaFin == null || o.FechaFin >= today)
+                                && o.FechaInicio >= today
+                          orderby o.FechaInicio
+                          select new ResiduoNextPlanningDto
+                          {
+                              IdResiduo = idResiduo,
+                              IdOrden = o.IdOrden,
+                              NumeroOrden = o.NumeroOrden,
+                              FechaInicio = o.FechaInicio,
+                              FechaFin = o.FechaFin,
+                              IdTratamiento = o.IdTratamiento ?? or.IdTratamiento,
+                              IdResponsable = o.IdResponsable
+                          })
+            .FirstOrDefaultAsync(cancellationToken);
+
+        if (next != null)
+            return next;
+
+        // If no future order, return the first open order (FechaFin null) regardless of FechaInicio
+        return await (from or in _context.OrdenResiduos
+                      join o in _context.Ordens on or.IdOrden equals o.IdOrden
+                      where or.IdResiduo == idResiduo && o.FechaFin == null
+                      orderby o.FechaInicio
+                      select new ResiduoNextPlanningDto
+                      {
+                          IdResiduo = idResiduo,
+                          IdOrden = o.IdOrden,
+                          NumeroOrden = o.NumeroOrden,
+                          FechaInicio = o.FechaInicio,
+                          FechaFin = o.FechaFin,
+                          IdTratamiento = o.IdTratamiento ?? or.IdTratamiento,
+                          IdResponsable = o.IdResponsable
+                      })
+            .FirstOrDefaultAsync(cancellationToken);
+    }
+
+    private static SolicitudWithDetailsDto MapToSolicitudWithDetails(
+        Solicitud s,
+        SolicitudDetalle sd,
+        Material m,
+        Persona? ps,
+        Deposito? doDep,
+        Persona? pp,
+        Deposito? ddDep,
+        Tratamiento? trt,
+        Embalaje? eSolicitud,
+        Embalaje? em,
+        PersonaMaterial? personaMaterial)
+    {
+        return new SolicitudWithDetailsDto
+        {
+            IdSolicitud = s.IdSolicitud,
+            NumeroSolicitud = s.NumeroSolicitud,
+            FechaSolicitud = s.FechaInicio,
+            Ocurrencia = s.Ocurrencia,
+            Recurrencia = s.Recurrencia,
+            IdEstado = s.IdEstado ?? "",
+            MultiplesGeneradores = s.MultiplesGeneradores,
+            Item = sd.Item,
+            IdSolicitante = sd.IdSolicitante,
+            IdDepositoOrigen = sd.IdDepositoOrigen,
+            IdProveedor = sd.IdProveedor,
+            IdDepositoDestino = sd.IdDepositoDestino,
+            IdVehiculo = sd.IdVehiculo,
+            IdResiduo = sd.IdResiduo,
+            IdMaterial = sd.IdMaterial,
+            Descripcion = sd.Descripcion,
+            IdTratamiento = sd.IdTratamiento,
+            FechaInicioDetalle = sd.FechaInicio,
+            CantidadSolicitud = sd.CantidadSolicitud,
+            PesoSolicitud = sd.PesoSolicitud,
+            VolumenSolicitud = sd.VolumenSolicitud,
+            Cantidad = sd.Cantidad ?? sd.CantidadSolicitud,
+            Peso = sd.Peso ?? sd.PesoSolicitud,
+            Volumen = sd.Volumen ?? sd.VolumenSolicitud,
+            IdEmbalaje = sd.IdEmbalaje,
+            PrecioCompra = sd.PrecioCompra,
+            PrecioServicio = sd.PrecioServicio,
+            IdEtapa = sd.IdEtapa,
+            IdFase = sd.IdFase,
+            Stage = RequestDbStateCodes.ToRequestFlowStage(sd.IdEtapa),
+            Phase = RequestDbStateCodes.ToRequestFlowPhase(sd.IdFase),
+            Soporte = sd.Soporte,
+            Notas = sd.Notas,
+            Procesado = sd.Procesado,
+            IdCausa = sd.IdCausa?.ToString(),
+            IdGrupo = $"{s.IdSolicitud}-{sd.IdDepositoOrigen ?? 0}",
+            Titulo = $"{s.NumeroSolicitud}-{ps?.Nombre ?? "Sin solicitante ..."}-{doDep?.Nombre ?? "Sin punto de recepción ..."}",
+            Material = m.Nombre,
+            Medicion = m.Medicion,
+            PesoUnitario = personaMaterial?.Peso ?? m.Peso,
+            PrecioUnitario = personaMaterial?.PrecioCompra ?? m.PrecioCompra,
+            PrecioServicioUnitario = personaMaterial?.PrecioServicio ?? m.PrecioServicio,
+            Solicitante = ps?.Nombre,
+            DireccionOrigen = doDep?.Direccion,
+            LatitudOrigen = doDep?.Ubicacion != null ? (double?)doDep.Ubicacion.GetLatitude() : null,
+            LongitudOrigen = doDep?.Ubicacion != null ? (double?)doDep.Ubicacion.GetLongitude() : null,
+            DireccionDestino = ddDep?.Direccion,
+            LatitudDestino = ddDep?.Ubicacion != null ? (double?)ddDep.Ubicacion.GetLatitude() : null,
+            LongitudDestino = ddDep?.Ubicacion != null ? (double?)ddDep.Ubicacion.GetLongitude() : null,
+            Proveedor = pp?.Nombre,
+            DepositoOrigen = doDep?.Nombre ?? "Sin punto de recolección ...",
+            DepositoDestino = ddDep?.Nombre ?? "Sin punto de recepción ...",
+            Tratamiento = trt?.Nombre,
+            Embalaje = em?.Nombre,
+            EmbalajeSolicitud = eSolicitud?.Nombre
+        };
+    }
+
+    private static SolicitudWithDetailsDto MapToSolicitudWithDetailsNoDetail(
+        Solicitud s,
+        Persona? ps,
+        Deposito? doDep,
+        Persona? pp,
+        Deposito? ddDep)
+    {
+        return new SolicitudWithDetailsDto
+        {
+            IdSolicitud = s.IdSolicitud,
+            NumeroSolicitud = s.NumeroSolicitud,
+            FechaSolicitud = s.FechaInicio,
+            Ocurrencia = s.Ocurrencia,
+            Recurrencia = s.Recurrencia,
+            IdEstado = s.IdEstado ?? "A",
+            MultiplesGeneradores = s.MultiplesGeneradores,
+            Item = 0,
+            IdSolicitante = s.IdSolicitante,
+            IdDepositoOrigen = s.IdDepositoOrigen,
+            IdProveedor = s.IdProveedor,
+            IdDepositoDestino = s.IdDepositoDestino,
+            IdVehiculo = s.IdVehiculo,
+            IdResiduo = null,
+            IdMaterial = null,
+            Descripcion = null,
+            IdTratamiento = null,
+            FechaInicioDetalle = s.FechaInicio,
+            CantidadSolicitud = null,
+            PesoSolicitud = null,
+            VolumenSolicitud = null,
+            Cantidad = null,
+            Peso = null,
+            Volumen = null,
+            IdEmbalaje = null,
+            PrecioCompra = null,
+            PrecioServicio = null,
+            IdEtapa = RequestDbStateCodes.SolicitudEtapa.Transporte,
+            IdFase = RequestDbStateCodes.SolicitudFase.Ejecucion,
+            Stage = RequestFlowStage.Transport,
+            Phase = RequestFlowPhase.Execution,
+            Soporte = null,
+            Notas = null,
+            Procesado = null,
+            IdCausa = null,
+            IdGrupo = $"{s.IdSolicitud}-{s.IdDepositoOrigen ?? 0}",
+            Titulo = $"{s.NumeroSolicitud}-{ps?.Nombre ?? "Sin solicitante ..."}-{doDep?.Nombre ?? "Sin punto de recepción ..."}",
+            Material = null,
+            Medicion = null,
+            PesoUnitario = null,
+            PrecioUnitario = null,
+            PrecioServicioUnitario = null,
+            Solicitante = ps?.Nombre,
+            DireccionOrigen = doDep?.Direccion,
+            LatitudOrigen = doDep?.Ubicacion != null ? (double?)doDep.Ubicacion.GetLatitude() : null,
+            LongitudOrigen = doDep?.Ubicacion != null ? (double?)doDep.Ubicacion.GetLongitude() : null,
+            DireccionDestino = ddDep?.Direccion,
+            LatitudDestino = ddDep?.Ubicacion != null ? (double?)ddDep.Ubicacion.GetLatitude() : null,
+            LongitudDestino = ddDep?.Ubicacion != null ? (double?)ddDep.Ubicacion.GetLongitude() : null,
+            Proveedor = pp?.Nombre,
+            DepositoOrigen = doDep?.Nombre ?? "Sin punto de recolección ...",
+            DepositoDestino = ddDep?.Nombre ?? "Sin punto de recepción ...",
+            Tratamiento = null,
+            Embalaje = null,
+            EmbalajeSolicitud = null
+        };
     }
 }

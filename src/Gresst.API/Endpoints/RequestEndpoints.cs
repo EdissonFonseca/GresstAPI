@@ -5,6 +5,10 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Gresst.API.Endpoints;
 
+/// <summary>
+/// Request (Solicitud) endpoints: client–provider link (generators vs managers, or managers vs other managers).
+/// Order (Orden) data is used only to enrich responses (e.g. planned collection date/driver). See docs/requests-and-orders.md.
+/// </summary>
 public static class RequestEndpoints
 {
     public static RouteGroupBuilder Map(this RouteGroupBuilder group)
@@ -17,13 +21,37 @@ public static class RequestEndpoints
             {
                 if (requestService == null)
                     return Results.StatusCode(503);
-                var personId = currentUserService.GetCurrentPersonId();
+                var personId = currentUserService.GetCurrentAccountPersonId();
                 if (string.IsNullOrEmpty(personId))
-                    return Results.BadRequest(new { message = "Person ID not found for current user" });
+                    return Results.BadRequest(new { message = "Account person ID not found for current user" });
                 var list = await requestService.GetMobileTransportWasteAsync(personId, ct);
                 return Results.Ok(list);
             })
             .WithName("GetMobileTransportWaste");
+
+        // GET /requests/planned-collection?date=yyyy-MM-dd&driverId=...
+        requests.MapGet("planned-collection", async (
+                [FromQuery] DateTime? date,
+                [FromQuery] string? driverId,
+                IProcessService processService,
+                ICurrentUserService currentUserService,
+                CancellationToken ct) =>
+            {
+                if (processService == null)
+                    return Results.StatusCode(503);
+                var accountPersonId = currentUserService.GetCurrentAccountPersonId();
+                if (string.IsNullOrEmpty(accountPersonId))
+                    return Results.Unauthorized();
+                var items = await processService.GetPendientesRecoleccionWithPlanningAsync(
+                    accountPersonId,
+                    date,
+                    driverId,
+                    idServicio: null,
+                    ct);
+                return Results.Ok(new { Items = items });
+            })
+            .WithName("GetPlannedCollection")
+            .WithSummary("Get waste/items planned for collection. Optional: date=yyyy-MM-dd (planned date), driverId (assigned driver/responsible).");
 
         requests.MapGet("mobile-transport-waste/{personId}", async (string personId, IRequestService? requestService, CancellationToken ct) =>
             {

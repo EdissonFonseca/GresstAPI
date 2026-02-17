@@ -11,18 +11,18 @@ namespace Gresst.Application.Services;
 public class RequestService : IRequestService
 {
     private readonly IRepository<Request> _requestRepository;
-    private readonly IRequestRepository _requestRepositoryInfra;
+    private readonly IProcessService _processService;
     private readonly IUnitOfWork _unitOfWork;
     private readonly ICurrentUserService _currentUserService;
 
     public RequestService(
         IRepository<Request> requestRepository,
-        IRequestRepository requestRepositoryInfra,
+        IProcessService processService,
         IUnitOfWork unitOfWork,
         ICurrentUserService currentUserService)
     {
         _requestRepository = requestRepository;
-        _requestRepositoryInfra = requestRepositoryInfra;
+        _processService = processService;
         _unitOfWork = unitOfWork;
         _currentUserService = currentUserService;
     }
@@ -209,10 +209,10 @@ public class RequestService : IRequestService
     }
 
     public async Task<IEnumerable<MobileTransportWasteDto>> GetMobileTransportWasteAsync(
-        string personId, 
+        string personId,
         CancellationToken cancellationToken = default)
     {
-        return await _requestRepositoryInfra.GetMobileTransportWasteAsync(personId, cancellationToken);
+        return await _processService.GetMobileTransportWasteForAccountAsync(personId, cancellationToken);
     }
 
     // Helper methods

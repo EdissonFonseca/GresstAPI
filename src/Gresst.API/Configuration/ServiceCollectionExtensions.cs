@@ -212,6 +212,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IRepository<Gresst.Domain.Entities.Route>, RouteRepository>();
         services.AddScoped<IRepository<Gresst.Domain.Entities.RouteStop>, RouteStopRepository>();
         services.AddScoped<IRequestRepository, RequestRepository>();
+        services.AddScoped<Gresst.Application.Services.IRequestFilterDefaults, Gresst.Infrastructure.Services.RequestFilterDefaults>();
         services.AddScoped(typeof(IRepository<>), typeof(GenericInfraRepository<>));
         services.AddScoped<IUnitOfWork, UnitOfWork>();
         return services;
@@ -222,6 +223,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IDataSegmentationService, DataSegmentationService>();
         services.AddScoped<IFacilityService, FacilityService>();
         services.AddScoped<IWasteService, WasteService>();
+        services.AddScoped<Gresst.Application.Services.IWasteGenerationService, Gresst.Infrastructure.Services.WasteGenerationService>();
         services.AddScoped<IManagementService, ManagementService>();
         services.AddScoped<IBalanceService, BalanceService>();
         services.AddScoped<IMaterialService, MaterialService>();

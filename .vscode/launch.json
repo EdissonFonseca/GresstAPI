@@ -1,0 +1,20 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Launch API",
+      "type": "coreclr",
+      "request": "launch",
+      "preLaunchTask": "build",
+      "program": "${workspaceFolder}/src/Gresst.API/bin/Debug/net10.0/Gresst.API.dll",
+      "args": [],
+      "cwd": "${workspaceFolder}/src/Gresst.API",
+      "stopAtEntry": false
+    },
+    {
+      "name": "Attach to API",
+      "type": "coreclr",
+      "request": "attach"
+    }
+  ]
+}

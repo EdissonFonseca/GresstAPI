@@ -289,8 +289,8 @@ Para crear mappers de las otras 19 entidades, sigue este patrón:
 
 ## 📝 Entidades Pendientes (18 más)
 
-- ⏳ Request ↔ Solicitud
-- ⏳ Order ↔ Orden
+- ⏳ Request ↔ Solicitud (client–provider link: generators vs managers). See **docs/requests-and-orders.md**.
+- ⏳ Order ↔ Orden (internal planning and execution). See **docs/requests-and-orders.md**.
 - ⏳ Certificate ↔ Certificado
 - ⏳ License ↔ Licencium
 - ⏳ Vehicle ↔ Vehiculo
