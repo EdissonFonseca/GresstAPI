@@ -1,4 +1,5 @@
 using Gresst.Application.DTOs;
+using Gresst.Domain.Entities;
 using Gresst.Domain.Enums;
 
 namespace Gresst.Application.WasteManagement;
@@ -86,6 +87,39 @@ public static class WasteManagementRules
     /// Pending treatment: Reception finalized or Processing not yet finalized.
     /// </summary>
     public static bool IsPendingTreatment(SolicitudWithDetailsDto s)
+    {
+        if (s.Item == 0) return false;
+        return (s.Stage == RequestFlowStage.Reception && s.Phase == RequestFlowPhase.Finalization)
+               || (s.Stage == RequestFlowStage.Processing && s.Phase != RequestFlowPhase.Finalization);
+    }
+
+    // ----- Same rules for domain RequestProcessDetail (repository returns domain, not DTO) -----
+
+    public static bool IsIncludedInMobileTransport(RequestProcessDetail s)
+    {
+        if (s.Item == 0) return true;
+        return s.Stage == RequestFlowStage.Transport
+               || s.Stage == RequestFlowStage.Reception
+               || (s.Stage == RequestFlowStage.Processing && s.Phase == RequestFlowPhase.Initial)
+               || (s.Stage == RequestFlowStage.Finalization && s.Phase == RequestFlowPhase.Finalization);
+    }
+
+    public static bool IsPendingCollection(RequestProcessDetail s)
+    {
+        if (s.Item == 0) return true;
+        return s.Stage == RequestFlowStage.Initial
+               || (s.Stage == RequestFlowStage.Processing && s.Phase == RequestFlowPhase.Initial)
+               || (s.Stage == RequestFlowStage.Transport && (s.Phase == RequestFlowPhase.Initial || s.Phase == RequestFlowPhase.Planning));
+    }
+
+    public static bool IsPendingReception(RequestProcessDetail s)
+    {
+        if (s.Item == 0) return false;
+        return s.Stage == RequestFlowStage.Transport
+               || (s.Stage == RequestFlowStage.Reception && s.Phase != RequestFlowPhase.Finalization);
+    }
+
+    public static bool IsPendingTreatment(RequestProcessDetail s)
     {
         if (s.Item == 0) return false;
         return (s.Stage == RequestFlowStage.Reception && s.Phase == RequestFlowPhase.Finalization)

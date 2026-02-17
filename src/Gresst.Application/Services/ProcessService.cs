@@ -1,5 +1,6 @@
 using Gresst.Application.DTOs;
 using Gresst.Application.WasteManagement;
+using Gresst.Domain.Entities;
 
 namespace Gresst.Application.Services;
 
@@ -27,14 +28,14 @@ public class ProcessService : IProcessService
 
         var filter = new SolicitudFilter
         {
-            PersonIds = new[] { accountPersonId },
+            AccountPersonId = accountPersonId,
             IdServicio = _requestFilterDefaults.GetTransportServiceId(),
             Estados = _requestFilterDefaults.GetActiveEstadosForTransport(),
             ExcludeRecurring = true
         };
 
-        var solicitudes = await _requestRepository.GetSolicitudesAsync(filter, cancellationToken);
-        var list = solicitudes.ToList();
+        var details = await _requestRepository.GetRequestProcessDetailsAsync(filter, cancellationToken);
+        var list = details.ToList();
 
         var filtered = list.Where(WasteManagementRules.IsIncludedInMobileTransport).ToList();
 
@@ -129,15 +130,15 @@ public class ProcessService : IProcessService
 
         var filter = new SolicitudFilter
         {
-            PersonIds = new[] { accountPersonId },
+            AccountPersonId = accountPersonId,
             IdServicio = idServicio ?? _requestFilterDefaults.GetTransportServiceId(),
             Estados = _requestFilterDefaults.GetActiveEstadosForTransport(),
             DateFrom = dateFrom,
             DateTo = dateTo,
             ExcludeRecurring = true
         };
-        var solicitudes = await _requestRepository.GetSolicitudesAsync(filter, cancellationToken);
-        return solicitudes.Where(WasteManagementRules.IsPendingCollection).ToList();
+        var details = await _requestRepository.GetRequestProcessDetailsAsync(filter, cancellationToken);
+        return details.Where(WasteManagementRules.IsPendingCollection).Select(ToSolicitudWithDetailsDto).ToList();
     }
 
     /// <inheritdoc />
@@ -255,15 +256,15 @@ public class ProcessService : IProcessService
 
         var filter = new SolicitudFilter
         {
-            PersonIds = new[] { accountPersonId },
+            AccountPersonId = accountPersonId,
             IdServicio = idServicio ?? _requestFilterDefaults.GetTransportServiceId(),
             Estados = _requestFilterDefaults.GetActiveEstadosForTransport(),
             DateFrom = dateFrom,
             DateTo = dateTo,
             ExcludeRecurring = true
         };
-        var solicitudes = await _requestRepository.GetSolicitudesAsync(filter, cancellationToken);
-        return solicitudes.Where(WasteManagementRules.IsPendingReception).ToList();
+        var details = await _requestRepository.GetRequestProcessDetailsAsync(filter, cancellationToken);
+        return details.Where(WasteManagementRules.IsPendingReception).Select(ToSolicitudWithDetailsDto).ToList();
     }
 
     /// <inheritdoc />
@@ -279,15 +280,15 @@ public class ProcessService : IProcessService
 
         var filter = new SolicitudFilter
         {
-            PersonIds = new[] { accountPersonId },
+            AccountPersonId = accountPersonId,
             IdServicio = idServicio ?? _requestFilterDefaults.GetTransportServiceId(),
             Estados = _requestFilterDefaults.GetActiveEstadosForTransport(),
             DateFrom = dateFrom,
             DateTo = dateTo,
             ExcludeRecurring = true
         };
-        var solicitudes = await _requestRepository.GetSolicitudesAsync(filter, cancellationToken);
-        return solicitudes.Where(WasteManagementRules.IsPendingTreatment).ToList();
+        var details = await _requestRepository.GetRequestProcessDetailsAsync(filter, cancellationToken);
+        return details.Where(WasteManagementRules.IsPendingTreatment).Select(ToSolicitudWithDetailsDto).ToList();
     }
 
     /// <inheritdoc />
@@ -311,15 +312,15 @@ public class ProcessService : IProcessService
 
         var filter = new SolicitudFilter
         {
-            PersonIds = new[] { accountPersonId },
+            AccountPersonId = accountPersonId,
             IdServicio = idServicio ?? _requestFilterDefaults.GetTransportServiceId(),
             Estados = _requestFilterDefaults.GetActiveEstadosForTransport(),
             DateFrom = dateFrom,
             DateTo = dateTo,
             ExcludeRecurring = true
         };
-        var solicitudes = await _requestRepository.GetSolicitudesAsync(filter, cancellationToken);
-        var pendientes = solicitudes.Where(s =>
+        var details = await _requestRepository.GetRequestProcessDetailsAsync(filter, cancellationToken);
+        var pendientes = details.Where(s =>
             WasteManagementRules.IsPendingCollection(s) ||
             WasteManagementRules.IsPendingReception(s) ||
             WasteManagementRules.IsPendingTreatment(s)).ToList();
@@ -338,7 +339,7 @@ public class ProcessService : IProcessService
         {
             var key = (IdSolicitud: s.IdSolicitud, IdDepositoOrigen: s.IdDepositoOrigen ?? 0L);
             return key.IdDepositoOrigen == 0 || !planningSet.Contains(key);
-        }).ToList();
+        }).Select(ToSolicitudWithDetailsDto).ToList();
     }
 
     /// <summary>
@@ -596,6 +597,68 @@ public class ProcessService : IProcessService
             return "Medium";
         
         return "Low";
+    }
+
+    private static SolicitudWithDetailsDto ToSolicitudWithDetailsDto(RequestProcessDetail s)
+    {
+        return new SolicitudWithDetailsDto
+        {
+            IdSolicitud = s.IdSolicitud,
+            NumeroSolicitud = s.NumeroSolicitud,
+            FechaSolicitud = s.FechaSolicitud,
+            Ocurrencia = s.Ocurrencia,
+            Recurrencia = s.Recurrencia,
+            IdEstado = s.IdEstado,
+            MultiplesGeneradores = s.MultiplesGeneradores,
+            Item = s.Item,
+            IdSolicitante = s.IdSolicitante,
+            IdDepositoOrigen = s.IdDepositoOrigen,
+            IdProveedor = s.IdProveedor,
+            IdDepositoDestino = s.IdDepositoDestino,
+            IdVehiculo = s.IdVehiculo,
+            IdResiduo = s.IdResiduo,
+            IdMaterial = s.IdMaterial,
+            Descripcion = s.Descripcion,
+            IdTratamiento = s.IdTratamiento,
+            FechaInicioDetalle = s.FechaInicioDetalle,
+            CantidadSolicitud = s.CantidadSolicitud,
+            PesoSolicitud = s.PesoSolicitud,
+            VolumenSolicitud = s.VolumenSolicitud,
+            Cantidad = s.Cantidad,
+            Peso = s.Peso,
+            Volumen = s.Volumen,
+            IdEmbalaje = s.IdEmbalaje,
+            PrecioCompra = s.PrecioCompra,
+            PrecioServicio = s.PrecioServicio,
+            IdEtapa = s.IdEtapa,
+            IdFase = s.IdFase,
+            Stage = s.Stage,
+            Phase = s.Phase,
+            Soporte = s.Soporte,
+            Notas = s.Notas,
+            Procesado = s.Procesado,
+            IdCausa = s.IdCausa,
+            IdGrupo = s.IdGrupo,
+            Titulo = s.Titulo,
+            Material = s.Material,
+            Medicion = s.Medicion,
+            PesoUnitario = s.PesoUnitario,
+            PrecioUnitario = s.PrecioUnitario,
+            PrecioServicioUnitario = s.PrecioServicioUnitario,
+            Solicitante = s.Solicitante,
+            DireccionOrigen = s.DireccionOrigen,
+            LatitudOrigen = s.LatitudOrigen,
+            LongitudOrigen = s.LongitudOrigen,
+            DireccionDestino = s.DireccionDestino,
+            LatitudDestino = s.LatitudDestino,
+            LongitudDestino = s.LongitudDestino,
+            Proveedor = s.Proveedor,
+            DepositoOrigen = s.DepositoOrigen,
+            DepositoDestino = s.DepositoDestino,
+            Tratamiento = s.Tratamiento,
+            Embalaje = s.Embalaje,
+            EmbalajeSolicitud = s.EmbalajeSolicitud
+        };
     }
 }
 

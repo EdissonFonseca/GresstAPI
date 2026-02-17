@@ -11,17 +11,20 @@ namespace Gresst.Application.Services;
 public class RequestService : IRequestService
 {
     private readonly IRepository<Request> _requestRepository;
+    private readonly IRequestRepository _solicitudRepository;
     private readonly IProcessService _processService;
     private readonly IUnitOfWork _unitOfWork;
     private readonly ICurrentUserService _currentUserService;
 
     public RequestService(
         IRepository<Request> requestRepository,
+        IRequestRepository solicitudRepository,
         IProcessService processService,
         IUnitOfWork unitOfWork,
         ICurrentUserService currentUserService)
     {
         _requestRepository = requestRepository;
+        _solicitudRepository = solicitudRepository;
         _processService = processService;
         _unitOfWork = unitOfWork;
         _currentUserService = currentUserService;
@@ -29,46 +32,63 @@ public class RequestService : IRequestService
 
     public async Task<RequestDto> GetByIdAsync(string id, CancellationToken cancellationToken = default)
     {
-        var request = await _requestRepository.GetByIdAsync(id, cancellationToken);
-        if (request == null)
+        if (!long.TryParse(id, out var idSolicitud))
             return null!;
 
-        return MapToDto(request);
+        var filter = BuildSolicitudFilterForCurrentUser();
+        filter.SolicitudIds = new[] { idSolicitud };
+        var list = (await _solicitudRepository.GetAllAsync(filter, cancellationToken)).ToList();
+        var request = list.FirstOrDefault(r => r.Id == id);
+        return request == null ? null! : MapRequestToDto(request);
     }
 
     public async Task<IEnumerable<RequestDto>> GetAllAsync(CancellationToken cancellationToken = default)
     {
-        var requests = await _requestRepository.GetAllAsync(cancellationToken);
-        return requests.Select(MapToDto).ToList();
+        var filter = BuildSolicitudFilterForCurrentUser();
+        var list = await _solicitudRepository.GetAllAsync(filter, cancellationToken);
+        return list.Select(MapRequestToDto).ToList();
     }
 
     public async Task<IEnumerable<RequestDto>> GetByRequesterAsync(string requesterId, CancellationToken cancellationToken = default)
     {
-        var requests = await _requestRepository.FindAsync(
-            r => r.RequesterId == requesterId,
-            cancellationToken);
-        return requests.Select(MapToDto).ToList();
+        if (string.IsNullOrEmpty(requesterId))
+            return new List<RequestDto>();
+        var filter = BuildSolicitudFilterForCurrentUser();
+        filter.SolicitanteIds = new[] { requesterId };
+        var list = await _solicitudRepository.GetAllAsync(filter, cancellationToken);
+        return list.Select(MapRequestToDto).ToList();
     }
 
     public async Task<IEnumerable<RequestDto>> GetByProviderAsync(string providerId, CancellationToken cancellationToken = default)
     {
-        var requests = await _requestRepository.FindAsync(
-            r => r.ProviderId == providerId,
-            cancellationToken);
-        return requests.Select(MapToDto).ToList();
+        if (string.IsNullOrEmpty(providerId))
+            return new List<RequestDto>();
+        var filter = BuildSolicitudFilterForCurrentUser();
+        filter.ProveedorIds = new[] { providerId };
+        var list = await _solicitudRepository.GetAllAsync(filter, cancellationToken);
+        return list.Select(MapRequestToDto).ToList();
     }
 
     public async Task<IEnumerable<RequestDto>> GetByStatusAsync(string status, CancellationToken cancellationToken = default)
     {
-        if (!Enum.TryParse<RequestStatus>(status, out var requestStatus))
-        {
+        if (string.IsNullOrWhiteSpace(status))
             return new List<RequestDto>();
-        }
+        var filter = BuildSolicitudFilterForCurrentUser();
+        filter.Estados = new[] { status };
+        var list = await _solicitudRepository.GetAllAsync(filter, cancellationToken);
+        return list.Select(MapRequestToDto).ToList();
+    }
 
-        var requests = await _requestRepository.FindAsync(
-            r => r.Status == requestStatus,
-            cancellationToken);
-        return requests.Select(MapToDto).ToList();
+    /// <summary>
+    /// Builds a filter with AccountPersonId set to the current user (multitenant: only rows where Solicitud.IdPersona == accountPersonId).
+    /// </summary>
+    private SolicitudFilter BuildSolicitudFilterForCurrentUser()
+    {
+        var filter = new SolicitudFilter();
+        var accountPersonId = _currentUserService.GetCurrentAccountPersonId();
+        if (!string.IsNullOrEmpty(accountPersonId))
+            filter.AccountPersonId = accountPersonId;
+        return filter;
     }
 
     public async Task<RequestDto> CreateAsync(CreateRequestDto dto, CancellationToken cancellationToken = default)
@@ -215,7 +235,37 @@ public class RequestService : IRequestService
         return await _processService.GetMobileTransportWasteForAccountAsync(personId, cancellationToken);
     }
 
-    // Helper methods
+    // Map domain Request to API RequestDto (repository returns domain, service maps to DTO)
+    private static RequestDto MapRequestToDto(Gresst.Domain.Entities.Request request)
+    {
+        return new RequestDto
+        {
+            Id = request.Id,
+            RequestNumber = request.RequestNumber,
+            Status = request.Status.ToString(),
+            RequesterId = request.RequesterId,
+            RequesterName = request.Requester?.Name ?? "",
+            ProviderId = request.ProviderId,
+            ProviderName = request.Provider?.Name,
+            Title = request.Title,
+            Description = request.Description,
+            ServicesRequested = request.ServicesRequested?.Split(',', StringSplitOptions.RemoveEmptyEntries) ?? Array.Empty<string>(),
+            RequestedDate = request.RequestedDate,
+            RequiredByDate = request.RequiredByDate,
+            EstimatedCost = request.EstimatedCost,
+            AgreedCost = request.AgreedCost,
+            Items = request.Items?.Select(item => new RequestItemDto
+            {
+                Id = item.Id,
+                WasteClassId = item.WasteClassId,
+                WasteClassName = item.WasteClass?.Name ?? "",
+                EstimatedQuantity = item.EstimatedQuantity,
+                Unit = item.Unit.ToString(),
+                Description = item.Description
+            }).ToList() ?? new List<RequestItemDto>()
+        };
+    }
+
     private RequestDto MapToDto(Request request)
     {
         return new RequestDto

@@ -1,6 +1,9 @@
+using System.Linq.Expressions;
 using Gresst.Application.DTOs;
 using Gresst.Application.Services;
+using Gresst.Domain.Entities;
 using Gresst.Domain.Enums;
+using Gresst.Domain.Interfaces;
 using Gresst.Infrastructure.Data;
 using Gresst.Infrastructure.Data.Entities;
 using Gresst.Infrastructure.Mappers;
@@ -11,31 +14,71 @@ using NetTopologySuite.Geometries;
 namespace Gresst.Infrastructure.Repositories;
 
 /// <summary>
-/// Repository for operations related to Requests (Solicitudes).
-/// Returns only current state; no join with Orden/OrdenPlaneacion (planning is applied in the application layer).
+/// Repository for Requests (Solicitudes). Returns domain entities only (Request, RequestProcessDetail).
 /// </summary>
 public class RequestRepository : IRequestRepository
 {
     private readonly InfrastructureDbContext _context;
+    private readonly ICurrentUserService _currentUserService;
 
-    public RequestRepository(InfrastructureDbContext context)
+    public RequestRepository(InfrastructureDbContext context, ICurrentUserService currentUserService)
     {
+        _currentUserService = currentUserService;
         _context = context;
     }
 
-    /// <inheritdoc />
-    public async Task<IEnumerable<SolicitudWithDetailsDto>> GetSolicitudesAsync(
+    public async Task<IEnumerable<Request>> GetAllAsync(
         SolicitudFilter filter,
         CancellationToken cancellationToken = default)
     {
-        var personIds = filter.PersonIds?.Where(id => !string.IsNullOrEmpty(id)).ToList() ?? new List<string>();
-        var hasPersonFilter = personIds.Count > 0;
+        return new List<Request>();
+    }
+
+    /// <inheritdoc />
+    public async Task<IEnumerable<RequestProcessDetail>> GetRequestProcessDetailsAsync(
+        SolicitudFilter filter,
+        CancellationToken cancellationToken = default)
+    {
+        var (data1, data2) = await GetSolicitudDataAsync(filter, cancellationToken);
+
+        var accountPersonId = filter.AccountPersonId;
+        var hasAccountPersonFilter = !string.IsNullOrEmpty(accountPersonId);
+        var materialIds = data1.Select(d => d.SolicitudDetalle.IdMaterial).Distinct().ToList();
+        var personIdForPricing = hasAccountPersonFilter ? accountPersonId : null;
+        var personaMaterials = !string.IsNullOrEmpty(personIdForPricing) && materialIds.Count > 0
+            ? await _context.PersonaMaterials
+                .Where(pm => pm.IdPersona == personIdForPricing && materialIds.Contains(pm.IdMaterial))
+                .ToListAsync(cancellationToken)
+            : new List<PersonaMaterial>();
+        var personaMaterialDict = personaMaterials.ToDictionary(pm => pm.IdMaterial);
+
+        var results = new List<RequestProcessDetail>();
+        foreach (var d in data1)
+        {
+            var personaMaterial = personaMaterialDict.ContainsKey(d.SolicitudDetalle.IdMaterial) ? personaMaterialDict[d.SolicitudDetalle.IdMaterial] : null;
+            results.Add(MapToRequestProcessDetail(d.Solicitud, d.SolicitudDetalle, d.Material, d.Solicitante, d.DepositoOrigen, d.Proveedor, d.DepositoDestino, d.Tratamiento, d.EmbalajeSolicitud, d.Embalaje, personaMaterial));
+        }
+        foreach (var d in data2)
+            results.Add(MapToRequestProcessDetailNoDetail(d.Solicitud, d.Solicitante, d.DepositoOrigen, d.Proveedor, d.DepositoDestino));
+
+        return results;
+    }
+
+    private async Task<(List<(Solicitud Solicitud, SolicitudDetalle SolicitudDetalle, Gresst.Infrastructure.Data.Entities.Material Material, Persona? Solicitante, Deposito? DepositoOrigen, Persona? Proveedor, Deposito? DepositoDestino, Tratamiento? Tratamiento, Embalaje? EmbalajeSolicitud, Embalaje? Embalaje)> data1, List<(Solicitud Solicitud, Persona? Solicitante, Deposito? DepositoOrigen, Persona? Proveedor, Deposito? DepositoDestino)> data2)> GetSolicitudDataAsync(SolicitudFilter filter, CancellationToken cancellationToken)
+    {
+        var accountPersonId = filter.AccountPersonId;
+        var hasAccountPersonFilter = !string.IsNullOrEmpty(accountPersonId);
         var estados = filter.Estados?.Where(e => !string.IsNullOrEmpty(e)).ToList() ?? new List<string>();
         var hasEstadoFilter = estados.Count > 0;
+        var solicitudIds = filter.SolicitudIds?.ToList() ?? new List<long>();
+        var hasSolicitudIdFilter = solicitudIds.Count > 0;
+        var solicitanteIds = filter.SolicitanteIds?.Where(id => !string.IsNullOrEmpty(id)).ToList() ?? new List<string>();
+        var hasSolicitanteFilter = solicitanteIds.Count > 0;
+        var proveedorIds = filter.ProveedorIds?.Where(id => !string.IsNullOrEmpty(id)).ToList() ?? new List<string>();
+        var hasProveedorFilter = proveedorIds.Count > 0;
+        var transportadorIds = filter.TransportadorIds?.Where(id => !string.IsNullOrEmpty(id)).ToList() ?? new List<string>();
+        var hasTransportadorFilter = transportadorIds.Count > 0;
 
-        var results = new List<SolicitudWithDetailsDto>();
-
-        // Part 1: Solicitud with SolicitudDetalle
         var query1 = from s in _context.Solicituds
                      join sd in _context.SolicitudDetalles on s.IdSolicitud equals sd.IdSolicitud
                      join m in _context.Materials on sd.IdMaterial equals m.IdMaterial
@@ -53,60 +96,22 @@ public class RequestRepository : IRequestRepository
                      from e in eGroup.DefaultIfEmpty()
                      join em in _context.Embalajes on sd.IdEmbalaje equals em.IdEmbalaje into emGroup
                      from em in emGroup.DefaultIfEmpty()
-                     where (!hasPersonFilter || personIds.Contains(s.IdPersona) || (s.IdTransportador != null && personIds.Contains(s.IdTransportador!)))
+                     where (!hasSolicitudIdFilter || solicitudIds.Contains(s.IdSolicitud))
+                         && (!hasAccountPersonFilter || s.IdPersona == accountPersonId)
+                         && (!hasSolicitanteFilter || (s.IdSolicitante != null && solicitanteIds.Contains(s.IdSolicitante)))
+                         && (!hasProveedorFilter || (s.IdProveedor != null && proveedorIds.Contains(s.IdProveedor)))
+                         && (!hasTransportadorFilter || (s.IdTransportador != null && transportadorIds.Contains(s.IdTransportador)))
                          && (!filter.IdServicio.HasValue || s.IdServicio == filter.IdServicio.Value)
                          && (!hasEstadoFilter || (s.IdEstado != null && estados.Contains(s.IdEstado)))
                          && (!filter.ExcludeRecurring || s.Recurrencia == null || s.Recurrencia == "")
                          && (!filter.DateFrom.HasValue || s.FechaInicio >= filter.DateFrom.Value.Date)
                          && (!filter.DateTo.HasValue || s.FechaInicio <= filter.DateTo.Value.Date)
-                     select new
-                     {
-                         Solicitud = s,
-                         SolicitudDetalle = sd,
-                         Material = m,
-                         Solicitante = ps,
-                         DepositoOrigen = doDep,
-                         Proveedor = pp,
-                         DepositoDestino = ddDep,
-                         Tratamiento = trt,
-                         EmbalajeSolicitud = e,
-                         Embalaje = em
-                     };
+                     select new { Solicitud = s, SolicitudDetalle = sd, Material = m, Solicitante = ps, DepositoOrigen = doDep, Proveedor = pp, DepositoDestino = ddDep, Tratamiento = trt, EmbalajeSolicitud = e, Embalaje = em };
 
-        var data1 = await query1.ToListAsync(cancellationToken);
+        var list1 = await query1.ToListAsync(cancellationToken);
+        var data1 = list1.Select(x => (x.Solicitud, x.SolicitudDetalle, x.Material, x.Solicitante, x.DepositoOrigen, x.Proveedor, x.DepositoDestino, x.Tratamiento, x.EmbalajeSolicitud, x.Embalaje)).ToList();
 
-        var materialIds = data1.Select(d => d.SolicitudDetalle.IdMaterial).Distinct().ToList();
-        var personIdForPricing = hasPersonFilter ? personIds.First() : null;
-        var personaMaterials = !string.IsNullOrEmpty(personIdForPricing) && materialIds.Count > 0
-            ? await _context.PersonaMaterials
-                .Where(pm => pm.IdPersona == personIdForPricing && materialIds.Contains(pm.IdMaterial))
-                .ToListAsync(cancellationToken)
-            : new List<PersonaMaterial>();
-        var personaMaterialDict = personaMaterials.ToDictionary(pm => pm.IdMaterial);
-
-        foreach (var d in data1)
-        {
-            var personaMaterial = personaMaterialDict.ContainsKey(d.SolicitudDetalle.IdMaterial) ? personaMaterialDict[d.SolicitudDetalle.IdMaterial] : null;
-            results.Add(MapToSolicitudWithDetails(
-                d.Solicitud,
-                d.SolicitudDetalle,
-                d.Material,
-                d.Solicitante,
-                d.DepositoOrigen,
-                d.Proveedor,
-                d.DepositoDestino,
-                d.Tratamiento,
-                d.EmbalajeSolicitud,
-                d.Embalaje,
-                personaMaterial));
-        }
-
-        // Part 2: Solicitud without SolicitudDetalle
-        var solicitudesConDetalle = await _context.SolicitudDetalles
-            .Select(sd => sd.IdSolicitud)
-            .Distinct()
-            .ToListAsync(cancellationToken);
-
+        var solicitudesConDetalle = list1.Select(x => x.Solicitud.IdSolicitud).Distinct().ToList();
         var query2 = from s in _context.Solicituds
                      join ps in _context.Personas on s.IdSolicitante equals ps.IdPersona into psGroup
                      from ps in psGroup.DefaultIfEmpty()
@@ -116,7 +121,11 @@ public class RequestRepository : IRequestRepository
                      from pp in ppGroup.DefaultIfEmpty()
                      join ddDep in _context.Depositos on s.IdDepositoDestino equals ddDep.IdDeposito into ddGroup
                      from ddDep in ddGroup.DefaultIfEmpty()
-                     where (!hasPersonFilter || personIds.Contains(s.IdPersona) || (s.IdTransportador != null && personIds.Contains(s.IdTransportador!)))
+                     where (!hasSolicitudIdFilter || solicitudIds.Contains(s.IdSolicitud))
+                         && (!hasAccountPersonFilter || s.IdPersona == accountPersonId)
+                         && (!hasSolicitanteFilter || (s.IdSolicitante != null && solicitanteIds.Contains(s.IdSolicitante)))
+                         && (!hasProveedorFilter || (s.IdProveedor != null && proveedorIds.Contains(s.IdProveedor)))
+                         && (!hasTransportadorFilter || (s.IdTransportador != null && transportadorIds.Contains(s.IdTransportador)))
                          && (!filter.IdServicio.HasValue || s.IdServicio == filter.IdServicio.Value)
                          && (!hasEstadoFilter || (s.IdEstado != null && estados.Contains(s.IdEstado)))
                          && (!filter.ExcludeRecurring || s.Recurrencia == null || s.Recurrencia == "")
@@ -125,14 +134,9 @@ public class RequestRepository : IRequestRepository
                          && !solicitudesConDetalle.Contains(s.IdSolicitud)
                      select new { Solicitud = s, Solicitante = ps, DepositoOrigen = doDep, Proveedor = pp, DepositoDestino = ddDep };
 
-        var data2 = await query2.ToListAsync(cancellationToken);
+        var data2 = (await query2.ToListAsync(cancellationToken)).Select(x => (x.Solicitud, x.Solicitante, x.DepositoOrigen, x.Proveedor, x.DepositoDestino)).ToList();
 
-        foreach (var d in data2)
-        {
-            results.Add(MapToSolicitudWithDetailsNoDetail(d.Solicitud, d.Solicitante, d.DepositoOrigen, d.Proveedor, d.DepositoDestino));
-        }
-
-        return results;
+        return (data1, data2);
     }
 
     /// <inheritdoc />
@@ -228,10 +232,10 @@ public class RequestRepository : IRequestRepository
             .FirstOrDefaultAsync(cancellationToken);
     }
 
-    private static SolicitudWithDetailsDto MapToSolicitudWithDetails(
+    private static RequestProcessDetail MapToRequestProcessDetail(
         Solicitud s,
         SolicitudDetalle sd,
-        Material m,
+        Gresst.Infrastructure.Data.Entities.Material m,
         Persona? ps,
         Deposito? doDep,
         Persona? pp,
@@ -241,7 +245,7 @@ public class RequestRepository : IRequestRepository
         Embalaje? em,
         PersonaMaterial? personaMaterial)
     {
-        return new SolicitudWithDetailsDto
+        return new RequestProcessDetail
         {
             IdSolicitud = s.IdSolicitud,
             NumeroSolicitud = s.NumeroSolicitud,
@@ -287,11 +291,11 @@ public class RequestRepository : IRequestRepository
             PrecioServicioUnitario = personaMaterial?.PrecioServicio ?? m.PrecioServicio,
             Solicitante = ps?.Nombre,
             DireccionOrigen = doDep?.Direccion,
-            LatitudOrigen = doDep?.Ubicacion != null ? (double?)doDep.Ubicacion.GetLatitude() : null,
-            LongitudOrigen = doDep?.Ubicacion != null ? (double?)doDep.Ubicacion.GetLongitude() : null,
+            LatitudOrigen = doDep?.Ubicacion is not null ? (double?)doDep.Ubicacion.GetLatitude() : null,
+            LongitudOrigen = doDep?.Ubicacion is not null ? (double?)doDep.Ubicacion.GetLongitude() : null,
             DireccionDestino = ddDep?.Direccion,
-            LatitudDestino = ddDep?.Ubicacion != null ? (double?)ddDep.Ubicacion.GetLatitude() : null,
-            LongitudDestino = ddDep?.Ubicacion != null ? (double?)ddDep.Ubicacion.GetLongitude() : null,
+            LatitudDestino = ddDep?.Ubicacion is not null ? (double?)ddDep.Ubicacion.GetLatitude() : null,
+            LongitudDestino = ddDep?.Ubicacion is not null ? (double?)ddDep.Ubicacion.GetLongitude() : null,
             Proveedor = pp?.Nombre,
             DepositoOrigen = doDep?.Nombre ?? "Sin punto de recolección ...",
             DepositoDestino = ddDep?.Nombre ?? "Sin punto de recepción ...",
@@ -301,14 +305,14 @@ public class RequestRepository : IRequestRepository
         };
     }
 
-    private static SolicitudWithDetailsDto MapToSolicitudWithDetailsNoDetail(
+    private static RequestProcessDetail MapToRequestProcessDetailNoDetail(
         Solicitud s,
         Persona? ps,
         Deposito? doDep,
         Persona? pp,
         Deposito? ddDep)
     {
-        return new SolicitudWithDetailsDto
+        return new RequestProcessDetail
         {
             IdSolicitud = s.IdSolicitud,
             NumeroSolicitud = s.NumeroSolicitud,
@@ -354,11 +358,11 @@ public class RequestRepository : IRequestRepository
             PrecioServicioUnitario = null,
             Solicitante = ps?.Nombre,
             DireccionOrigen = doDep?.Direccion,
-            LatitudOrigen = doDep?.Ubicacion != null ? (double?)doDep.Ubicacion.GetLatitude() : null,
-            LongitudOrigen = doDep?.Ubicacion != null ? (double?)doDep.Ubicacion.GetLongitude() : null,
+            LatitudOrigen = doDep?.Ubicacion is not null ? (double?)doDep.Ubicacion.GetLatitude() : null,
+            LongitudOrigen = doDep?.Ubicacion is not null ? (double?)doDep.Ubicacion.GetLongitude() : null,
             DireccionDestino = ddDep?.Direccion,
-            LatitudDestino = ddDep?.Ubicacion != null ? (double?)ddDep.Ubicacion.GetLatitude() : null,
-            LongitudDestino = ddDep?.Ubicacion != null ? (double?)ddDep.Ubicacion.GetLongitude() : null,
+            LatitudDestino = ddDep?.Ubicacion is not null ? (double?)ddDep.Ubicacion.GetLatitude() : null,
+            LongitudDestino = ddDep?.Ubicacion is not null ? (double?)ddDep.Ubicacion.GetLongitude() : null,
             Proveedor = pp?.Nombre,
             DepositoOrigen = doDep?.Nombre ?? "Sin punto de recolección ...",
             DepositoDestino = ddDep?.Nombre ?? "Sin punto de recepción ...",

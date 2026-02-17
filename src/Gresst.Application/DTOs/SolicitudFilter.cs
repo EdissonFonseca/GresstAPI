@@ -7,9 +7,29 @@ namespace Gresst.Application.DTOs;
 public class SolicitudFilter
 {
     /// <summary>
-    /// Account or person IDs to filter by (IdPersona or IdTransportador on Solicitud).
+    /// Specific solicitud IDs to return (e.g. for GetById).
     /// </summary>
-    public IReadOnlyList<string>? PersonIds { get; set; }
+    public IReadOnlyList<long>? SolicitudIds { get; set; }
+
+    /// <summary>
+    /// Multitenant: logged-in user's account person id. When set, only rows with Solicitud.IdPersona equal to this value are returned.
+    /// </summary>
+    public string? AccountPersonId { get; set; }
+
+    /// <summary>
+    /// Optional: filter by IdSolicitante (requester).
+    /// </summary>
+    public IReadOnlyList<string>? SolicitanteIds { get; set; }
+
+    /// <summary>
+    /// Optional: filter by IdProveedor (provider).
+    /// </summary>
+    public IReadOnlyList<string>? ProveedorIds { get; set; }
+
+    /// <summary>
+    /// Optional: filter by IdTransportador (assigned driver/transporter).
+    /// </summary>
+    public IReadOnlyList<string>? TransportadorIds { get; set; }
 
     /// <summary>
     /// Service ID (e.g. 8 for mobile transport).
