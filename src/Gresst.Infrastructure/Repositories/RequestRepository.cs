@@ -1,6 +1,7 @@
-using System.Linq.Expressions;
+using AutoMapper;
 using Gresst.Application.DTOs;
 using Gresst.Application.Services;
+using Gresst.Application.WasteManagement.Requests.GetAll;
 using Gresst.Domain.Entities;
 using Gresst.Domain.Enums;
 using Gresst.Domain.Interfaces;
@@ -10,6 +11,7 @@ using Gresst.Infrastructure.Mappers;
 using Gresst.Infrastructure.WasteManagement;
 using Microsoft.EntityFrameworkCore;
 using NetTopologySuite.Geometries;
+using System.Linq.Expressions;
 
 namespace Gresst.Infrastructure.Repositories;
 
@@ -19,19 +21,89 @@ namespace Gresst.Infrastructure.Repositories;
 public class RequestRepository : IRequestRepository
 {
     private readonly InfrastructureDbContext _context;
+    private readonly RequestMapper _mapper;
     private readonly ICurrentUserService _currentUserService;
 
-    public RequestRepository(InfrastructureDbContext context, ICurrentUserService currentUserService)
+    public class SolicitudSpecification
+    {
+        public Expression<Func<Solicitud, bool>>? Filter { get; set; }
+        public Func<IQueryable<Solicitud>, IOrderedQueryable<Solicitud>>? OrderBy { get; set; }
+        public int? Take { get; set; }
+        public int? Skip { get; set; }
+    }
+    private SolicitudSpecification ToSpecification(RequestFilter? filter)
+    {
+        if (filter == null) return new SolicitudSpecification();
+
+        return new SolicitudSpecification
+        {
+            Filter = s =>
+                (filter.RequestNumber == null || s.NumeroSolicitud.ToString() == filter.RequestNumber) &&
+                (filter.DeliveryType == null || (filter.DeliveryType == DeliveryType.Collection ? s.IdServicio == (int) ManagementType.Collect : s.IdServicio == (int)ManagementType.Receive)) &&
+                (filter.IsRecurrency == null || (filter.IsRecurrency == true ? s.Recurrencia != null : s.Recurrencia == null)) &&
+                (filter.RequesterId == null || s.IdSolicitante == filter.RequesterId) &&
+                (filter.ProviderId == null || s.IdProveedor == filter.ProviderId) &&
+                (filter.HaulerId == null || s.IdTransportador == filter.HaulerId) &&
+                (filter.SourceFacilityId == null || s.IdDepositoOrigen.ToString() == filter.SourceFacilityId) &&
+                (filter.DestinationFacilityId == null || s.IdDepositoDestino.ToString() == filter.DestinationFacilityId) &&
+                (filter.VehicleId == null || s.IdVehiculo == filter.VehicleId) &&
+                (filter.RequestedDateFrom == null || s.FechaInicio >= filter.RequestedDateFrom) &&
+                (filter.RequestedDateTo == null || s.FechaInicio <= filter.RequestedDateTo) &&
+                (filter.RequiredByDateFrom == null || s.FechaInicio >= filter.RequiredByDateFrom) &&
+                (filter.RequiredByDateTo == null || s.FechaInicio <= filter.RequiredByDateTo),
+
+            OrderBy = filter.OrderBy switch
+            {
+                RequestOrderBy.RequestNumber => filter.OrderDescending
+                    ? q => q.OrderByDescending(s => s.NumeroSolicitud)
+                    : q => q.OrderBy(s => s.NumeroSolicitud),
+                RequestOrderBy.Status => filter.OrderDescending
+                    ? q => q.OrderByDescending(s => s.IdEstado)
+                    : q => q.OrderBy(s => s.IdEstado),
+                _ => filter.OrderDescending  // RequestedDate por defecto
+                    ? q => q.OrderByDescending(s => s.FechaInicio)
+                    : q => q.OrderBy(s => s.FechaInicio)
+            },
+
+            Skip = (filter.PageNumber - 1) * filter.PageSize,
+            Take = filter.PageSize
+        };
+    }
+
+    public RequestRepository(InfrastructureDbContext context, RequestMapper mapper, ICurrentUserService currentUserService)
     {
         _currentUserService = currentUserService;
+        _mapper = mapper;
         _context = context;
     }
 
     public async Task<IEnumerable<Request>> GetAllAsync(
-        SolicitudFilter filter,
+        RequestFilter? filter = null,
         CancellationToken cancellationToken = default)
     {
-        return new List<Request>();
+        var personId = _currentUserService.GetCurrentAccountPersonId();
+        var spec = ToSpecification(filter);
+
+        var query = _context.Solicituds
+            .Where(d => d.IdPersona == personId)
+            .Include(d => d.SolicitudDetalles)
+            .AsQueryable();
+
+        if (spec?.Filter != null)
+            query = query.Where(spec.Filter);
+
+        if (spec?.OrderBy != null)
+            query = spec.OrderBy(query);
+
+        if (spec?.Skip != null)
+            query = query.Skip(spec.Skip.Value);
+
+        if (spec?.Take != null)
+            query = query.Take(spec.Take.Value);
+
+        var dbEntities = await query.ToListAsync(cancellationToken);
+
+        return dbEntities.Select(_mapper.ToDomain).ToList();
     }
 
     /// <inheritdoc />

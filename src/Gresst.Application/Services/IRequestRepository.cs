@@ -1,4 +1,5 @@
 using Gresst.Application.DTOs;
+using Gresst.Application.WasteManagement.Requests.GetAll;
 using Gresst.Domain.Entities;
 
 namespace Gresst.Application.Services;
@@ -14,7 +15,7 @@ public interface IRequestRepository
     /// Gets requests (Solicitud) by filter. Returns domain Request; state is computed from SolicitudDetalle (e.g. A + active detail → InProgress, else Completed).
     /// </summary>
     Task<IEnumerable<Request>> GetAllAsync(
-        SolicitudFilter filter,
+        RequestFilter? filter = null,
         CancellationToken cancellationToken = default);
 
     /// <summary>

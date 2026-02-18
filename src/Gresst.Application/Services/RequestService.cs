@@ -35,17 +35,18 @@ public class RequestService : IRequestService
         if (!long.TryParse(id, out var idSolicitud))
             return null!;
 
-        var filter = BuildSolicitudFilterForCurrentUser();
-        filter.SolicitudIds = new[] { idSolicitud };
-        var list = (await _solicitudRepository.GetAllAsync(filter, cancellationToken)).ToList();
-        var request = list.FirstOrDefault(r => r.Id == id);
-        return request == null ? null! : MapRequestToDto(request);
+        //var filter = BuildSolicitudFilterForCurrentUser();
+        //filter.SolicitudIds = new[] { idSolicitud };
+        //var list = (await _solicitudRepository.GetAllAsync(filter, cancellationToken)).ToList();
+        //var request = list.FirstOrDefault(r => r.Id == id);
+        //return request == null ? null! : MapRequestToDto(request);
+        return null!;
     }
 
     public async Task<IEnumerable<RequestDto>> GetAllAsync(CancellationToken cancellationToken = default)
     {
         var filter = BuildSolicitudFilterForCurrentUser();
-        var list = await _solicitudRepository.GetAllAsync(filter, cancellationToken);
+        var list = await _solicitudRepository.GetAllAsync(null, cancellationToken);
         return list.Select(MapRequestToDto).ToList();
     }
 
@@ -55,7 +56,7 @@ public class RequestService : IRequestService
             return new List<RequestDto>();
         var filter = BuildSolicitudFilterForCurrentUser();
         filter.SolicitanteIds = new[] { requesterId };
-        var list = await _solicitudRepository.GetAllAsync(filter, cancellationToken);
+        var list = await _solicitudRepository.GetAllAsync(null, cancellationToken);
         return list.Select(MapRequestToDto).ToList();
     }
 
@@ -65,7 +66,7 @@ public class RequestService : IRequestService
             return new List<RequestDto>();
         var filter = BuildSolicitudFilterForCurrentUser();
         filter.ProveedorIds = new[] { providerId };
-        var list = await _solicitudRepository.GetAllAsync(filter, cancellationToken);
+        var list = await _solicitudRepository.GetAllAsync(null, cancellationToken);
         return list.Select(MapRequestToDto).ToList();
     }
 
@@ -75,7 +76,7 @@ public class RequestService : IRequestService
             return new List<RequestDto>();
         var filter = BuildSolicitudFilterForCurrentUser();
         filter.Estados = new[] { status };
-        var list = await _solicitudRepository.GetAllAsync(filter, cancellationToken);
+        var list = await _solicitudRepository.GetAllAsync(null, cancellationToken);
         return list.Select(MapRequestToDto).ToList();
     }
 
@@ -99,19 +100,19 @@ public class RequestService : IRequestService
         var request = new Request
         {
             RequestNumber = GenerateRequestNumber(),
-            Status = RequestStatus.Submitted,
+            //Status = RequestStatus.Submitted,
             RequesterId = dto.RequesterId,
             ProviderId = dto.ProviderId,
-            ServiceId = string.Empty, // TODO: Add ServiceId to CreateRequestDto or get from context
+            //ServiceId = string.Empty, // TODO: Add ServiceId to CreateRequestDto or get from context
             Title = dto.Title,
-            Description = dto.Description,
-            ServicesRequested = string.Join(",", dto.ServicesRequested),
+            //Description = dto.Description,
+            //ServicesRequested = string.Join(",", dto.ServicesRequested),
             RequestedDate = DateTime.UtcNow,
             RequiredByDate = dto.RequiredByDate,
-            PickupAddress = dto.PickupAddress,
-            DeliveryAddress = dto.DeliveryAddress,
-            EstimatedCost = null,
-            AgreedCost = null
+            //PickupAddress = dto.PickupAddress,
+            //DeliveryAddress = dto.DeliveryAddress,
+            //EstimatedCost = null,
+            //AgreedCost = null
         };
 
         // Add items
@@ -148,26 +149,26 @@ public class RequestService : IRequestService
         if (!string.IsNullOrEmpty(updateDto.Title))
             request.Title = updateDto.Title;
         
-        if (!string.IsNullOrEmpty(updateDto.Description))
-            request.Description = updateDto.Description;
+        //if (!string.IsNullOrEmpty(updateDto.Description))
+        //    request.Description = updateDto.Description;
         
-        if (updateDto.ServicesRequested != null)
-            request.ServicesRequested = string.Join(",", updateDto.ServicesRequested);
+        //if (updateDto.ServicesRequested != null)
+        //    request.ServicesRequested = string.Join(",", updateDto.ServicesRequested);
         
-        if (updateDto.RequiredByDate.HasValue)
-            request.RequiredByDate = updateDto.RequiredByDate;
+        //if (updateDto.RequiredByDate.HasValue)
+        //    request.RequiredByDate = updateDto.RequiredByDate;
         
-        if (!string.IsNullOrEmpty(updateDto.PickupAddress))
-            request.PickupAddress = updateDto.PickupAddress;
+        //if (!string.IsNullOrEmpty(updateDto.PickupAddress))
+        //    request.PickupAddress = updateDto.PickupAddress;
         
-        if (!string.IsNullOrEmpty(updateDto.DeliveryAddress))
-            request.DeliveryAddress = updateDto.DeliveryAddress;
+        //if (!string.IsNullOrEmpty(updateDto.DeliveryAddress))
+        //    request.DeliveryAddress = updateDto.DeliveryAddress;
         
-        if (updateDto.EstimatedCost.HasValue)
-            request.EstimatedCost = updateDto.EstimatedCost;
+        //if (updateDto.EstimatedCost.HasValue)
+        //    request.EstimatedCost = updateDto.EstimatedCost;
         
-        if (updateDto.AgreedCost.HasValue)
-            request.AgreedCost = updateDto.AgreedCost;
+        //if (updateDto.AgreedCost.HasValue)
+        //    request.AgreedCost = updateDto.AgreedCost;
         
         if (!string.IsNullOrEmpty(updateDto.ProviderId))
             request.ProviderId = updateDto.ProviderId;
@@ -184,13 +185,11 @@ public class RequestService : IRequestService
         if (request == null)
             return null!;
 
-        if (request.Status != RequestStatus.Submitted && request.Status != RequestStatus.UnderReview)
+        if (request.Status != RequestStatus.Submitted && request.Status != RequestStatus.OnHold)
             throw new InvalidOperationException("Only submitted or under review requests can be approved");
 
-        request.Status = RequestStatus.Approved;
+        //request.Status = RequestStatus.Approved;
         request.ApprovedDate = DateTime.UtcNow;
-        if (agreedCost.HasValue)
-            request.AgreedCost = agreedCost;
 
         await _requestRepository.UpdateAsync(request, cancellationToken);
         await _unitOfWork.SaveChangesAsync(cancellationToken);
@@ -204,11 +203,11 @@ public class RequestService : IRequestService
         if (request == null)
             return null!;
 
-        if (request.Status != RequestStatus.Submitted && request.Status != RequestStatus.UnderReview)
-            throw new InvalidOperationException("Only submitted or under review requests can be rejected");
+        //if (request.Status != RequestStatus.Submitted && request.Status != RequestStatus.UnderReview)
+        //    throw new InvalidOperationException("Only submitted or under review requests can be rejected");
 
-        request.Status = RequestStatus.Rejected;
-        request.Description = $"{request.Description}\n\nRejection reason: {reason}";
+        //request.Status = RequestStatus.Rejected;
+        //request.Description = $"{request.Description}\n\nRejection reason: {reason}";
 
         await _requestRepository.UpdateAsync(request, cancellationToken);
         await _unitOfWork.SaveChangesAsync(cancellationToken);
@@ -222,7 +221,7 @@ public class RequestService : IRequestService
         if (request == null)
             return;
 
-        request.Status = RequestStatus.Cancelled;
+        //request.Status = RequestStatus.Cancelled;
 
         await _requestRepository.UpdateAsync(request, cancellationToken);
         await _unitOfWork.SaveChangesAsync(cancellationToken);
@@ -248,12 +247,12 @@ public class RequestService : IRequestService
             ProviderId = request.ProviderId,
             ProviderName = request.Provider?.Name,
             Title = request.Title,
-            Description = request.Description,
-            ServicesRequested = request.ServicesRequested?.Split(',', StringSplitOptions.RemoveEmptyEntries) ?? Array.Empty<string>(),
+            //Description = request.Description,
+            //ServicesRequested = request.ServicesRequested?.Split(',', StringSplitOptions.RemoveEmptyEntries) ?? Array.Empty<string>(),
             RequestedDate = request.RequestedDate,
             RequiredByDate = request.RequiredByDate,
-            EstimatedCost = request.EstimatedCost,
-            AgreedCost = request.AgreedCost,
+            //EstimatedCost = request.EstimatedCost,
+            //AgreedCost = request.AgreedCost,
             Items = request.Items?.Select(item => new RequestItemDto
             {
                 Id = item.Id,
@@ -278,12 +277,12 @@ public class RequestService : IRequestService
             ProviderId = request.ProviderId,
             ProviderName = request.Provider?.Name,
             Title = request.Title,
-            Description = request.Description,
-            ServicesRequested = request.ServicesRequested.Split(',', StringSplitOptions.RemoveEmptyEntries),
+            //Description = request.Description,
+            //ServicesRequested = request.ServicesRequested.Split(',', StringSplitOptions.RemoveEmptyEntries),
             RequestedDate = request.RequestedDate,
             RequiredByDate = request.RequiredByDate,
-            EstimatedCost = request.EstimatedCost,
-            AgreedCost = request.AgreedCost,
+            //EstimatedCost = request.EstimatedCost,
+            //AgreedCost = request.AgreedCost,
             Items = request.Items.Select(item => new RequestItemDto
             {
                 Id = item.Id,

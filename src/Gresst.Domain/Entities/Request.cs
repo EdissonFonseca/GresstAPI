@@ -9,8 +9,21 @@ namespace Gresst.Domain.Entities;
 public class Request : BaseEntity
 {
     public string RequestNumber { get; set; } = string.Empty;
-    public RequestStatus Status { get; set; }
     
+    public RequestStatus Status
+    {
+        get
+        {
+            if (Items.All(i => i.Status == RequestItemStatus.Completed))
+                return RequestStatus.Completed;
+
+            if (Items.All(i => i.Status == RequestItemStatus.Rejected))
+                return RequestStatus.Rejected;
+
+            return RequestStatus.InProgress;
+        }
+    }
+
     // Requester (who needs the service)
     public string RequesterId { get; set; } = string.Empty;
     public virtual Person Requester { get; set; } = null!;
@@ -18,31 +31,32 @@ public class Request : BaseEntity
     // Provider (who will provide the service)
     public string? ProviderId { get; set; }
     public virtual Person? Provider { get; set; }
-    
-    // Service requested
-    public string ServiceId { get; set; } = string.Empty;
-    public virtual Service Service { get; set; } = null!;
-    
+
+    public string? HaulerId { get; set; }
+    public virtual Person? Hauler { get; set; }    
+
+
+    public string? SourceFacilityId { get; set; }
+    public virtual Facility? SourceFacility { get; set; }
+    public string? DestinationFacilityId { get; set; }
+    public virtual Facility? DestinationFacility { get; set; }
+    public string? VehicleId { get; set; }
+
+    // Delivery type (collection vs reception) is needed for process rules (e.g. collection → hauler involved, reception → no hauler)
+    public DeliveryType DeliveryType { get; set; }  // Collection | ReceptionHo
+
     // Service Details
     public string Title { get; set; } = string.Empty;
-    public string? Description { get; set; }
-    public string ServicesRequested { get; set; } = string.Empty; // JSON array: ["Collection", "Transport", "Disposal"]
-    
+    public bool? IsRecurrency { get; set; } = false;
+
     // Dates
     public DateTime RequestedDate { get; set; }
     public DateTime? RequiredByDate { get; set; }
     public DateTime? ApprovedDate { get; set; }
     public DateTime? CompletedDate { get; set; }
     
-    // Location
-    public string? PickupAddress { get; set; }
-    public string? DeliveryAddress { get; set; }
-    
-    // Financial
-    public decimal? EstimatedCost { get; set; }
-    public decimal? AgreedCost { get; set; }
-    public decimal? ActualCost { get; set; }
-    
+
+
     // Navigation properties
     public virtual ICollection<RequestItem> Items { get; set; } = new List<RequestItem>();
     public virtual ICollection<Order> Orders { get; set; } = new List<Order>();
@@ -63,5 +77,6 @@ public class RequestItem : BaseEntity
     public UnitOfMeasure Unit { get; set; }
     
     public string? Description { get; set; }
+    public RequestItemStatus Status { get; set; } = RequestItemStatus.Pending;
 }
 

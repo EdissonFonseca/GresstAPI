@@ -1,7 +1,6 @@
 using Gresst.Domain.Entities;
 using Gresst.Infrastructure.Common;
 using Gresst.Infrastructure.Data.Entities;
-using NetTopologySuite.Geometries;
 
 namespace Gresst.Infrastructure.Mappers;
 

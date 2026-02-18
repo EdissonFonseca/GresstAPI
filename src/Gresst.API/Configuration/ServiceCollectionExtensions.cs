@@ -181,6 +181,7 @@ public static class ServiceCollectionExtensions
             typeof(PersonMapper), typeof(MaterialMapper), typeof(PersonMaterialMapper), typeof(FacilityMaterialMapper),
             typeof(PersonContactMapper), typeof(PersonMaterialTreatmentMapper), typeof(SupplyMapper), typeof(PersonSupplyMapper),
             typeof(PersonWasteClassMapper), typeof(PackagingMapper), typeof(ServiceMapper), typeof(PersonServiceMapper),
+            typeof(RequestMapper), typeof(RequestItemMapper), 
             typeof(WasteClassMapper), typeof(TreatmentMapper), typeof(PersonTreatmentMapper), typeof(RouteMapper), typeof(RouteStopMapper)
         };
         foreach (var mapper in mappers)
