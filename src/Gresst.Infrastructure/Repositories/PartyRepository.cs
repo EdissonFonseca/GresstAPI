@@ -1,7 +1,9 @@
+using Gresst.Application.Queries;
 using Gresst.Domain.Entities;
 using Gresst.Domain.Interfaces;
 using Gresst.Infrastructure.Common;
 using Gresst.Infrastructure.Data;
+using Gresst.Infrastructure.Data.Entities;
 using Gresst.Infrastructure.Mappers;
 using Microsoft.EntityFrameworkCore;
 using System.Linq.Expressions;
@@ -13,6 +15,7 @@ public class PartyRepository : IPartyRepostory
     private readonly InfrastructureDbContext _context;
     private readonly PartyMapper _mapper;
     private readonly ICurrentUserService _currentUserService;
+    // Infrastructure/Data/Models/PersonaDb.cs
 
     public PartyRepository(
         InfrastructureDbContext context,
@@ -28,16 +31,49 @@ public class PartyRepository : IPartyRepostory
     {
         var dbEntity = await _context.Personas.FindAsync(new object[] { id }, cancellationToken);
         
-        return dbEntity != null ? _mapper.ToDomain(dbEntity) : null;
+        return dbEntity != null ? _mapper.ToDomain(PersonaDb.FromPersona(dbEntity)) : null;
     }
 
     public async Task<IEnumerable<Party>> GetAllAsync(CancellationToken cancellationToken = default)
     {
         var accountId = _currentUserService.GetCurrentAccountId();
         var accountIdLong = string.IsNullOrEmpty(accountId) ? (long?)null : long.Parse(accountId);
-        
-        var dbEntities = await _context.Personas
-            .Where(p => p.Activo && p.IdCuenta == accountIdLong)
+
+        var dbEntities = await _context.PersonaContactos
+            .Where(pc => pc.Activo && pc.IdCuenta == accountIdLong)
+            .Join(
+                _context.Personas,
+                pc => pc.IdContacto,
+                p => p.IdPersona,
+                (pc, p) => new PersonaDb
+                {
+                    IdPersona = pc.IdContacto,
+                    IdCategoria = p.IdCategoria,
+                    IdCuenta = pc.IdCuenta,
+                    IdTipoIdentificacion = p.IdTipoIdentificacion,
+                    IdRol = p.IdRol,
+                    IdTipoPersona = p.IdTipoPersona,
+                    Identificacion = p.Identificacion,
+                    DigitoVerificacion = p.DigitoVerificacion,
+                    Nombre = pc.Nombre ?? p.Nombre,
+                    Direccion = pc.Direccion ?? p.Direccion,
+                    Telefono = pc.Telefono ?? p.Telefono,
+                    Telefono2 = pc.Telefono2 ?? p.Telefono2,
+                    Correo = pc.Correo ?? p.Correo,
+                    UbicacionMapa = p.UbicacionMapa,
+                    UbicacionLocal = p.UbicacionLocal,
+                    Activo = pc.Activo,
+                    Licencia = p.Licencia,
+                    Cargo = pc.Cargo ?? p.Cargo,
+                    Pagina = pc.Pagina ?? p.Pagina,
+                    Firma = pc.Firma ?? p.Firma,
+                    IdLocalizacion = pc.IdLocalizacion ?? p.IdLocalizacion,
+                    DatosAdicionales = pc.DatosAdicionales ?? p.DatosAdicionales,
+                    IdUsuarioCreacion = pc.IdUsuarioCreacion,
+                    FechaCreacion = pc.FechaCreacion,
+                    IdUsuarioUltimaModificacion = pc.IdUsuarioUltimaModificacion,
+                    FechaUltimaModificacion = pc.FechaUltimaModificacion,
+                })
             .ToListAsync(cancellationToken);
 
         return dbEntities.Select(_mapper.ToDomain).ToList();
@@ -65,7 +101,7 @@ public class PartyRepository : IPartyRepostory
             dbEntity.IdPersona = Guid.NewGuid().ToString("N")[..40];
         }
         
-        await _context.Personas.AddAsync(dbEntity, cancellationToken);
+        await _context.Personas.AddAsync(dbEntity.ToPersona(), cancellationToken);
         
         entity.Id = dbEntity.IdPersona;
         return entity;
@@ -78,7 +114,8 @@ public class PartyRepository : IPartyRepostory
         if (dbEntity == null)
             throw new KeyNotFoundException($"Party with ID {entity.Id} not found");
 
-        _mapper.UpdateDatabase(entity, dbEntity);
+        var personaDb = PersonaDb.FromPersona(dbEntity);
+        _mapper.UpdateDatabase(entity, personaDb);
         
         dbEntity.FechaUltimaModificacion = DateTime.UtcNow;
         dbEntity.IdUsuarioUltimaModificacion = GetCurrentUserIdAsLong();
@@ -133,24 +170,27 @@ public class PartyRepository : IPartyRepostory
     {
         var accountId = _currentUserService.GetCurrentAccountId();
         var accountIdLong = string.IsNullOrEmpty(accountId) ? (long?)null : long.Parse(accountId);
-        
+
         var dbEntities = await _context.Personas
-            .Where(p => p.Activo && 
-                       p.IdCuenta == accountIdLong && 
+            .Where(p => p.Activo &&
+                       p.IdCuenta == accountIdLong &&
                        p.IdRol == roleCode)
             .ToListAsync(cancellationToken);
 
-        return dbEntities.Select(_mapper.ToDomain).ToList();
+        return dbEntities
+            .Select(p => PersonaDb.FromPersona(p))
+            .Select(_mapper.ToDomain)
+            .ToList();
     }
 
     public async Task<Party?> GetByIdAndRoleAsync(string id, string roleCode, CancellationToken cancellationToken = default)
     {
         var dbEntity = await _context.Personas.FindAsync(new object[] { id }, cancellationToken);
-        
+
         if (dbEntity == null || dbEntity.IdRol != roleCode)
             return null;
-        
-        return _mapper.ToDomain(dbEntity);
+
+        return _mapper.ToDomain(PersonaDb.FromPersona(dbEntity));
     }
 
     public async Task SetPersonRoleAsync(string personId, string roleCode, CancellationToken cancellationToken = default)
@@ -185,12 +225,39 @@ public class PartyRepository : IPartyRepostory
                 _context.Personas,
                 pc => pc.IdContacto,
                 p => p.IdPersona,
-                (pc, p) => p
-            )
+                (pc, p) => new PersonaDb
+                {
+                    IdPersona = pc.IdContacto,
+                    IdCategoria = p.IdCategoria,
+                    IdCuenta = pc.IdCuenta,
+                    IdTipoIdentificacion = p.IdTipoIdentificacion,
+                    IdRol = p.IdRol,
+                    IdTipoPersona = p.IdTipoPersona,
+                    Identificacion = p.Identificacion,
+                    DigitoVerificacion = p.DigitoVerificacion,
+                    Nombre = pc.Nombre ?? p.Nombre,
+                    Direccion = pc.Direccion ?? p.Direccion,
+                    Telefono = pc.Telefono ?? p.Telefono,
+                    Telefono2 = pc.Telefono2 ?? p.Telefono2,
+                    Correo = pc.Correo ?? p.Correo,
+                    UbicacionMapa = p.UbicacionMapa,
+                    UbicacionLocal = p.UbicacionLocal,
+                    Activo = pc.Activo,
+                    Licencia = p.Licencia,
+                    Cargo = pc.Cargo ?? p.Cargo,
+                    Pagina = pc.Pagina ?? p.Pagina,
+                    Firma = pc.Firma ?? p.Firma,
+                    IdLocalizacion = pc.IdLocalizacion ?? p.IdLocalizacion,
+                    DatosAdicionales = pc.DatosAdicionales ?? p.DatosAdicionales,
+                    IdUsuarioCreacion = pc.IdUsuarioCreacion,
+                    FechaCreacion = pc.FechaCreacion,
+                    IdUsuarioUltimaModificacion = pc.IdUsuarioUltimaModificacion,
+                    FechaUltimaModificacion = pc.FechaUltimaModificacion,
+                })
             .ToListAsync(cancellationToken);
 
         return persons
-            .Select(p => _mapper.ToDomain(p))
+            .Select(_mapper.ToDomain)
             .ToList();
     }
 

@@ -1,32 +1,32 @@
-using Gresst.Application.Queries;
 using Gresst.Application.Services;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Gresst.API.Endpoints;
 
-public static class CustomerEndpoints
+public static class PartyEndpoints
 {
     public static RouteGroupBuilder Map(this RouteGroupBuilder group)
     {
-        var parties = group.MapGroup("/customers")
-            .WithTags("Customer");
+        var parties = group.MapGroup("/parties")
+            .WithTags("Party");
 
         parties.MapGet("", async (
             IPartyService partyService,
             CancellationToken ct) =>
         {
-            var result = await partyService.FindAsync(party => party.Role == PartyRole.Customer, ct);
+            var filter = new Application.Queries.PartyFilter(); // Sin rol específico para obtener todos
+            var result = await partyService.GetAllAsync(ct);
             return Results.Ok(result);
-        }).WithName("GetCustomers");
+        }).WithName("GetParties");
 
-        parties.MapGet("/{customerId}", async (
-            string customerId,
+        parties.MapGet("/{partyId}", async (
+            string partyId,
             IPartyService partyService,
             CancellationToken ct) =>
         {
-            var result = await partyService.GetByIdAsync(customerId, ct);
+            var result = await partyService.GetByIdAsync(partyId, ct);
             return result is null ? Results.NotFound() : Results.Ok(result);
-        }).WithName("GetCustomerById");
+        }).WithName("GetPartyById");
 
         return group;
     }

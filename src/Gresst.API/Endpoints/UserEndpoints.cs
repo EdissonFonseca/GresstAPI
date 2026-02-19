@@ -16,7 +16,7 @@ public static class UserEndpoints
 
         // Get user by email (query param to avoid path encoding issues with @, +, etc.)
         users.MapGet("", async ([FromQuery] string? email, IUserService userService, CancellationToken ct) =>
-            {
+            {   
                 if (string.IsNullOrWhiteSpace(email))
                     return Results.BadRequest(new { error = "Query parameter 'emaidotl' is required" });
                 var user = await userService.GetUserByEmailAsync(email, ct);

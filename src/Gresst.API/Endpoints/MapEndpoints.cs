@@ -15,6 +15,11 @@ public static class MapEndpoints
 
         AuthenticationEndpoints.Map(api);
         AuthorizationEndpoints.Map(api);
+        AccountEndpoints.Map(api);
+        CustomerEndpoints.Map(api);
+        MeEndpoints.Map(api);
+        PartyEndpoints.Map(api);
+        UserEndpoints.Map(api);
         //CustomerEndpoints.Map(api);
         //FacilityEndpoints.Map(api);
         //WasteEndpoints.Map(api);
@@ -31,10 +36,6 @@ public static class MapEndpoints
         //RequestEndpoints.Map(api);
         //ProcessEndpoints.Map(api);
         //CollectionsEndpoints.Map(api);
-        AccountEndpoints.Map(api);
-        MeEndpoints.Map(api);
-        UserEndpoints.Map(api);
-        //PersonEndpoints.Map(api);
         //PersonContactEndpoints.Map(api);
         //ResourceAssignmentEndpoints.Map(api);
         //InventoryEndpoints.Map(api);

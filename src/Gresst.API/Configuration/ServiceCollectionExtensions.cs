@@ -174,7 +174,8 @@ public static class ServiceCollectionExtensions
     {
         var mappers = new[]
         {
-            typeof(AccountMapper), 
+            typeof(AccountMapper),
+            typeof(PartyMapper)
             //typeof(FacilityMapper), typeof(WasteMapper), typeof(ManagementMapper),
             //typeof(PersonMapper), typeof(MaterialMapper), typeof(PersonMaterialMapper), typeof(FacilityMaterialMapper),
             //typeof(PersonContactMapper), typeof(PersonMaterialTreatmentMapper), typeof(SupplyMapper), typeof(PersonSupplyMapper),
@@ -194,7 +195,7 @@ public static class ServiceCollectionExtensions
         //services.AddScoped<IRepository<Waste>, WasteRepository>();
         //services.AddScoped<IRepository<Management>, ManagementRepository>();
         //services.AddScoped<IPersonRepository, PersonRepository>();
-        //services.AddScoped<IRepository<Person>>(sp => sp.GetRequiredService<IPersonRepository>());
+        services.AddScoped<IRepository<Party>, PartyRepository>();
         //services.AddScoped<IRepository<Material>, MaterialRepository>();
         //services.AddScoped<IRepository<PersonMaterial>, PersonMaterialRepository>();
         //services.AddScoped<IRepository<FacilityMaterial>, FacilityMaterialRepository>();
@@ -219,6 +220,8 @@ public static class ServiceCollectionExtensions
 
     public static IServiceCollection AddGresstApplicationServices(this IServiceCollection services)
     {
+        services.AddScoped<IAccountRegistrationService, AccountRegistrationService>();
+        services.AddScoped<Gresst.Application.Services.IAuthorizationService, AuthorizationService>();
         //services.AddScoped<IDataSegmentationService, DataSegmentationService>();
         //services.AddScoped<IFacilityService, FacilityService>();
         //services.AddScoped<IWasteService, WasteService>();
@@ -236,10 +239,9 @@ public static class ServiceCollectionExtensions
         //services.AddScoped<IWasteClassService, WasteClassService>();
         //services.AddScoped<ITreatmentService, TreatmentService>();
         //services.AddScoped<IRouteService, RouteService>();
-        services.AddScoped<IUserService, UserService>();
-        services.AddScoped<IAccountRegistrationService, AccountRegistrationService>();
         services.AddScoped<IMeService, MeService>();
-        services.AddScoped<Gresst.Application.Services.IAuthorizationService, AuthorizationService>();
+        services.AddScoped<IPartyService, PartyService>();
+        services.AddScoped<IUserService, UserService>();
         //services.AddScoped<IRequestService, RequestService>();
         //services.AddScoped<IOrderService, OrderService>();
         //services.AddScoped<IProcessService, ProcessService>();
