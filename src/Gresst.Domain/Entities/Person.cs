@@ -4,7 +4,6 @@ namespace Gresst.Domain.Entities;
 
 public class Person : BaseEntity
 {
-    public string Name { get; set; } = string.Empty;
     public string? DocumentNumber { get; set; }
     public string? Email { get; set; }
     public string? Phone { get; set; }
@@ -19,46 +18,5 @@ public class Person : BaseEntity
     public bool IsTreater { get; set; }
     public bool IsStorageProvider { get; set; }
     
-    // Navigation properties
-    public virtual ICollection<License> Licenses { get; set; } = new List<License>();
-    public virtual ICollection<Facility> Facilities { get; set; } = new List<Facility>();
-    public virtual ICollection<Vehicle> Vehicles { get; set; } = new List<Vehicle>();
-    public virtual ICollection<Request> RequestsAsRequester { get; set; } = new List<Request>();
-    public virtual ICollection<Request> RequestsAsProvider { get; set; } = new List<Request>();
-    public virtual ICollection<Balance> Balances { get; set; } = new List<Balance>();
-    public virtual ICollection<PersonMaterial> Materials { get; set; } = new List<PersonMaterial>();
-    
-    // Contacts - Persons that are contacts of this person (employees, contractors, etc.)
-    public virtual ICollection<PersonContact> Contacts { get; set; } = new List<PersonContact>();
-    
-    // ContactOf - Persons where this person is a contact
-    public virtual ICollection<PersonContact> ContactOf { get; set; } = new List<PersonContact>();
-    
-    // Facility Contacts - Facilities where this person is a contact
-    public virtual ICollection<FacilityContact> FacilityContacts { get; set; } = new List<FacilityContact>();
-    
-    // Services - Services that this person can provide (transport, disposal, storage, etc.)
-    public virtual ICollection<PersonService> Services { get; set; } = new List<PersonService>();
-    
-    // Facility Materials - Materials that facilities owned by this person can handle
-    public virtual ICollection<FacilityMaterial> FacilityMaterials { get; set; } = new List<FacilityMaterial>();
-    
-    // Facility Treatments - Treatments that facilities owned by this person can perform
-    public virtual ICollection<FacilityTreatment> FacilityTreatments { get; set; } = new List<FacilityTreatment>();
-    
-    // Packaging - Packaging types that this person manages
-    public virtual ICollection<PersonPackaging> Packagings { get; set; } = new List<PersonPackaging>();
-    
-    // Treatments - Treatments that this person can perform/manage
-    public virtual ICollection<PersonTreatment> Treatments { get; set; } = new List<PersonTreatment>();
-    
-    // Material Treatments - Treatments that this person applies to specific materials
-    public virtual ICollection<PersonMaterialTreatment> MaterialTreatments { get; set; } = new List<PersonMaterialTreatment>();
-    
-    // Supplies - Supplies that this person uses in logistics operations
-    public virtual ICollection<PersonSupply> Supplies { get; set; } = new List<PersonSupply>();
-    
-    // Waste Classes - Waste classes that this person is associated with
-    public virtual ICollection<PersonWasteClass> WasteClasses { get; set; } = new List<PersonWasteClass>();
 }
 

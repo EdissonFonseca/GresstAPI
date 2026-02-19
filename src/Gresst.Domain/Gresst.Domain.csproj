@@ -1,10 +1,24 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <AssemblyTitle>Gresst.Domain</AssemblyTitle>
+    <UserSecretsId>ba2a1d5d-117e-44e1-9910-f815218edf86</UserSecretsId>
   </PropertyGroup>
 
-</Project>
+  <ItemGroup>
+    <Compile Remove="Common\GuidLongConverter.cs" />
+    <Compile Remove="Common\GuidStringConverter.cs" />
+    <Compile Remove="Common\WasteLifecyclePhase.cs" />
+    <Compile Remove="Common\WasteStateGroups.cs" />
+    <Compile Remove="Interfaces\IPartyRepository.cs" />
+    <Compile Remove="Interfaces\IPersonContactRepository.cs" />
+  </ItemGroup>
 
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.Configuration.UserSecrets" Version="6.0.1" />
+  </ItemGroup>
+
+</Project>

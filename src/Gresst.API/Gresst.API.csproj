@@ -7,6 +7,29 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Endpoints\CollectionsEndpoints.cs" />
+    <Compile Remove="Endpoints\CustomerEndpoints.cs" />
+    <Compile Remove="Endpoints\FacilityEndpoints.cs" />
+    <Compile Remove="Endpoints\InventoryEndpoints.cs" />
+    <Compile Remove="Endpoints\ManagementEndpoints.cs" />
+    <Compile Remove="Endpoints\MaterialEndpoints.cs" />
+    <Compile Remove="Endpoints\OrderEndpoints.cs" />
+    <Compile Remove="Endpoints\PackagingEndpoints.cs" />
+    <Compile Remove="Endpoints\PersonContactEndpoints.cs" />
+    <Compile Remove="Endpoints\PersonEndpoints.cs" />
+    <Compile Remove="Endpoints\ProcessEndpoints.cs" />
+    <Compile Remove="Endpoints\RequestEndpoints.cs" />
+    <Compile Remove="Endpoints\ResourceAssignmentEndpoints.cs" />
+    <Compile Remove="Endpoints\RouteEndpoints.cs" />
+    <Compile Remove="Endpoints\ServiceEndpoints.cs" />
+    <Compile Remove="Endpoints\SupplyEndpoints.cs" />
+    <Compile Remove="Endpoints\TreatmentEndpoints.cs" />
+    <Compile Remove="Endpoints\VehicleEndpoints.cs" />
+    <Compile Remove="Endpoints\WasteClassEndpoints.cs" />
+    <Compile Remove="Endpoints\WasteEndpoints.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\Gresst.Application\Gresst.Application.csproj" />
     <ProjectReference Include="..\Gresst.Infrastructure\Gresst.Infrastructure.csproj" />
   </ItemGroup>

@@ -7,36 +7,35 @@ namespace Gresst.Domain.Entities;
 /// </summary>
 public class Certificate : BaseEntity
 {
-    public string CertificateNumber { get; set; } = string.Empty;
-    public DateTime IssuedDate { get; set; }
-    public DateTime? ExpiryDate { get; set; }
-    
-    // Issuer
-    public string IssuedById { get; set; } = string.Empty;
-    public virtual Person IssuedBy { get; set; } = null!;
-    
-    // Recipient
-    public string IssuedToId { get; set; } = string.Empty;
-    public virtual Person IssuedTo { get; set; } = null!;
-    
-    // Certificate Type
-    public string CertificateType { get; set; } = string.Empty; // Collection, Transport, Disposal, Treatment, etc.
-    
-    // Related entities
+    public string? Number { get; set; } = string.Empty;
+    public string IssuerId { get; set; } = string.Empty;
+    public CertificateStatus Status { get; set; } = CertificateStatus.Pending;
+    public OperationType? Type { get; set; }
+    public string? ProcedureId { get; set; }
     public string? OrderId { get; set; }
-    public virtual Order? Order { get; set; }
-    
-    // Content
     public string Description { get; set; } = string.Empty;
     public string? DocumentUrl { get; set; }
     public string? VerificationCode { get; set; }
     
-    // Status
-    public bool IsValid { get; set; } = true;
-    public DateTime? RevokedDate { get; set; }
+    public DateTime? IssuedAt { get; set; }
+    public DateTime? ExpiryAt { get; set; }    
+    public DateTime? RevokedAt { get; set; }
     public string? RevokedReason { get; set; }
-    
     // Navigation properties
-    public virtual ICollection<Management> Managements { get; set; } = new List<Management>();
-}
+
+    public ICollection<string>? WasteIds { get; set; }
+    public ICollection<string>? PartyIds { get; set; }
+    public ICollection<CertificateEvent> Events { get; set; } = new List<CertificateEvent>();
+
+    public void Apply(CertificateEvent certEvent)
+    {
+        Status = certEvent.ToStatus;
+        if (certEvent.ToStatus == CertificateStatus.Issued)
+        {
+            IssuedAt = certEvent.OccurredAt;
+            Number = certEvent.CertificateNumber;
+            DocumentUrl = certEvent.DocumentUrl;
+        }
+        Events.Add(certEvent);
+    }}
 

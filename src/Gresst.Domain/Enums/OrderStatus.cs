@@ -7,6 +7,7 @@ public enum OrderStatus
     InProgress = 3,
     Completed = 4,
     Cancelled = 5,
-    OnHold = 6
+    OnHold = 6,
+    Failed = 7
 }
 

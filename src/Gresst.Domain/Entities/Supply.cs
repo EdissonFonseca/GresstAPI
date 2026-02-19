@@ -8,24 +8,8 @@ namespace Gresst.Domain.Entities;
 /// </summary>
 public class Supply : BaseEntity
 {
-    /// <summary>
-    /// Supply code or reference
-    /// </summary>
-    public string Code { get; set; } = string.Empty;
-    
-    /// <summary>
-    /// Supply name
-    /// </summary>
-    public string Name { get; set; } = string.Empty;
-    
-    /// <summary>
-    /// Supply description
-    /// </summary>
     public string? Description { get; set; }
     
-    /// <summary>
-    /// Category/Unit identifier
-    /// </summary>
     public string CategoryUnitId { get; set; } = string.Empty;
     
     /// <summary>
@@ -36,17 +20,7 @@ public class Supply : BaseEntity
     /// <summary>
     /// Parent supply (for hierarchical categorization)
     /// </summary>
-    public string? ParentSupplyId { get; set; }
-    public virtual Supply? ParentSupply { get; set; }
+    public string? ParentId { get; set; }
     
-    /// <summary>
-    /// Child supplies (for hierarchical categorization)
-    /// </summary>
-    public virtual ICollection<Supply> ChildSupplies { get; set; } = new List<Supply>();
-    
-    /// <summary>
-    /// Persons that use/manage this supply
-    /// </summary>
-    public virtual ICollection<PersonSupply> Persons { get; set; } = new List<PersonSupply>();
 }
 

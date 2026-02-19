@@ -178,7 +178,7 @@ public class PersonRepository : IPersonRepository
             .Where(pc =>
                 pc.Activo &&
                 pc.IdCuenta == accountIdLong &&
-                pc.IdRelacion == Relation.CLIENT &&
+                pc.IdRelacion == "CL" &&
                 pc.IdPersona == personIdString
             )
             .Join(

@@ -17,38 +17,38 @@ public class GreesstDbContext : DbContext
     }
 
     // DbSets
-    public DbSet<Person> Persons => Set<Person>();
-    public DbSet<Facility> Facilities => Set<Facility>();
-    public DbSet<Location> Locations => Set<Location>();
-    public DbSet<Waste> Wastes => Set<Waste>();
-    public DbSet<WasteClass> WasteClasses => Set<WasteClass>();
-    public DbSet<Classification> Classifications => Set<Classification>();
-    public DbSet<Management> Managements => Set<Management>();
-    public DbSet<Order> Orders => Set<Order>();
-    public DbSet<OrderItem> OrderItems => Set<OrderItem>();
-    public DbSet<Request> Requests => Set<Request>();
-    public DbSet<RequestItem> RequestItems => Set<RequestItem>();
-    public DbSet<Certificate> Certificates => Set<Certificate>();
-    public DbSet<License> Licenses => Set<License>();
-    public DbSet<Vehicle> Vehicles => Set<Vehicle>();
-    public DbSet<Balance> Balances => Set<Balance>();
-    public DbSet<Adjustment> Adjustments => Set<Adjustment>();
-    public DbSet<WasteTransformation> WasteTransformations => Set<WasteTransformation>();
-    public DbSet<Treatment> Treatments => Set<Treatment>();
-    public DbSet<Material> Materials => Set<Material>();
-    public DbSet<Packaging> Packagings => Set<Packaging>();
-    public DbSet<Route> Routes => Set<Route>();
-    public DbSet<RouteStop> RouteStops => Set<RouteStop>();
-    // User removed - not a domain entity, only for authentication in Infrastructure
-    public DbSet<Rate> Rates => Set<Rate>();
-    public DbSet<FacilityTreatment> FacilityTreatments => Set<FacilityTreatment>();
-    public DbSet<FacilityContact> FacilityContacts => Set<FacilityContact>();
-    public DbSet<FacilityWasteClass> FacilityWasteClasses => Set<FacilityWasteClass>();
-    public DbSet<MaterialTransformation> MaterialTransformations => Set<MaterialTransformation>();
-    public DbSet<PersonMaterialTreatment> PersonMaterialTreatments => Set<PersonMaterialTreatment>();
-    public DbSet<Supply> Supplies => Set<Supply>();
-    public DbSet<PersonSupply> PersonSupplies => Set<PersonSupply>();
-    public DbSet<PersonWasteClass> PersonWasteClasses => Set<PersonWasteClass>();
+    //public DbSet<Person> Persons => Set<Person>();
+    //public DbSet<Facility> Facilities => Set<Facility>();
+    //public DbSet<Location> Locations => Set<Location>();
+    //public DbSet<Waste> Wastes => Set<Waste>();
+    //public DbSet<WasteClass> WasteClasses => Set<WasteClass>();
+    //public DbSet<Classification> Classifications => Set<Classification>();
+    //public DbSet<Management> Managements => Set<Management>();
+    //public DbSet<Order> Orders => Set<Order>();
+    //public DbSet<OrderItem> OrderItems => Set<OrderItem>();
+    //public DbSet<Request> Requests => Set<Request>();
+    //public DbSet<RequestItem> RequestItems => Set<RequestItem>();
+    //public DbSet<Certificate> Certificates => Set<Certificate>();
+    //public DbSet<License> Licenses => Set<License>();
+    //public DbSet<Vehicle> Vehicles => Set<Vehicle>();
+    //public DbSet<Balance> Balances => Set<Balance>();
+    //public DbSet<Adjustment> Adjustments => Set<Adjustment>();
+    //public DbSet<WasteTransformation> WasteTransformations => Set<WasteTransformation>();
+    //public DbSet<Treatment> Treatments => Set<Treatment>();
+    //public DbSet<Material> Materials => Set<Material>();
+    //public DbSet<Packaging> Packagings => Set<Packaging>();
+    //public DbSet<Route> Routes => Set<Route>();
+    //public DbSet<RouteStop> RouteStops => Set<RouteStop>();
+    //// User removed - not a domain entity, only for authentication in Infrastructure
+    //public DbSet<Rate> Rates => Set<Rate>();
+    //public DbSet<FacilityTreatment> FacilityTreatments => Set<FacilityTreatment>();
+    //public DbSet<FacilityContact> FacilityContacts => Set<FacilityContact>();
+    //public DbSet<FacilityWasteClass> FacilityWasteClasses => Set<FacilityWasteClass>();
+    //public DbSet<MaterialTransformation> MaterialTransformations => Set<MaterialTransformation>();
+    //public DbSet<PersonMaterialTreatment> PersonMaterialTreatments => Set<PersonMaterialTreatment>();
+    //public DbSet<Supply> Supplies => Set<Supply>();
+    //public DbSet<PersonSupply> PersonSupplies => Set<PersonSupply>();
+    //public DbSet<PersonWasteClass> PersonWasteClasses => Set<PersonWasteClass>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

@@ -7,6 +7,66 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Data\Configurations\**" />
+    <Compile Remove="WasteManagement\**" />
+    <EmbeddedResource Remove="Data\Configurations\**" />
+    <EmbeddedResource Remove="WasteManagement\**" />
+    <None Remove="Data\Configurations\**" />
+    <None Remove="WasteManagement\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Remove="Mappers\FacilityContactMapper.cs" />
+    <Compile Remove="Mappers\FacilityMapper.cs" />
+    <Compile Remove="Mappers\FacilityMaterialMapper.cs" />
+    <Compile Remove="Mappers\FacilityWasteClassMapper.cs" />
+    <Compile Remove="Mappers\ManagementMapper.cs" />
+    <Compile Remove="Mappers\MaterialMapper.cs" />
+    <Compile Remove="Mappers\MaterialTransformationMapper.cs" />
+    <Compile Remove="Mappers\PackagingMapper.cs" />
+    <Compile Remove="Mappers\PersonContactMapper.cs" />
+    <Compile Remove="Mappers\PersonMaterialMapper.cs" />
+    <Compile Remove="Mappers\PersonMaterialTreatmentMapper.cs" />
+    <Compile Remove="Mappers\PersonPackagingMapper.cs" />
+    <Compile Remove="Mappers\PersonServiceMapper.cs" />
+    <Compile Remove="Mappers\PersonSupplyMapper.cs" />
+    <Compile Remove="Mappers\PersonTreatmentMapper.cs" />
+    <Compile Remove="Mappers\PersonWasteClassMapper.cs" />
+    <Compile Remove="Mappers\RequestItemMapper.cs" />
+    <Compile Remove="Mappers\RequestMapper.cs" />
+    <Compile Remove="Mappers\RouteMapper.cs" />
+    <Compile Remove="Mappers\RouteStopMapper.cs" />
+    <Compile Remove="Mappers\ServiceMapper.cs" />
+    <Compile Remove="Mappers\SolicitudToRequestMapper.cs" />
+    <Compile Remove="Mappers\SupplyMapper.cs" />
+    <Compile Remove="Mappers\TreatmentMapper.cs" />
+    <Compile Remove="Mappers\WasteClassMapper.cs" />
+    <Compile Remove="Mappers\WasteMapper.cs" />
+    <Compile Remove="Mappers\WasteMapper.example.cs" />
+    <Compile Remove="Repositories\FacilityMaterialRepository.cs" />
+    <Compile Remove="Repositories\FacilityRepository.cs" />
+    <Compile Remove="Repositories\ManagementRepository.cs" />
+    <Compile Remove="Repositories\MaterialRepository.cs" />
+    <Compile Remove="Repositories\PackagingRepository.cs" />
+    <Compile Remove="Repositories\PersonContactRepository.cs" />
+    <Compile Remove="Repositories\PersonMaterialRepository.cs" />
+    <Compile Remove="Repositories\PersonServiceRepository.cs" />
+    <Compile Remove="Repositories\PersonTreatmentRepository.cs" />
+    <Compile Remove="Repositories\PersonWasteClassRepository.cs" />
+    <Compile Remove="Repositories\RequestRepository.cs" />
+    <Compile Remove="Repositories\RouteRepository.cs" />
+    <Compile Remove="Repositories\RouteStopRepository.cs" />
+    <Compile Remove="Repositories\ServiceRepository.cs" />
+    <Compile Remove="Repositories\SupplyRepository.cs" />
+    <Compile Remove="Repositories\TreatmentRepository.cs" />
+    <Compile Remove="Repositories\WasteClassRepository.cs" />
+    <Compile Remove="Repositories\WasteRepository.cs" />
+    <Compile Remove="Services\DataSegmentationService.cs" />
+    <Compile Remove="Services\RequestFilterDefaults.cs" />
+    <Compile Remove="Services\WasteGenerationService.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\Gresst.Application\Gresst.Application.csproj" />
   </ItemGroup>
 

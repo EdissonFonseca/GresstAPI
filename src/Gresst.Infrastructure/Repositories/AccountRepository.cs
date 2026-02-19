@@ -1,4 +1,4 @@
-using Gresst.Domain.Entities;
+using Gresst.Domain.Identity;
 using Gresst.Domain.Interfaces;
 using Gresst.Infrastructure.Common;
 using Gresst.Infrastructure.Data;

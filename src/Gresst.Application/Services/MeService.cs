@@ -1,5 +1,6 @@
 using Gresst.Application.DTOs;
 using Gresst.Domain.Entities;
+using Gresst.Domain.Identity;
 using Gresst.Domain.Interfaces;
 
 namespace Gresst.Application.Services;

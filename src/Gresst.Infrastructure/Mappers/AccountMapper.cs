@@ -1,5 +1,5 @@
-using Gresst.Domain.Entities;
 using Gresst.Domain.Enums;
+using Gresst.Domain.Identity;
 using Gresst.Infrastructure.Common;
 using Gresst.Infrastructure.Data.Entities;
 
@@ -27,13 +27,11 @@ public class AccountMapper : MapperBase<Account, Cuentum>
             
             // Basic Info
             Name = dbEntity.Nombre,
-            Code = dbEntity.IdCuenta.ToString(), // Use DB ID as code
             Role = MapRole(dbEntity.IdRol),
             Status = MapStatus(dbEntity.IdEstado),
             
             // Relations - DB IdPersona is string
             PersonId = dbEntity.IdPersona ?? string.Empty,
-            ParentAccountId = null, // Cuentum doesn't have parent relationship
             
             // Audit
             CreatedAt = dbEntity.FechaCreacion,

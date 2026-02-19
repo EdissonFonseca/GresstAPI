@@ -7,8 +7,6 @@ namespace Gresst.Domain.Entities;
 /// </summary>
 public class Route : BaseEntity
 {
-    public string Code { get; set; } = string.Empty;
-    public string Name { get; set; } = string.Empty;
     public string? Description { get; set; }
     
     // Route Type
@@ -16,10 +14,8 @@ public class Route : BaseEntity
     
     // Assignment
     public string? VehicleId { get; set; }
-    public virtual Vehicle? Vehicle { get; set; }
     
     public string? DriverId { get; set; }
-    public virtual Person? Driver { get; set; }
     
     // Scheduling
     public string? Schedule { get; set; } // JSON: Days of week, frequency
@@ -30,8 +26,8 @@ public class Route : BaseEntity
     public new bool IsActive { get; set; } = true;
     
     // Navigation properties
-    public virtual ICollection<RouteStop> Stops { get; set; } = new List<RouteStop>();
-    public virtual ICollection<Order> Orders { get; set; } = new List<Order>();
+    public ICollection<RouteStop> Stops { get; set; } = new List<RouteStop>();
+    public ICollection<Order> Orders { get; set; } = new List<Order>();
 }
 
 /// <summary>
@@ -53,11 +49,9 @@ public class RouteStop : BaseEntity
     public decimal? Longitude { get; set; }
     
     // Person/Facility at stop
-    public string? PersonId { get; set; }
-    public virtual Person? Person { get; set; }
+    public string? PartyId { get; set; }
     
     public string? FacilityId { get; set; }
-    public virtual Facility? Facility { get; set; }
     
     // Details
     public string? Instructions { get; set; }

@@ -9,11 +9,7 @@ public class Vehicle : BaseEntity
     public string? Model { get; set; }
     public string? Make { get; set; }
     public int? Year { get; set; }
-    
-    // Owner
-    public string PersonId { get; set; } = string.Empty;
-    public virtual Person Person { get; set; } = null!;
-    
+        
     // Capacity
     public decimal? MaxCapacity { get; set; }
     public string? CapacityUnit { get; set; }
@@ -27,10 +23,5 @@ public class Vehicle : BaseEntity
     /// Allows inventory movements to/from vehicles as if they were facilities
     /// </summary>
     public string? VirtualFacilityId { get; set; }
-    public virtual Facility? VirtualFacility { get; set; }
-    
-    // Navigation properties
-    public virtual ICollection<Management> Managements { get; set; } = new List<Management>();
-    public virtual ICollection<Order> Orders { get; set; } = new List<Order>();
 }
 
