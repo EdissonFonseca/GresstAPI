@@ -9,7 +9,7 @@ namespace Gresst.Domain.Identity;
 public class Account : BaseEntity
 {
     public string UserId { get; set; } = string.Empty;
-    public string PersonId { get; set; } = string.Empty;
+    public string PartyId { get; set; } = string.Empty;
     public AccountRole Role { get; set; } = AccountRole.Generator;
     public AccountStatus Status { get; set; } = AccountStatus.Active;
     List<User> Users { get; set; } = new List<User>();

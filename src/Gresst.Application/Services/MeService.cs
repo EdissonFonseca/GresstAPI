@@ -12,18 +12,18 @@ public class MeService : IMeService
 {
     private readonly IUserService _userService;
     private readonly IAccountRepository _accountRepository;
-    private readonly IRepository<Person> _personRepository;
+    private readonly IRepository<Party> _partyRepository;
     private readonly IAuthorizationService _authorizationService;
 
     public MeService(
         IUserService userService,
         IAccountRepository accountRepository,
-        IRepository<Person> personRepository,
+        IRepository<Party> partyRepository,
         IAuthorizationService authorizationService)
     {
         _userService = userService;
         _accountRepository = accountRepository;
-        _personRepository = personRepository;
+        _partyRepository = partyRepository;
         _authorizationService = authorizationService;
     }
 
@@ -38,18 +38,18 @@ public class MeService : IMeService
             : null;
 
         // Person corresponding to the user: user's linked person first, then account's legal rep
-        var personId = !string.IsNullOrEmpty(user.PersonId)
-            ? user.PersonId
-            : account?.PersonId;
-        var person = !string.IsNullOrEmpty(personId)
-            ? await _personRepository.GetByIdAsync(personId, cancellationToken)
+        var partyId = !string.IsNullOrEmpty(user.PartyId)
+            ? user.PartyId
+            : account?.PartyId;
+        var party = !string.IsNullOrEmpty(partyId)
+            ? await _partyRepository.GetByIdAsync(partyId, cancellationToken)
             : null;
 
         return new MeResponseDto
         {
             Profile = MapToMeProfile(user),
             Account = account != null ? MapAccount(account) : null,
-            Person = person != null ? MapPerson(person) : null,
+            Party = party != null ? MapParty(party) : null,
             Roles = user.Roles ?? Array.Empty<string>(),
         };
     }
@@ -73,7 +73,7 @@ public class MeService : IMeService
             LastName = user.LastName,
             Email = user.Email,
             Status = user.Status,
-            PersonId = user.PersonId,
+            PartyId = user.PartyId,
             LastAccess = user.LastAccess,
             CreatedAt = user.CreatedAt
         };
@@ -87,21 +87,21 @@ public class MeService : IMeService
             Name = account.Name,
             Role = account.Role.ToString(),
             Status = account.Status.ToString(),
-            PersonId = account.PersonId ?? string.Empty,
+            PartyId = account.PartyId ?? string.Empty,
             IsActive = account.IsActive
         };
     }
 
-    private static PersonSummaryDto MapPerson(Person person)
+    private static PartySummaryDto MapParty(Party party)
     {
-        return new PersonSummaryDto
+        return new PartySummaryDto
         {
-            Id = person.Id,
-            Name = person.Name,
-            DocumentNumber = person.DocumentNumber,
-            Email = person.Email,
-            Phone = person.Phone,
-            Address = person.Address
+            Id = party.Id,
+            Name = party.Name,
+            DocumentNumber = party.DocumentNumber,
+            Email = party.Email,
+            Phone = party.Phone,
+            Address = party.Address
         };
     }
 }

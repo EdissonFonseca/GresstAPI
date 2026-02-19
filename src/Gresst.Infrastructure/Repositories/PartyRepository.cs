@@ -8,15 +8,15 @@ using System.Linq.Expressions;
 
 namespace Gresst.Infrastructure.Repositories;
 
-public class PersonRepository : IPersonRepository
+public class PartyRepository : IPartyRepostory
 {
     private readonly InfrastructureDbContext _context;
-    private readonly PersonMapper _mapper;
+    private readonly PartyMapper _mapper;
     private readonly ICurrentUserService _currentUserService;
 
-    public PersonRepository(
+    public PartyRepository(
         InfrastructureDbContext context,
-        PersonMapper mapper,
+        PartyMapper mapper,
         ICurrentUserService currentUserService)
     {
         _context = context;
@@ -24,14 +24,14 @@ public class PersonRepository : IPersonRepository
         _currentUserService = currentUserService;
     }
 
-    public async Task<Person?> GetByIdAsync(string id, CancellationToken cancellationToken = default)
+    public async Task<Party?> GetByIdAsync(string id, CancellationToken cancellationToken = default)
     {
         var dbEntity = await _context.Personas.FindAsync(new object[] { id }, cancellationToken);
         
         return dbEntity != null ? _mapper.ToDomain(dbEntity) : null;
     }
 
-    public async Task<IEnumerable<Person>> GetAllAsync(CancellationToken cancellationToken = default)
+    public async Task<IEnumerable<Party>> GetAllAsync(CancellationToken cancellationToken = default)
     {
         var accountId = _currentUserService.GetCurrentAccountId();
         var accountIdLong = string.IsNullOrEmpty(accountId) ? (long?)null : long.Parse(accountId);
@@ -43,13 +43,13 @@ public class PersonRepository : IPersonRepository
         return dbEntities.Select(_mapper.ToDomain).ToList();
     }
 
-    public async Task<IEnumerable<Person>> FindAsync(Expression<Func<Person, bool>> predicate, CancellationToken cancellationToken = default)
+    public async Task<IEnumerable<Party>> FindAsync(Expression<Func<Party, bool>> predicate, CancellationToken cancellationToken = default)
     {
         var all = await GetAllAsync(cancellationToken);
         return all.Where(predicate.Compile());
     }
 
-    public async Task<Person> AddAsync(Person entity, CancellationToken cancellationToken = default)
+    public async Task<Party> AddAsync(Party entity, CancellationToken cancellationToken = default)
     {
         var dbEntity = _mapper.ToDatabase(entity);
         
@@ -71,12 +71,12 @@ public class PersonRepository : IPersonRepository
         return entity;
     }
 
-    public Task UpdateAsync(Person entity, CancellationToken cancellationToken = default)
+    public Task UpdateAsync(Party entity, CancellationToken cancellationToken = default)
     {
         var dbEntity = _context.Personas.Find(entity.Id);
         
         if (dbEntity == null)
-            throw new KeyNotFoundException($"Person with ID {entity.Id} not found");
+            throw new KeyNotFoundException($"Party with ID {entity.Id} not found");
 
         _mapper.UpdateDatabase(entity, dbEntity);
         
@@ -87,12 +87,12 @@ public class PersonRepository : IPersonRepository
         return Task.CompletedTask;
     }
 
-    public Task DeleteAsync(Person entity, CancellationToken cancellationToken = default)
+    public Task DeleteAsync(Party entity, CancellationToken cancellationToken = default)
     {
         var dbEntity = _context.Personas.Find(entity.Id);
         
         if (dbEntity == null)
-            throw new KeyNotFoundException($"Person with ID {entity.Id} not found");
+            throw new KeyNotFoundException($"Party with ID {entity.Id} not found");
 
         // Soft delete
         dbEntity.Activo = false;
@@ -103,7 +103,7 @@ public class PersonRepository : IPersonRepository
         return Task.CompletedTask;
     }
 
-    public async Task<int> CountAsync(Expression<Func<Person, bool>>? predicate = null, CancellationToken cancellationToken = default)
+    public async Task<int> CountAsync(Expression<Func<Party, bool>>? predicate = null, CancellationToken cancellationToken = default)
     {
         var accountId = _currentUserService.GetCurrentAccountId();
         var accountIdLong = string.IsNullOrEmpty(accountId) ? (long?)null : long.Parse(accountId);
@@ -129,7 +129,7 @@ public class PersonRepository : IPersonRepository
     }
 
     // IPersonRepository methods
-    public async Task<IEnumerable<Person>> GetByRoleAsync(string roleCode, CancellationToken cancellationToken = default)
+    public async Task<IEnumerable<Party>> GetByRoleAsync(string roleCode, CancellationToken cancellationToken = default)
     {
         var accountId = _currentUserService.GetCurrentAccountId();
         var accountIdLong = string.IsNullOrEmpty(accountId) ? (long?)null : long.Parse(accountId);
@@ -143,7 +143,7 @@ public class PersonRepository : IPersonRepository
         return dbEntities.Select(_mapper.ToDomain).ToList();
     }
 
-    public async Task<Person?> GetByIdAndRoleAsync(string id, string roleCode, CancellationToken cancellationToken = default)
+    public async Task<Party?> GetByIdAndRoleAsync(string id, string roleCode, CancellationToken cancellationToken = default)
     {
         var dbEntity = await _context.Personas.FindAsync(new object[] { id }, cancellationToken);
         
@@ -166,7 +166,7 @@ public class PersonRepository : IPersonRepository
         }
     }
 
-    public async Task<IEnumerable<Person>> GetCustomersAsync(CancellationToken cancellationToken = default)
+    public async Task<IEnumerable<Party>> GetCustomersAsync(CancellationToken cancellationToken = default)
     {
         var accountId = _currentUserService.GetCurrentAccountId();
         var accountIdLong = string.IsNullOrEmpty(accountId) ? (long?)null : long.Parse(accountId);

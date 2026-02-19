@@ -1,5 +1,4 @@
 using Gresst.Domain.Entities;
-using Gresst.Infrastructure.Common;
 using Gresst.Infrastructure.Data.Entities;
 
 namespace Gresst.Infrastructure.Mappers;
@@ -7,19 +6,19 @@ namespace Gresst.Infrastructure.Mappers;
 /// <summary>
 /// Mapper: Person (Domain/Inglés) ↔ Persona (BD/Español)
 /// </summary>
-public class PersonMapper : MapperBase<Person, Persona>
+public class PartyMapper : MapperBase<Party, Persona>
 {
     /// <summary>
     /// BD → Domain: Persona → Person
     /// </summary>
-    public override Person ToDomain(Persona dbEntity)
+    public override Party ToDomain(Persona dbEntity)
     {
         if (dbEntity == null) 
             throw new ArgumentNullException(nameof(dbEntity));
 
         try
         {
-            return new Person
+            return new Party
             {
                 // IDs
                 Id = dbEntity.IdPersona ?? string.Empty,
@@ -32,15 +31,6 @@ public class PersonMapper : MapperBase<Person, Persona>
                 Phone = dbEntity.Telefono,
                 Address = dbEntity.Direccion,
 
-                // Capabilities - Determinar desde PersonaServicio o por defecto true para todos
-                IsGenerator = true, // Todos pueden generar
-                IsCollector = true, // Determinar desde servicios habilitados
-                IsTransporter = true,
-                IsReceiver = true,
-                IsDisposer = true,
-                IsTreater = true,
-                IsStorageProvider = true,
-
                 // Audit
                 CreatedAt = dbEntity.FechaCreacion,
                 UpdatedAt = dbEntity.FechaUltimaModificacion,
@@ -52,14 +42,14 @@ public class PersonMapper : MapperBase<Person, Persona>
         catch (Exception ex)
         {
             var str = ex.Message;
-            return new Person();
+            return new Party();
         }
     }
 
     /// <summary>
     /// Domain → BD: Person → Persona
     /// </summary>
-    public override Persona ToDatabase(Person domainEntity)
+    public override Persona ToDatabase(Party domainEntity)
     {
         if (domainEntity == null) 
             throw new ArgumentNullException(nameof(domainEntity));
@@ -96,7 +86,7 @@ public class PersonMapper : MapperBase<Person, Persona>
         };
     }
 
-    public override void UpdateDatabase(Person domainEntity, Persona dbEntity)
+    public override void UpdateDatabase(Party domainEntity, Persona dbEntity)
     {
         if (domainEntity == null || dbEntity == null) return;
 

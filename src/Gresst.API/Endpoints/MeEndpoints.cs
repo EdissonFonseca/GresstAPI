@@ -12,7 +12,7 @@ public static class MeEndpoints
             .WithTags("Me")
             .RequireAuthorization();
 
-        // Full context: profile, account, person, roles, and permissions (one round-trip; preferred for app shell)
+        // Full context: profile, account, party, roles, and permissions (one round-trip; preferred for app shell)
         me.MapGet("", async (IMeService meService, CancellationToken ct) =>
             {
                 var context = await meService.GetCurrentContextAsync(ct);
@@ -60,9 +60,9 @@ public static class MeEndpoints
         me.MapGet("person", async (IMeService meService, CancellationToken ct) =>
             {
                 var context = await meService.GetCurrentContextAsync(ct);
-                if (context == null || context.Person == null)
+                if (context == null || context.Party == null)
                     return Results.NotFound(new { error = "Person not found" });
-                return Results.Ok(context.Person);
+                return Results.Ok(context.Party);
             })
             .WithName("GetMyPerson")
             .WithSummary("Person corresponding to the current user");

@@ -54,7 +54,7 @@ public sealed class ConfigureSwaggerOptions : IConfigureOptions<SwaggerGenOption
                     Title = "Gresst Waste Management API",
                     Version = description.ApiVersion.ToString(),
                     Description = (description.IsDeprecated
-                        ? "⚠️ This API version has been deprecated."
+                        ? "This API version has been deprecated."
                         : "Complete waste management system with traceability, inventory, and certificates.") + urlNote
                 }
             );

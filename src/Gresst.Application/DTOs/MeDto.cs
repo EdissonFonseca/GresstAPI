@@ -9,14 +9,14 @@ public class AccountSummaryDto
     public string Name { get; set; } = string.Empty;
     public string Role { get; set; } = string.Empty;
     public string Status { get; set; } = string.Empty;
-    public string PersonId { get; set; } = string.Empty;
+    public string PartyId { get; set; } = string.Empty;
     public bool IsActive { get; set; }
 }
 
 /// <summary>
 /// Summary of the person associated with the current user/account for "me" context.
 /// </summary>
-public class PersonSummaryDto
+public class PartySummaryDto
 {
     public string Id { get; set; } = string.Empty;
     public string Name { get; set; } = string.Empty;
@@ -40,7 +40,7 @@ public class MeProfileDto
     public string Email { get; set; } = string.Empty;
     public string Status { get; set; } = string.Empty;
     public bool IsActive => Status == "A";
-    public string? PersonId { get; set; }
+    public string? PartyId { get; set; }
     public DateTime? LastAccess { get; set; }
     public DateTime CreatedAt { get; set; }
 }
@@ -57,7 +57,7 @@ public class MeResponseDto
     public AccountSummaryDto? Account { get; set; }
 
     /// <summary>Person corresponding to the current user (user's linked person or account's legal rep).</summary>
-    public PersonSummaryDto? Person { get; set; }
+    public PartySummaryDto? Party { get; set; }
 
     /// <summary>Roles for the current user (same as GET /me/roles).</summary>
     public string[] Roles { get; set; } = Array.Empty<string>();

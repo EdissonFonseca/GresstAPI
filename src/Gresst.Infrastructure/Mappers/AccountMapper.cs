@@ -31,7 +31,7 @@ public class AccountMapper : MapperBase<Account, Cuentum>
             Status = MapStatus(dbEntity.IdEstado),
             
             // Relations - DB IdPersona is string
-            PersonId = dbEntity.IdPersona ?? string.Empty,
+            PartyId = dbEntity.IdPersona ?? string.Empty,
             
             // Audit
             CreatedAt = dbEntity.FechaCreacion,
@@ -61,7 +61,7 @@ public class AccountMapper : MapperBase<Account, Cuentum>
             IdEstado = MapStatusToDb(domainEntity.Status),
             
             // Relations - DB IdPersona is string
-            IdPersona = domainEntity.PersonId ?? string.Empty,
+            IdPersona = domainEntity.PartyId ?? string.Empty,
             IdUsuario = 0, // Usuario is for authentication, not directly from domain
             
             // Technical fields (in database but not in domain)
@@ -91,7 +91,7 @@ public class AccountMapper : MapperBase<Account, Cuentum>
         dbEntity.Nombre = domainEntity.Name;
         dbEntity.IdRol = MapRoleToDb(domainEntity.Role);
         dbEntity.IdEstado = MapStatusToDb(domainEntity.Status);
-        dbEntity.IdPersona = domainEntity.PersonId ?? string.Empty;
+        dbEntity.IdPersona = domainEntity.PartyId ?? string.Empty;
         
         // Audit
         dbEntity.FechaUltimaModificacion = domainEntity.UpdatedAt;

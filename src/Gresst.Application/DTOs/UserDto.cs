@@ -12,8 +12,8 @@ public class UserDto
     public string Email { get; set; } = string.Empty;
     public string Status { get; set; } = string.Empty; // A=Active, I=Inactive
     public bool IsActive => Status == "A";
-    public string? PersonId { get; set; }
-    public string? PersonName { get; set; }
+    public string? PartyId { get; set; }
+    public string? PartyName { get; set; }
     public string[]? Roles { get; set; }
     public DateTime? LastAccess { get; set; }
     public DateTime CreatedAt { get; set; }

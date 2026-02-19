@@ -207,8 +207,8 @@ public class UserService : IUserService
             LastName = usuario.Apellido,
             Email = usuario.Correo,
             Status = usuario.IdEstado,
-            PersonId = usuario.IdPersona,
-            PersonName = usuario.IdPersonaNavigation?.Nombre,
+            PartyId = usuario.IdPersona,
+            PartyName = usuario.IdPersonaNavigation?.Nombre,
             Roles = roles ?? new[] { ApiRoles.DefaultRole },
             CreatedAt = DateTime.UtcNow // Usuario no tiene FechaCreacion
         };
