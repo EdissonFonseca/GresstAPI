@@ -40,6 +40,7 @@ public class PartyService : IPartyService
         {
             Id = party.Id,
             Name = party.Name,
+            Roles = party.Roles,
             IsActive = party.IsActive,
             CreatedAt = party.CreatedAt,
             UpdatedAt = party.UpdatedAt

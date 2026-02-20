@@ -41,6 +41,7 @@ public class PartyRepository : IPartyRepository<Party>
     {
         var accountId = _currentUserService.GetCurrentAccountId();
         var accountIdLong = string.IsNullOrEmpty(accountId) ? (long?)null : long.Parse(accountId);
+
         if (partyId == null)
             partyId = _currentUserService.GetCurrentAccountPersonId();
 
@@ -65,8 +66,6 @@ public class PartyRepository : IPartyRepository<Party>
                     Telefono = pc.Telefono ?? p.Telefono,
                     Telefono2 = pc.Telefono2 ?? p.Telefono2,
                     Correo = pc.Correo ?? p.Correo,
-                    UbicacionMapa = p.UbicacionMapa,
-                    UbicacionLocal = p.UbicacionLocal,
                     Activo = pc.Activo,
                     Licencia = p.Licencia,
                     Cargo = pc.Cargo ?? p.Cargo,
@@ -77,18 +76,19 @@ public class PartyRepository : IPartyRepository<Party>
                     IdUsuarioCreacion = pc.IdUsuarioCreacion,
                     FechaCreacion = pc.FechaCreacion,
                     IdUsuarioUltimaModificacion = pc.IdUsuarioUltimaModificacion,
-                    FechaUltimaModificacion = pc.FechaUltimaModificacion
+                    FechaUltimaModificacion = pc.FechaUltimaModificacion,
+                    Roles = null
                 });
 
         var query2 = _context.PersonaContactos
             .Where(pc => pc.Activo && pc.IdCuenta == accountIdLong && pc.IdContacto == partyId && pc.IdRelacion == "CL")
             .Join(
                 _context.Personas,
-                pc => pc.IdPersona,  
+                pc => pc.IdPersona,
                 p => p.IdPersona,
                 (pc, p) => new PersonaDb
                 {
-                    IdPersona = pc.IdPersona,  
+                    IdPersona = pc.IdPersona,
                     IdCategoria = p.IdCategoria,
                     IdCuenta = pc.IdCuenta,
                     IdTipoIdentificacion = p.IdTipoIdentificacion,
@@ -101,8 +101,6 @@ public class PartyRepository : IPartyRepository<Party>
                     Telefono = pc.Telefono ?? p.Telefono,
                     Telefono2 = pc.Telefono2 ?? p.Telefono2,
                     Correo = pc.Correo ?? p.Correo,
-                    UbicacionMapa = p.UbicacionMapa,
-                    UbicacionLocal = p.UbicacionLocal,
                     Activo = pc.Activo,
                     Licencia = p.Licencia,
                     Cargo = pc.Cargo ?? p.Cargo,
@@ -113,22 +111,25 @@ public class PartyRepository : IPartyRepository<Party>
                     IdUsuarioCreacion = pc.IdUsuarioCreacion,
                     FechaCreacion = pc.FechaCreacion,
                     IdUsuarioUltimaModificacion = pc.IdUsuarioUltimaModificacion,
-                    FechaUltimaModificacion = pc.FechaUltimaModificacion
+                    FechaUltimaModificacion = pc.FechaUltimaModificacion,
+                    Roles = null
                 });
 
         var dbEntities = await query1.Union(query2).ToListAsync(cancellationToken);
+
         var merged = dbEntities
             .GroupBy(p => p.IdPersona)
             .Select(g =>
             {
                 var first = g.First();
                 first.Roles = string.Join(",", g
-                    .SelectMany(p => new[] { p.IdRol, p.IdRol })
+                    .Select(p => p.IdRol)
                     .Where(r => !string.IsNullOrEmpty(r))
                     .Distinct());
                 return first;
             })
             .ToList();
+
         return merged.Select(_mapper.ToDomain).ToList();
     }
     public async Task<Party?> GetByIdAsync(string id, CancellationToken cancellationToken = default)

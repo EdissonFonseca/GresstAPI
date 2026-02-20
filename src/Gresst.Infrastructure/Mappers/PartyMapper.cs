@@ -19,8 +19,6 @@ public class PersonaDb
     public string? Telefono2 { get; set; }
     public string? Correo { get; set; }
     public string? Roles { get; set; }
-    public NetTopologySuite.Geometries.Geometry? UbicacionMapa { get; set; }
-    public NetTopologySuite.Geometries.Geometry? UbicacionLocal { get; set; }
     public bool Activo { get; set; }
     public string? Licencia { get; set; }
     public string? Cargo { get; set; }
@@ -48,8 +46,6 @@ public class PersonaDb
         Telefono = p.Telefono,
         Telefono2 = p.Telefono2,
         Correo = p.Correo,
-        UbicacionMapa = p.UbicacionMapa,
-        UbicacionLocal = p.UbicacionLocal,
         Activo = p.Activo,
         Licencia = p.Licencia,
         Cargo = p.Cargo,
@@ -78,8 +74,6 @@ public class PersonaDb
         Telefono = Telefono,
         Telefono2 = Telefono2,
         Correo = Correo,
-        UbicacionMapa = UbicacionMapa,
-        UbicacionLocal = UbicacionLocal,
         Activo = Activo,
         Licencia = Licencia,
         Cargo = Cargo,

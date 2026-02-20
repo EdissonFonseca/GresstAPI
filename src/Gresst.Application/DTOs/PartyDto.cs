@@ -6,25 +6,11 @@ namespace Gresst.Application.DTOs;
 public class PartyDto
 {
     public string Id { get; set; } = string.Empty;
-    public string AccountId { get; set; } = string.Empty;
+    public string? Name { get; set; }
     
-    // Person (main person: account person, client, provider)
-    public string PersonId { get; set; } = string.Empty;
-    public string? PersonName { get; set; }
-    
-    // Contact (employee, contractor, etc.)
-    public string ContactId { get; set; } = string.Empty;
-    public string? ContactName { get; set; }
-    public string? ContactDocumentNumber { get; set; }
-    
-    // Relationship
-    public string RelationshipType { get; set; } = string.Empty;
-    public string? RelationshipTypeName { get; set; }
-    
-    // Dates
-    public DateTime? StartDate { get; set; }
-    public DateTime? EndDate { get; set; }
-    
+    public string? DocumentNumber { get; set; }
+    public ICollection<PartyRelationType> Roles { get; set; } = new List<PartyRelationType>();
+
     // Status
     public string? Status { get; set; }
     public bool? RequiresReconciliation { get; set; }
@@ -35,7 +21,6 @@ public class PartyDto
     public string? Phone { get; set; }
     public string? Phone2 { get; set; }
     public string? Address { get; set; }
-    public string? Name { get; set; }
     public string? JobTitle { get; set; }
     public string? WebPage { get; set; }
     public string? Signature { get; set; }
