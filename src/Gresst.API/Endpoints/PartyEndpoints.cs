@@ -1,7 +1,7 @@
+using Gresst.Application.Queries;
 using Gresst.Application.Services;
 using Gresst.Domain.Entities;
-using Gresst.Domain.Enums;
-using Microsoft.AspNetCore.Mvc;
+using System.Linq.Expressions;
 
 namespace Gresst.API.Endpoints;
 
@@ -15,38 +15,26 @@ public static class PartyEndpoints
         parties.MapGet("", async (
             IPartyService partyService,
             string? ownerId,
-            string? role,
             bool? isActive,
             string? search,
             int? limit,
             string? next,
             CancellationToken ct) =>
         {
-            PartyRelationType? roleEnum = null;
-            if (!string.IsNullOrEmpty(role) && Enum.TryParse<PartyRelationType>(role, true, out var parsed))
-                roleEnum = parsed;
+            Expression<Func<Party, bool>>? predicate = null;
 
-            var take = Math.Clamp(limit ?? 50, 1, 200);
-            var (items, nextCursor) = await partyService.FindPagedAsync(ownerId, roleEnum, isActive, search, take, next, ct);
-
-            var response = new
+            if (isActive.HasValue)
+                predicate = (predicate ?? (p => true)).AndAlso(p => p.IsActive == isActive.Value);
+            if (!string.IsNullOrEmpty(search))
             {
-                Items = items,
-                Next = nextCursor,
-                Limit = take
-            };
+                var s = search.Trim();
+                predicate = (predicate ?? (p => true)).AndAlso(p => p.Name != null && p.Name.Contains(s, StringComparison.OrdinalIgnoreCase));
+            }
+            var take = Math.Clamp(limit ?? 50, 1, 200);
+            var (items, nextCursor) = await partyService.FindPagedAsync(predicate, ownerId, take, next, ct);
 
-            return Results.Ok(response);
+            return Results.Ok(new { Items = items, Next = nextCursor, Limit = take });
         }).WithName("GetParties");
-
-        parties.MapGet("/{partyId}", async (
-            string partyId,
-            IPartyService partyService,
-            CancellationToken ct) =>
-        {
-            var result = await partyService.GetByIdAsync(partyId, ct);
-            return result is null ? Results.NotFound() : Results.Ok(result);
-        }).WithName("GetPartyById");
 
         return group;
     }

@@ -1,20 +1,19 @@
-using System;
-using System.Linq.Expressions;
+﻿using System.Linq.Expressions;
 
-namespace Gresst.API.Extensions
+namespace Gresst.Application.Queries
 {
-    internal static class ExpressionExtensions
+    public static class ExpressionExtensions
     {
-        public static Expression<Func<T, bool>> AndAlso<T>(this Expression<Func<T, bool>> first, Expression<Func<T, bool>> second)
+        public static Expression<Func<T, bool>> AndAlso<T>(
+            this Expression<Func<T, bool>> first,
+            Expression<Func<T, bool>> second)
         {
             if (first == null) return second;
             if (second == null) return first;
 
             var parameter = Expression.Parameter(typeof(T));
-
             var left = ReplaceParameter(first.Body, first.Parameters[0], parameter);
             var right = ReplaceParameter(second.Body, second.Parameters[0], parameter);
-
             var body = Expression.AndAlso(left, right);
             return Expression.Lambda<Func<T, bool>>(body, parameter);
         }
@@ -26,8 +25,7 @@ namespace Gresst.API.Extensions
 
         private class ParameterReplacer : ExpressionVisitor
         {
-            private readonly ParameterExpression _from;
-            private readonly ParameterExpression _to;
+            private readonly ParameterExpression _from, _to;
 
             public ParameterReplacer(ParameterExpression from, ParameterExpression to)
             {
@@ -36,10 +34,7 @@ namespace Gresst.API.Extensions
             }
 
             protected override Expression VisitParameter(ParameterExpression node)
-            {
-                if (node == _from) return _to;
-                return base.VisitParameter(node);
-            }
+                => node == _from ? _to : base.VisitParameter(node);
         }
     }
 }

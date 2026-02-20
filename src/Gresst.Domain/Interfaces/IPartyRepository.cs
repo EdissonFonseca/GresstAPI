@@ -5,6 +5,7 @@ namespace Gresst.Domain.Interfaces
 {
     public interface IPartyRepository<T> where T : BaseEntity
     {
+        Task<T?> GetByIdAsync(string id, CancellationToken cancellationToken = default);
         Task<IEnumerable<T>> GetAllAsync(string? partyId = null, CancellationToken cancellationToken = default);
         Task<IEnumerable<T>> FindAsync(Expression<Func<T, bool>> predicate, string? partyId = null, CancellationToken cancellationToken = default);
         Task<(IEnumerable<T> Items, string? Next)> FindPagedAsync(Expression<Func<T, bool>> predicate, string? partyId = null, int limit = 50, string? next = null, CancellationToken cancellationToken = default);

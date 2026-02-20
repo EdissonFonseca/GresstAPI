@@ -18,6 +18,7 @@ public class PersonaDb
     public string? Telefono { get; set; }
     public string? Telefono2 { get; set; }
     public string? Correo { get; set; }
+    public string? Roles { get; set; }
     public NetTopologySuite.Geometries.Geometry? UbicacionMapa { get; set; }
     public NetTopologySuite.Geometries.Geometry? UbicacionLocal { get; set; }
     public bool Activo { get; set; }
@@ -123,15 +124,17 @@ public class PartyMapper : MapperBase<Party, PersonaDb>
                 Phone = dbEntity.Telefono,
                 Address = dbEntity.Direccion,
 
-                Roles = new List<PartyRelationType>{
-                    dbEntity.IdRol switch
+                Roles = (dbEntity.Roles ?? dbEntity.IdRol ?? string.Empty)
+                    .Split(',', StringSplitOptions.RemoveEmptyEntries)
+                    .Select(rol => rol.Trim() switch
                     {
                         "CL" => PartyRelationType.Customer,
                         "EM" => PartyRelationType.Employee,
-                        _ => PartyRelationType.Unknown,
-                    }
-                },
-
+                        "PR" => PartyRelationType.Supplier,
+                        _ => PartyRelationType.Unknown, 
+                    })
+                    .Distinct()
+                    .ToList(),
                 // Audit
                 CreatedAt = dbEntity.FechaCreacion,
                 UpdatedAt = dbEntity.FechaUltimaModificacion,
@@ -168,10 +171,15 @@ public class PartyMapper : MapperBase<Party, PersonaDb>
             Correo = domainEntity.Email,
             Telefono = domainEntity.Phone,
             Direccion = domainEntity.Address,
-            
+
             // Defaults for required fields
-            IdRol = "01", // Default role
-            IdTipoPersona = "J", // Jurídica por defecto
+            Roles = string.Join(",", domainEntity.Roles.Select(rol => rol switch
+            {
+                PartyRelationType.Customer => "CL",
+                PartyRelationType.Employee => "EM",
+                PartyRelationType.Supplier => "PR",
+                _ => "UK"
+            })),
             
             // Status
             Activo = domainEntity.IsActive,

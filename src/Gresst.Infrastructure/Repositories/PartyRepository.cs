@@ -41,9 +41,11 @@ public class PartyRepository : IPartyRepository<Party>
     {
         var accountId = _currentUserService.GetCurrentAccountId();
         var accountIdLong = string.IsNullOrEmpty(accountId) ? (long?)null : long.Parse(accountId);
+        if (partyId == null)
+            partyId = _currentUserService.GetCurrentAccountPersonId();
 
-        var dbEntities = await _context.PersonaContactos
-            .Where(pc => pc.Activo && pc.IdCuenta == accountIdLong)
+        var query1 = _context.PersonaContactos
+            .Where(pc => pc.Activo && pc.IdCuenta == accountIdLong && pc.IdPersona == partyId)
             .Join(
                 _context.Personas,
                 pc => pc.IdContacto,
@@ -75,11 +77,59 @@ public class PartyRepository : IPartyRepository<Party>
                     IdUsuarioCreacion = pc.IdUsuarioCreacion,
                     FechaCreacion = pc.FechaCreacion,
                     IdUsuarioUltimaModificacion = pc.IdUsuarioUltimaModificacion,
-                    FechaUltimaModificacion = pc.FechaUltimaModificacion,
-                })
-            .ToListAsync(cancellationToken);
+                    FechaUltimaModificacion = pc.FechaUltimaModificacion
+                });
 
-        return dbEntities.Select(_mapper.ToDomain).ToList();
+        var query2 = _context.PersonaContactos
+            .Where(pc => pc.Activo && pc.IdCuenta == accountIdLong && pc.IdContacto == partyId && pc.IdRelacion == "CL")
+            .Join(
+                _context.Personas,
+                pc => pc.IdPersona,  
+                p => p.IdPersona,
+                (pc, p) => new PersonaDb
+                {
+                    IdPersona = pc.IdPersona,  
+                    IdCategoria = p.IdCategoria,
+                    IdCuenta = pc.IdCuenta,
+                    IdTipoIdentificacion = p.IdTipoIdentificacion,
+                    IdRol = "PR",
+                    IdTipoPersona = p.IdTipoPersona,
+                    Identificacion = p.Identificacion,
+                    DigitoVerificacion = p.DigitoVerificacion,
+                    Nombre = pc.Nombre ?? p.Nombre,
+                    Direccion = pc.Direccion ?? p.Direccion,
+                    Telefono = pc.Telefono ?? p.Telefono,
+                    Telefono2 = pc.Telefono2 ?? p.Telefono2,
+                    Correo = pc.Correo ?? p.Correo,
+                    UbicacionMapa = p.UbicacionMapa,
+                    UbicacionLocal = p.UbicacionLocal,
+                    Activo = pc.Activo,
+                    Licencia = p.Licencia,
+                    Cargo = pc.Cargo ?? p.Cargo,
+                    Pagina = pc.Pagina ?? p.Pagina,
+                    Firma = pc.Firma ?? p.Firma,
+                    IdLocalizacion = pc.IdLocalizacion ?? p.IdLocalizacion,
+                    DatosAdicionales = pc.DatosAdicionales ?? p.DatosAdicionales,
+                    IdUsuarioCreacion = pc.IdUsuarioCreacion,
+                    FechaCreacion = pc.FechaCreacion,
+                    IdUsuarioUltimaModificacion = pc.IdUsuarioUltimaModificacion,
+                    FechaUltimaModificacion = pc.FechaUltimaModificacion
+                });
+
+        var dbEntities = await query1.Union(query2).ToListAsync(cancellationToken);
+        var merged = dbEntities
+            .GroupBy(p => p.IdPersona)
+            .Select(g =>
+            {
+                var first = g.First();
+                first.Roles = string.Join(",", g
+                    .SelectMany(p => new[] { p.IdRol, p.IdRol })
+                    .Where(r => !string.IsNullOrEmpty(r))
+                    .Distinct());
+                return first;
+            })
+            .ToList();
+        return merged.Select(_mapper.ToDomain).ToList();
     }
     public async Task<Party?> GetByIdAsync(string id, CancellationToken cancellationToken = default)
     {
