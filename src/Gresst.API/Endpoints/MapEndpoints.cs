@@ -19,26 +19,8 @@ public static class MapEndpoints
         CustomerEndpoints.Map(api);
         MeEndpoints.Map(api);
         PartyEndpoints.Map(api);
+        SupplierEndpoints.Map(api);
         UserEndpoints.Map(api);
-        //CustomerEndpoints.Map(api);
-        //FacilityEndpoints.Map(api);
-        //WasteEndpoints.Map(api);
-        //ManagementEndpoints.Map(api);
-        //MaterialEndpoints.Map(api);
-        //VehicleEndpoints.Map(api);
-        //PackagingEndpoints.Map(api);
-        //SupplyEndpoints.Map(api);
-        //ServiceEndpoints.Map(api);
-        //WasteClassEndpoints.Map(api);
-        //TreatmentEndpoints.Map(api);
-        //RouteEndpoints.Map(api);
-        //OrderEndpoints.Map(api);
-        //RequestEndpoints.Map(api);
-        //ProcessEndpoints.Map(api);
-        //CollectionsEndpoints.Map(api);
-        //PersonContactEndpoints.Map(api);
-        //ResourceAssignmentEndpoints.Map(api);
-        //InventoryEndpoints.Map(api);
 
         return app;
     }

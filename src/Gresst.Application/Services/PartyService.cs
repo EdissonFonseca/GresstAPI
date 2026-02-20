@@ -40,10 +40,13 @@ public class PartyService : IPartyService
         {
             Id = party.Id,
             Name = party.Name,
-            Roles = party.Roles,
-            IsActive = party.IsActive,
-            CreatedAt = party.CreatedAt,
-            UpdatedAt = party.UpdatedAt
+            Email = party.Email,
+            Phone = party.Phone,
+            Phone2 = party.Phone2,
+            Address = party.Address,
+            DocumentNumber = party.DocumentNumber,
+            LocationId = party.LocationId,
+            IsActive = party.IsActive
         };
     }
 

@@ -175,14 +175,7 @@ public static class ServiceCollectionExtensions
     {
         var mappers = new[]
         {
-            typeof(AccountMapper),
-            typeof(PartyMapper)
-            //typeof(FacilityMapper), typeof(WasteMapper), typeof(ManagementMapper),
-            //typeof(PersonMapper), typeof(MaterialMapper), typeof(PersonMaterialMapper), typeof(FacilityMaterialMapper),
-            //typeof(PersonContactMapper), typeof(PersonMaterialTreatmentMapper), typeof(SupplyMapper), typeof(PersonSupplyMapper),
-            //typeof(PersonWasteClassMapper), typeof(PackagingMapper), typeof(ServiceMapper), typeof(PersonServiceMapper),
-            //typeof(RequestMapper), typeof(RequestItemMapper), 
-            //typeof(WasteClassMapper), typeof(TreatmentMapper), typeof(PersonTreatmentMapper), typeof(RouteMapper), typeof(RouteStopMapper)
+            typeof(AccountMapper), typeof(PartyMapper)
         };
         foreach (var mapper in mappers)
             services.AddScoped(mapper);
@@ -191,30 +184,7 @@ public static class ServiceCollectionExtensions
 
     public static IServiceCollection AddGresstRepositories(this IServiceCollection services)
     {
-        //services.AddScoped<IRepository<Facility>, FacilityRepository>();
-        //services.AddScoped<IRepository<Waste>, WasteRepository>();
-        //services.AddScoped<IRepository<Management>, ManagementRepository>();
-        //services.AddScoped<IPersonRepository, PersonRepository>();
-        //services.AddScoped<IRepository<Party>, PartyRepository>();
-        //services.AddScoped<IRepository<Material>, MaterialRepository>();
-        //services.AddScoped<IRepository<PersonMaterial>, PersonMaterialRepository>();
-        //services.AddScoped<IRepository<FacilityMaterial>, FacilityMaterialRepository>();
-        //services.AddScoped<IPersonContactRepository, PersonContactRepository>();
-        //services.AddScoped<IRepository<PersonContact>>(sp => sp.GetRequiredService<IPersonContactRepository>());
-        //services.AddScoped<IRepository<Packaging>, PackagingRepository>();
-        //services.AddScoped<IRepository<Supply>, SupplyRepository>();
-        //services.AddScoped<IRepository<Service>, ServiceRepository>();
-        //services.AddScoped<IRepository<PersonService>, PersonServiceRepository>();
-        //services.AddScoped<IRepository<WasteClass>, WasteClassRepository>();
-        //services.AddScoped<IRepository<PersonWasteClass>, PersonWasteClassRepository>();
-        //services.AddScoped<IRepository<Treatment>, TreatmentRepository>();
-        //services.AddScoped<IRepository<PersonTreatment>, PersonTreatmentRepository>();
-        //services.AddScoped<IRepository<Gresst.Domain.Entities.Route>, RouteRepository>();
-        //services.AddScoped<IRepository<Gresst.Domain.Entities.RouteStop>, RouteStopRepository>();
-        //services.AddScoped<IRequestRepository, RequestRepository>();
-        //services.AddScoped<Gresst.Application.Services.IRequestFilterDefaults, Gresst.Infrastructure.Services.RequestFilterDefaults>();
         services.AddScoped(typeof(IRepository<>), typeof(GenericInfraRepository<>));
-        //services.AddScoped<IAccountRepository, AccountRepository>();
         services.AddScoped<IRepository<Account>, AccountRepository>();
         services.AddScoped<IPartyRepository<Party>, PartyRepository>();
         services.AddScoped<IUnitOfWork, UnitOfWork>();
@@ -224,30 +194,10 @@ public static class ServiceCollectionExtensions
     public static IServiceCollection AddGresstApplicationServices(this IServiceCollection services)
     {
         services.AddScoped<IAccountRegistrationService, AccountRegistrationService>();
-        services.AddScoped<Gresst.Application.Services.IAuthorizationService, AuthorizationService>();
-        //services.AddScoped<IDataSegmentationService, DataSegmentationService>();
-        //services.AddScoped<IFacilityService, FacilityService>();
-        //services.AddScoped<IWasteService, WasteService>();
-        //services.AddScoped<Gresst.Application.Services.IWasteGenerationService, Gresst.Infrastructure.Services.WasteGenerationService>();
-        //services.AddScoped<IManagementService, ManagementService>();
-        //services.AddScoped<IBalanceService, BalanceService>();
-        //services.AddScoped<IMaterialService, MaterialService>();
-        //services.AddScoped<ICustomerService, CustomerService>();
-        //services.AddScoped<IProviderService, ProviderService>();
-        //services.AddScoped<IPersonContactService, PersonContactService>();
-        //services.AddScoped<IVehicleService, VehicleService>();
-        //services.AddScoped<IPackagingService, PackagingService>();
-        //services.AddScoped<ISupplyService, SupplyService>();
-        //services.AddScoped<IServiceService, ServiceService>();
-        //services.AddScoped<IWasteClassService, WasteClassService>();
-        //services.AddScoped<ITreatmentService, TreatmentService>();
-        //services.AddScoped<IRouteService, RouteService>();
+        services.AddScoped<IAuthorizationService, AuthorizationService>();
         services.AddScoped<IMeService, MeService>();
         services.AddScoped<IPartyService, PartyService>();
         services.AddScoped<IUserService, UserService>();
-        //services.AddScoped<IRequestService, RequestService>();
-        //services.AddScoped<IOrderService, OrderService>();
-        //services.AddScoped<IProcessService, ProcessService>();
         return services;
     }
 
