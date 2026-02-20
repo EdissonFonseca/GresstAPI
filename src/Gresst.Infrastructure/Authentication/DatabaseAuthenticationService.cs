@@ -1,7 +1,6 @@
 using Gresst.Application.Constants;
 using Gresst.Application.DTOs;
 using Gresst.Infrastructure.Authentication.Models;
-using Gresst.Infrastructure.Common;
 using Gresst.Infrastructure.Data;
 using Gresst.Infrastructure.Data.Entities;
 using Microsoft.EntityFrameworkCore;
@@ -74,8 +73,8 @@ public class DatabaseAuthenticationService : IAuthenticationService
                 Success = true,
                 AccessToken = accessToken,
                 RefreshToken = refreshToken,
-                UserId = IdConversion.ToStringFromLong(usuario.IdUsuario),
-                AccountId = IdConversion.ToStringFromLong(usuario.IdCuenta),
+                UserId = usuario.IdUsuario.ToString(),
+                AccountId = usuario.IdCuenta.ToString(),
                 AccountName = usuario.IdCuentaNavigation?.Nombre ?? string.Empty,
                 AccountPersonId = usuario.IdCuentaNavigation?.IdPersona ?? string.Empty,
                 Name = fullName,
@@ -159,7 +158,7 @@ public class DatabaseAuthenticationService : IAuthenticationService
             return null;
 
         var accountId = usuario.IdCuenta.ToString();
-        var userId = IdConversion.ToStringFromLong(usuario.IdUsuario);
+        var userId = usuario.IdUsuario.ToString();
         var accountPersonId = usuario.IdCuentaNavigation?.IdPersona ?? string.Empty;
         var roles = ParseRoles(usuario.DatosAdicionales);
         var scopes = ParseScopesFromConfiguracion(usuario.DatosAdicionales);
@@ -310,8 +309,8 @@ public class DatabaseAuthenticationService : IAuthenticationService
                 Success = true,
                 AccessToken = newAccessToken,
                 RefreshToken = newRefreshToken,
-                UserId = IdConversion.ToStringFromLong(usuario.IdUsuario),
-                AccountId = IdConversion.ToStringFromLong(usuario.IdCuenta),
+                UserId = usuario.IdUsuario.ToString(),
+                AccountId = usuario.IdCuenta.ToString(),
                 AccountName = usuario.IdCuentaNavigation?.Nombre ?? string.Empty,
                 AccountPersonId = usuario.IdCuentaNavigation?.IdPersona ?? string.Empty,
                 Name = fullName,
@@ -363,7 +362,7 @@ public class DatabaseAuthenticationService : IAuthenticationService
     {
         try
         {
-            var userIdLong = IdConversion.ToLongFromString(userId);
+            var userIdLong = long.TryParse(userId, out var value) ? value : 0;
 
             if (!string.IsNullOrEmpty(refreshToken))
             {
@@ -405,11 +404,11 @@ public class DatabaseAuthenticationService : IAuthenticationService
 
     public async Task<string> GetAccountIdForUserAsync(string userId, CancellationToken cancellationToken = default)
     {
-        var userIdLong = IdConversion.ToLongFromString(userId);
+        var userIdLong = long.TryParse(userId, out var value) ? value : 0;
         var usuario = await _context.Usuarios.FindAsync(new object[] { userIdLong }, cancellationToken);
         
         return usuario != null 
-            ? IdConversion.ToStringFromLong(usuario.IdCuenta) 
+            ? usuario.IdCuenta.ToString() 
             : string.Empty;
     }
 
@@ -422,7 +421,7 @@ public class DatabaseAuthenticationService : IAuthenticationService
 
         return new UserDto
         {
-            Id = IdConversion.ToStringFromLong(user.IdUsuario),
+            Id = user.IdUsuario.ToString(),
             AccountId = user.IdCuenta.ToString(),
             Name = user.Nombre,
             Email = user.Correo,
@@ -432,7 +431,7 @@ public class DatabaseAuthenticationService : IAuthenticationService
 
     public async Task<UserDto?> GetUserByIdAsync(string userId, CancellationToken cancellationToken = default)
     {
-        var userIdLong = IdConversion.ToLongFromString(userId);
+        var userIdLong = long.TryParse(userId, out var value) ? value : 0;
         var user = await _context.Usuarios.FirstOrDefaultAsync(u => u.IdUsuario == userIdLong, cancellationToken);
 
         if (user == null)
@@ -440,7 +439,7 @@ public class DatabaseAuthenticationService : IAuthenticationService
 
         return new UserDto
         {
-            Id = IdConversion.ToStringFromLong(user.IdUsuario),
+            Id = user.IdUsuario.ToString(),
             AccountId = user.IdCuenta.ToString(),
             Name = user.Nombre,
             Email = user.Correo,
@@ -450,7 +449,7 @@ public class DatabaseAuthenticationService : IAuthenticationService
 
     public async Task<bool> ChangeNameAsync(string userId, string name, CancellationToken cancellationToken = default)
     {
-        var userIdLong = IdConversion.ToLongFromString(userId);
+        var userIdLong = long.TryParse(userId, out var value) ? value : 0;
         var user = await _context.Usuarios.FirstOrDefaultAsync(u => u.IdUsuario == userIdLong, cancellationToken);
 
         if (user == null)
@@ -464,7 +463,7 @@ public class DatabaseAuthenticationService : IAuthenticationService
 
     public async Task<bool> ChangePasswordAsync(string userId, string password, CancellationToken cancellationToken = default)
     {
-        var userIdLong = IdConversion.ToLongFromString(userId);
+        var userIdLong = long.TryParse(userId, out var value) ? value : 0;
         var user = await _context.Usuarios.FirstOrDefaultAsync(u => u.IdUsuario == userIdLong, cancellationToken);
 
         if (user == null)

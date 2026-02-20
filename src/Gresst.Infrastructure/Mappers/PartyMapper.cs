@@ -123,6 +123,15 @@ public class PartyMapper : MapperBase<Party, PersonaDb>
                 Phone = dbEntity.Telefono,
                 Address = dbEntity.Direccion,
 
+                Roles = new List<PartyRelationType>{
+                    dbEntity.IdRol switch
+                    {
+                        "CL" => PartyRelationType.Customer,
+                        "EM" => PartyRelationType.Employee,
+                        _ => PartyRelationType.Unknown,
+                    }
+                },
+
                 // Audit
                 CreatedAt = dbEntity.FechaCreacion,
                 UpdatedAt = dbEntity.FechaUltimaModificacion,

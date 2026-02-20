@@ -1,10 +1,13 @@
+using Gresst.Domain.Common;
 using Gresst.Domain.Identity;
 using Gresst.Domain.Interfaces;
-using Gresst.Infrastructure.Common;
 using Gresst.Infrastructure.Data;
 using Gresst.Infrastructure.Mappers;
 using Microsoft.EntityFrameworkCore;
+using System.Globalization;
 using System.Linq.Expressions;
+using System.Text;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace Gresst.Infrastructure.Repositories;
 
@@ -12,11 +15,23 @@ namespace Gresst.Infrastructure.Repositories;
 /// Repository for Account with automatic mapping to/from Cuentum
 /// Follows the same pattern as FacilityRepository
 /// </summary>
-public class AccountRepository : IAccountRepository
+public class AccountRepository : IRepository<Account>
 {
     private readonly InfrastructureDbContext _context;
     private readonly AccountMapper _mapper;
     private readonly ICurrentUserService _currentUserService;
+
+    private static string EncodeCreatedAtCursor(DateTime createdAt)
+    {
+        return Convert.ToBase64String(
+            Encoding.UTF8.GetBytes(createdAt.ToString("O")));
+    }
+
+    private static DateTime DecodeCreatedAtCursor(string cursor)
+    {
+        var raw = Encoding.UTF8.GetString(Convert.FromBase64String(cursor));
+        return DateTime.Parse(raw, null, DateTimeStyles.RoundtripKind);
+    }
 
     public AccountRepository(
         InfrastructureDbContext context,
@@ -33,7 +48,7 @@ public class AccountRepository : IAccountRepository
     {
         if (string.IsNullOrEmpty(id))
             return null;
-        var idLong = IdConversion.ToLongFromString(id);
+        var idLong = long.TryParse(id, out var value) ? value: 0;
         if (idLong == 0)
             return null;
         var dbEntity = await _context.Cuenta
@@ -61,6 +76,30 @@ public class AccountRepository : IAccountRepository
         return all.Where(predicate.Compile());
     }
 
+    public async Task<(IEnumerable<Account> Items, string? Next)> FindPagedAsync(Expression<Func<Account, bool>>? predicate, int limit = 50, string? next = null, CancellationToken cancellationToken = default)
+    {
+        var query = _context.Cuenta
+            .Include(c => c.IdPersonaNavigation)
+            .Include(c => c.IdUsuarioNavigation)
+            .Where(c => c.IdEstado != "I");
+
+        if (!string.IsNullOrEmpty(next))
+        {
+            var createdAt = DecodeCreatedAtCursor(next);
+            query = query.Where(e => e.FechaCreacion < createdAt);
+        }
+
+        query = query.OrderByDescending(e => e.FechaCreacion);
+
+        var dbEntities = await query.Take(limit + 1).ToListAsync(cancellationToken);
+
+        var hasMore = dbEntities.Count > limit;
+        if (hasMore) dbEntities = dbEntities.Take(limit).ToList();
+
+        var nextCursor = hasMore ? EncodeCreatedAtCursor(dbEntities.Last().FechaCreacion) : null;
+
+        return (dbEntities.Select(_mapper.ToDomain).ToList(), nextCursor);
+    }
     public async Task<Account> AddAsync(Account entity, CancellationToken cancellationToken = default)
     {
         var dbEntity = _mapper.ToDatabase(entity);
@@ -71,13 +110,13 @@ public class AccountRepository : IAccountRepository
         
         await _context.Cuenta.AddAsync(dbEntity, cancellationToken);
         
-        entity.Id = IdConversion.ToStringFromLong(dbEntity.IdCuenta);
+        entity.Id = dbEntity.IdCuenta.ToString();
         return entity;
     }
 
     public Task UpdateAsync(Account entity, CancellationToken cancellationToken = default)
     {
-        var idLong = IdConversion.ToLongFromString(entity.Id);
+        var idLong = long.TryParse(entity.Id, out var value) ? value: 0;
         var dbEntity = _context.Cuenta.Find(idLong);
         
         if (dbEntity == null)
@@ -94,7 +133,7 @@ public class AccountRepository : IAccountRepository
 
     public Task DeleteAsync(Account entity, CancellationToken cancellationToken = default)
     {
-        var idLong = IdConversion.ToLongFromString(entity.Id);
+        var idLong = long.TryParse(entity.Id, out var value) ? value: 0;
         var dbEntity = _context.Cuenta.Find(idLong);
         
         if (dbEntity == null)
@@ -122,34 +161,10 @@ public class AccountRepository : IAccountRepository
         return all.Count(predicate.Compile());
     }
 
-    // Métodos específicos de IAccountRepository
-    public async Task<Account?> GetByUserIdAsync(string userId, CancellationToken cancellationToken = default)
-    {
-        var userIdLong = IdConversion.ToLongFromString(userId);
-        
-        var dbEntity = await _context.Cuenta
-            .Include(c => c.IdPersonaNavigation)
-            .Include(c => c.IdUsuarioNavigation)
-            .FirstOrDefaultAsync(c => c.IdUsuario == userIdLong, cancellationToken);
-        
-        return dbEntity != null ? _mapper.ToDomain(dbEntity) : null;
-    }
-
-    public async Task<Account?> GetByCodeAsync(string code, CancellationToken cancellationToken = default)
-    {
-        // Si tienes un campo código en Cuentum
-        var dbEntity = await _context.Cuenta
-            .Include(c => c.IdPersonaNavigation)
-            .Include(c => c.IdUsuarioNavigation)
-            .FirstOrDefaultAsync(c => c.Nombre == code, cancellationToken);
-        
-        return dbEntity != null ? _mapper.ToDomain(dbEntity) : null;
-    }
-
     private long GetCurrentUserIdAsLong()
     {
         var userId = _currentUserService.GetCurrentUserId();
-        return IdConversion.ToLongFromString(userId);
+        return long.TryParse(userId, out var value) ? value : 0;
     }
 }
 

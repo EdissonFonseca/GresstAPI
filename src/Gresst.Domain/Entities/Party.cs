@@ -11,7 +11,7 @@ public class Party : BaseEntity
     public string? Phone2 { get; set; }
     public string? Address { get; set; }
     public string? LocationId { get; set; }
-    public PartyRole Role { get; set; }
+    public ICollection<PartyRelationType> Roles { get; set; } = new List<PartyRelationType>();
     public PartyType Type { get; set; }
     public ICollection<Contact> Contacts { get; set; } = new List<Contact>();
     public ICollection<Facility> Facilities { get; set; } = new List<Facility>();

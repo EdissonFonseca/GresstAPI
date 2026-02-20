@@ -11,13 +11,13 @@ namespace Gresst.Application.Services;
 public class MeService : IMeService
 {
     private readonly IUserService _userService;
-    private readonly IAccountRepository _accountRepository;
+    private readonly IRepository<Account> _accountRepository;
     private readonly IRepository<Party> _partyRepository;
     private readonly IAuthorizationService _authorizationService;
 
     public MeService(
         IUserService userService,
-        IAccountRepository accountRepository,
+        IRepository<Account> accountRepository,
         IRepository<Party> partyRepository,
         IAuthorizationService authorizationService)
     {

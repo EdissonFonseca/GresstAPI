@@ -2,7 +2,6 @@ using Gresst.Application.Constants;
 using Gresst.Application.DTOs;
 using Gresst.Application.Services;
 using Gresst.Domain.Interfaces;
-using Gresst.Infrastructure.Common;
 using Gresst.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using System.Data;
@@ -28,7 +27,7 @@ public class UserService : IUserService
 
     public async Task<UserDto?> GetUserByIdAsync(string userId, CancellationToken cancellationToken = default)
     {
-        var userIdLong = IdConversion.ToLongFromString(userId);
+        var userIdLong = long.TryParse(userId, out var value) ? value : 0;
 
         var usuario = await _context.Usuarios
             .Include(u => u.IdPersonaNavigation)
@@ -88,7 +87,7 @@ public class UserService : IUserService
 
     public async Task<IEnumerable<UserDto>> GetUsersByAccountAsync(string accountId, CancellationToken cancellationToken = default)
     {
-        var accountIdLong = IdConversion.ToLongFromString(accountId);
+        var accountIdLong = long.TryParse(accountId, out var value) ? value : 0;
         
         var usuarios = await _context.Usuarios
             .Include(u => u.IdPersonaNavigation)
@@ -131,7 +130,7 @@ public class UserService : IUserService
 
     public async Task<UserDto?> UpdateUserProfileAsync(string userId, UpdateUserProfileDto dto, CancellationToken cancellationToken = default)
     {
-        var userIdLong = IdConversion.ToLongFromString(userId);
+        var userIdLong = long.TryParse(userId, out var value) ? value : 0;
         
         var usuario = await _context.Usuarios.FindAsync(new object[] { userIdLong }, cancellationToken);
         if (usuario == null)
@@ -151,7 +150,7 @@ public class UserService : IUserService
         if (dto.NewPassword != dto.ConfirmPassword)
             return false;
 
-        var userIdLong = IdConversion.ToLongFromString(userId);
+        var userIdLong = long.TryParse(userId, out var value) ? value : 0;
         var usuario = await _context.Usuarios.FindAsync(new object[] { userIdLong }, cancellationToken);
         
         if (usuario == null)
@@ -170,7 +169,7 @@ public class UserService : IUserService
 
     public async Task<bool> DeactivateUserAsync(string userId, CancellationToken cancellationToken = default)
     {
-        var userIdLong = IdConversion.ToLongFromString(userId);
+        var userIdLong = long.TryParse(userId, out var value) ? value : 0;
         var usuario = await _context.Usuarios.FindAsync(new object[] { userIdLong }, cancellationToken);
         
         if (usuario == null)
@@ -184,7 +183,7 @@ public class UserService : IUserService
 
     public async Task<bool> ActivateUserAsync(string userId, CancellationToken cancellationToken = default)
     {
-        var userIdLong = IdConversion.ToLongFromString(userId);
+        var userIdLong = long.TryParse(userId, out var value) ? value : 0;
         var usuario = await _context.Usuarios.FindAsync(new object[] { userIdLong }, cancellationToken);
         
         if (usuario == null)
@@ -201,7 +200,7 @@ public class UserService : IUserService
     {
         return new UserDto
         {
-            Id = IdConversion.ToStringFromLong(usuario.IdUsuario),
+            Id = usuario.IdUsuario.ToString(),
             AccountId = usuario.IdCuenta.ToString(),
             Name = usuario.Nombre,
             LastName = usuario.Apellido,

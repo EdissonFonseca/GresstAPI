@@ -1,7 +1,6 @@
 using Gresst.Domain.Common;
 using Gresst.Domain.Interfaces;
 using Gresst.Infrastructure.Data;
-using Microsoft.EntityFrameworkCore;
 using System.Linq.Expressions;
 
 namespace Gresst.Infrastructure.Repositories;
@@ -37,6 +36,16 @@ public class GenericInfraRepository<T> : IRepository<T> where T : BaseEntity
     {
         await Task.CompletedTask;
         return new List<T>();
+    }
+
+    public virtual async Task<(IEnumerable<T> Items, string? Next)> FindPagedAsync(
+        Expression<Func<T, bool>>? predicate,
+        int limit = 50,
+        string? next = null,
+        CancellationToken cancellationToken = default)
+    {
+        await Task.CompletedTask;
+        return (new List<T>(), null);
     }
 
     public virtual async Task<T> AddAsync(T entity, CancellationToken cancellationToken = default)

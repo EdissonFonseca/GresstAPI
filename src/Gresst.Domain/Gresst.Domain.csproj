@@ -14,7 +14,6 @@
     <Compile Remove="Common\WasteLifecyclePhase.cs" />
     <Compile Remove="Common\WasteStateGroups.cs" />
     <Compile Remove="Entities\Person.cs" />
-    <Compile Remove="Interfaces\IPartyRepository.cs" />
     <Compile Remove="Interfaces\IPersonContactRepository.cs" />
   </ItemGroup>
 

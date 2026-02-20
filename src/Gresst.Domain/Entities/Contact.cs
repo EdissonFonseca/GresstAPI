@@ -9,7 +9,7 @@ namespace Gresst.Domain.Entities;
 /// </summary>
 public class Contact : Party
 {
-    public PartyRole? ContactRole { get; set; }
+    public PartyRelationType? ContactRole { get; set; }
     
     /// <summary>
     /// Start date of the relationship

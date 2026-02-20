@@ -15,7 +15,7 @@ public static class CustomerEndpoints
             IPartyService partyService,
             CancellationToken ct) =>
         {
-            var result = await partyService.FindAsync(party => party.Role == PartyRole.Customer, ct);
+            var result = await partyService.FindAsync(party => party.Roles.Contains(PartyRelationType.Customer), ct);
             return Results.Ok(result);
         }).WithName("GetCustomers");
 

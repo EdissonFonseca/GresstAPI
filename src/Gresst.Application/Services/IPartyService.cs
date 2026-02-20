@@ -12,6 +12,16 @@ public interface IPartyService
     // FindAsync permite filtrar por cualquier criterio, pero el repositorio se encargará de aplicar el filtro de usuario actual
     Task<IEnumerable<PartyDto>> FindAsync(Expression<Func<Party, bool>> predicate, CancellationToken cancellationToken = default);
 
+    // Paged find with cursor-based pagination and simple filters
+    Task<(IEnumerable<PartyDto> Items, string? Next)> FindPagedAsync(
+        string? ownerId = null,
+        PartyRelationType? role = null,
+        bool? isActive = null,
+        string? search = null,
+        int limit = 50,
+        string? next = null,
+        CancellationToken cancellationToken = default);
+
     // GetById verifica que el usuario tenga acceso
     Task<PartyDto?> GetByIdAsync(string id, CancellationToken cancellationToken = default);
    

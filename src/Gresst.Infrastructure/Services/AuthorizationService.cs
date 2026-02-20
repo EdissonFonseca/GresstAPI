@@ -1,7 +1,6 @@
 using Gresst.Application.DTOs;
 using Gresst.Application.Services;
 using Gresst.Domain.Interfaces;
-using Gresst.Infrastructure.Common;
 using Gresst.Infrastructure.Data;
 using Gresst.Infrastructure.Data.Entities;
 using Microsoft.EntityFrameworkCore;
@@ -47,7 +46,7 @@ public class AuthorizationService : IAuthorizationService
     // User permissions
     public async Task<IEnumerable<UserPermissionDto>> GetUserPermissionsAsync(string userId, CancellationToken cancellationToken = default)
     {
-        var userIdLong = IdConversion.ToLongFromString(userId);
+        var userIdLong = long.TryParse(userId, out var value) ? value : 0;
         
         var permissions = await _context.UsuarioOpcions
             .Include(uo => uo.IdOpcionNavigation)
@@ -59,7 +58,7 @@ public class AuthorizationService : IAuthorizationService
 
     public async Task<UserPermissionDto?> GetUserPermissionAsync(string userId, string optionId, CancellationToken cancellationToken = default)
     {
-        var userIdLong = IdConversion.ToLongFromString(userId);
+        var userIdLong = long.TryParse(userId, out var value) ? value : 0;
         
         var permission = await _context.UsuarioOpcions
             .Include(uo => uo.IdOpcionNavigation)
@@ -70,7 +69,7 @@ public class AuthorizationService : IAuthorizationService
 
     public async Task<bool> AssignPermissionAsync(AssignPermissionDto dto, CancellationToken cancellationToken = default)
     {
-        var userIdLong = IdConversion.ToLongFromString(dto.UserId);
+        var userIdLong = long.TryParse(dto.UserId, out var value) ? value : 0;
         
         // Check if already exists
         var existing = await _context.UsuarioOpcions
@@ -93,7 +92,7 @@ public class AuthorizationService : IAuthorizationService
                 Habilitado = dto.IsEnabled,
                 Permisos = PermissionHelper.ToString(dto.Permissions),
                 Settings = dto.Settings,
-                IdUsuarioCreacion = IdConversion.ToLongFromString(_currentUserService.GetCurrentUserId()),
+                IdUsuarioCreacion = userIdLong,
                 FechaCreacion = DateTime.UtcNow
             };
 
@@ -106,7 +105,7 @@ public class AuthorizationService : IAuthorizationService
 
     public async Task<bool> RevokePermissionAsync(string userId, string optionId, CancellationToken cancellationToken = default)
     {
-        var userIdLong = IdConversion.ToLongFromString(userId);
+        var userIdLong = long.TryParse(userId, out var value) ? value : 0;
         
         var permission = await _context.UsuarioOpcions
             .FirstOrDefaultAsync(uo => uo.IdUsuario == userIdLong && uo.IdOpcion == optionId, cancellationToken);
@@ -121,7 +120,7 @@ public class AuthorizationService : IAuthorizationService
 
     public async Task<bool> UpdatePermissionAsync(string userId, string optionId, AssignPermissionDto dto, CancellationToken cancellationToken = default)
     {
-        var userIdLong = IdConversion.ToLongFromString(userId);
+        var userIdLong = long.TryParse(userId, out var value) ? value : 0;
         
         var permission = await _context.UsuarioOpcions
             .FirstOrDefaultAsync(uo => uo.IdUsuario == userIdLong && uo.IdOpcion == optionId, cancellationToken);
@@ -140,7 +139,7 @@ public class AuthorizationService : IAuthorizationService
     // Permission checking
     public async Task<bool> UserHasPermissionAsync(string userId, string optionId, PermissionFlags permission, CancellationToken cancellationToken = default)
     {
-        var userIdLong = IdConversion.ToLongFromString(userId);
+        var userIdLong = long.TryParse(userId, out var value) ? value : 0;
         
         var userPermission = await _context.UsuarioOpcions
             .FirstOrDefaultAsync(uo => uo.IdUsuario == userIdLong && uo.IdOpcion == optionId && uo.Habilitado, cancellationToken);

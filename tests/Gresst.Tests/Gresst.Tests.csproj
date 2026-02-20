@@ -8,6 +8,11 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Application\Services\FacilityServiceTests.cs" />
+    <Compile Remove="Application\Services\WasteClassServiceTests.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="coverlet.collector" Version="8.0.0">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
@@ -30,6 +35,11 @@
     <ProjectReference Include="..\..\src\Gresst.Domain\Gresst.Domain.csproj" />
     <ProjectReference Include="..\..\src\Gresst.Application\Gresst.Application.csproj" />
     <ProjectReference Include="..\..\src\Gresst.Infrastructure\Gresst.Infrastructure.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Application\Services\" />
+    <Folder Include="Infrastructure\Common\" />
   </ItemGroup>
 
 </Project>

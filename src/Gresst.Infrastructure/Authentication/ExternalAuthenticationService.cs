@@ -1,7 +1,6 @@
 using Gresst.Application.Constants;
 using Gresst.Application.DTOs;
 using Gresst.Infrastructure.Authentication.Models;
-using Gresst.Infrastructure.Common;
 using Gresst.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -82,8 +81,8 @@ public class ExternalAuthenticationService : IAuthenticationService
                 Success = true,
                 AccessToken = tokenResponse.AccessToken,
                 RefreshToken = tokenResponse.RefreshToken, // External provider refresh token
-                UserId = IdConversion.ToStringFromLong(localUser.IdUsuario),
-                AccountId = IdConversion.ToStringFromLong(localUser.IdCuenta),
+                UserId = localUser.IdUsuario.ToString(),
+                AccountId = localUser.IdCuenta.ToString(),
                 AccountName = account?.Nombre ?? string.Empty,
                 Name = fullName,
                 Email = localUser.Correo,
@@ -150,8 +149,8 @@ public class ExternalAuthenticationService : IAuthenticationService
             {
                 Success = true,
                 AccessToken = token,
-                UserId = IdConversion.ToStringFromLong(localUser.IdUsuario),
-                AccountId = IdConversion.ToStringFromLong(localUser.IdCuenta),
+                UserId = localUser.IdUsuario.ToString(),
+                AccountId = localUser.IdCuenta.ToString(),
                 Name = fullName,
                 Email = localUser.Correo,
                 AccessTokenType = "Bearer",
@@ -188,11 +187,11 @@ public class ExternalAuthenticationService : IAuthenticationService
 
     public async Task<string> GetAccountIdForUserAsync(string userId, CancellationToken cancellationToken = default)
     {
-        var userIdLong = IdConversion.ToLongFromString(userId);
+        var userIdLong = long.TryParse(userId, out var value) ? value : 0;
         var usuario = await _context.Usuarios.FindAsync(new object[] { userIdLong }, cancellationToken);
         
         return usuario != null 
-            ? IdConversion.ToStringFromLong(usuario.IdCuenta) 
+            ? usuario.IdCuenta.ToString() 
             : string.Empty;
     }
 

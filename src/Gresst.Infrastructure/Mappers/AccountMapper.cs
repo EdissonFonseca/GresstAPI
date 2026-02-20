@@ -1,6 +1,5 @@
 using Gresst.Domain.Enums;
 using Gresst.Domain.Identity;
-using Gresst.Infrastructure.Common;
 using Gresst.Infrastructure.Data.Entities;
 
 namespace Gresst.Infrastructure.Mappers;
@@ -22,8 +21,8 @@ public class AccountMapper : MapperBase<Account, Cuentum>
         return new Account
         {
             // IDs - Domain uses string for BaseEntity.Id/AccountId
-            Id = IdConversion.ToStringFromLong(dbEntity.IdCuenta),
-            AccountId = IdConversion.ToStringFromLong(dbEntity.IdCuenta),
+            Id = dbEntity.IdCuenta.ToString(),
+            AccountId = dbEntity.IdCuenta.ToString(),
             
             // Basic Info
             Name = dbEntity.Nombre,
@@ -53,7 +52,7 @@ public class AccountMapper : MapperBase<Account, Cuentum>
         return new Cuentum
         {
             // IDs - Domain Id is string, BD uses long
-            IdCuenta = IdConversion.ToLongFromString(domainEntity.Id),
+            IdCuenta = long.TryParse(domainEntity.Id, out var value) ? value : 0,
             
             // Basic Info
             Nombre = domainEntity.Name,

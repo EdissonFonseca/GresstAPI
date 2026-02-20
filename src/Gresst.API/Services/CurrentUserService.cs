@@ -1,6 +1,4 @@
 using Gresst.Domain.Interfaces;
-using Gresst.Infrastructure.Common;
-using Microsoft.Identity.Client;
 using System.Security.Claims;
 
 namespace Gresst.API.Services;

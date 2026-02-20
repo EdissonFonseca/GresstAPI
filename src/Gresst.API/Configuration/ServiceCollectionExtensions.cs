@@ -2,6 +2,7 @@ using Asp.Versioning;
 using Gresst.API.Services;
 using Gresst.Application.Services;
 using Gresst.Domain.Entities;
+using Gresst.Domain.Identity;
 using Gresst.Domain.Interfaces;
 using Gresst.Infrastructure.Authentication;
 using Gresst.Infrastructure.Data;
@@ -190,12 +191,11 @@ public static class ServiceCollectionExtensions
 
     public static IServiceCollection AddGresstRepositories(this IServiceCollection services)
     {
-        services.AddScoped<IAccountRepository, AccountRepository>();
         //services.AddScoped<IRepository<Facility>, FacilityRepository>();
         //services.AddScoped<IRepository<Waste>, WasteRepository>();
         //services.AddScoped<IRepository<Management>, ManagementRepository>();
         //services.AddScoped<IPersonRepository, PersonRepository>();
-        services.AddScoped<IRepository<Party>, PartyRepository>();
+        //services.AddScoped<IRepository<Party>, PartyRepository>();
         //services.AddScoped<IRepository<Material>, MaterialRepository>();
         //services.AddScoped<IRepository<PersonMaterial>, PersonMaterialRepository>();
         //services.AddScoped<IRepository<FacilityMaterial>, FacilityMaterialRepository>();
@@ -214,6 +214,9 @@ public static class ServiceCollectionExtensions
         //services.AddScoped<IRequestRepository, RequestRepository>();
         //services.AddScoped<Gresst.Application.Services.IRequestFilterDefaults, Gresst.Infrastructure.Services.RequestFilterDefaults>();
         services.AddScoped(typeof(IRepository<>), typeof(GenericInfraRepository<>));
+        //services.AddScoped<IAccountRepository, AccountRepository>();
+        services.AddScoped<IRepository<Account>, AccountRepository>();
+        services.AddScoped<IPartyRepository<Party>, PartyRepository>();
         services.AddScoped<IUnitOfWork, UnitOfWork>();
         return services;
     }
