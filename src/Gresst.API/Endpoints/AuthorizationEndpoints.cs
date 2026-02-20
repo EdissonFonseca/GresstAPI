@@ -1,6 +1,6 @@
 using Gresst.Application.Constants;
 using Gresst.Application.DTOs;
-using Gresst.Application.Services;
+using Gresst.Application.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Gresst.API.Endpoints;
@@ -13,14 +13,14 @@ public static class AuthorizationEndpoints
             .WithTags("Authorization")
             .RequireAuthorization();
 
-        authz.MapGet("options", async (Gresst.Application.Services.IAuthorizationService authzService, CancellationToken ct) =>
+        authz.MapGet("options", async (IAuthorizationService authzService, CancellationToken ct) =>
             {
                 var options = await authzService.GetAllOptionsAsync(ct);
                 return Results.Ok(options);
             })
             .WithName("GetAllOptions");
 
-        authz.MapGet("options/{optionId}", async (string optionId, Gresst.Application.Services.IAuthorizationService authzService, CancellationToken ct) =>
+        authz.MapGet("options/{optionId}", async (string optionId, IAuthorizationService authzService, CancellationToken ct) =>
             {
                 var option = await authzService.GetOptionByIdAsync(optionId, ct);
                 if (option == null)
@@ -29,14 +29,14 @@ public static class AuthorizationEndpoints
             })
             .WithName("GetOption");
 
-        authz.MapGet("options/{parentId}/children", async (string parentId, Gresst.Application.Services.IAuthorizationService authzService, CancellationToken ct) =>
+        authz.MapGet("options/{parentId}/children", async (string parentId, IAuthorizationService authzService, CancellationToken ct) =>
             {
                 var options = await authzService.GetOptionsByParentAsync(parentId, ct);
                 return Results.Ok(options);
             })
             .WithName("GetChildOptions");
 
-        authz.MapPost("assign", async ([FromBody] AssignPermissionDto dto, Gresst.Application.Services.IAuthorizationService authzService, CancellationToken ct) =>
+        authz.MapPost("assign", async ([FromBody] AssignPermissionDto dto, IAuthorizationService authzService, CancellationToken ct) =>
             {
                 if (dto == null)
                     return Results.BadRequest();
@@ -48,7 +48,7 @@ public static class AuthorizationEndpoints
             .RequireAuthorization(ApiRoles.PolicyAdminOnly)
             .WithName("AssignPermission");
 
-        authz.MapGet("check", async ([FromQuery] string optionId, [FromQuery] PermissionFlags permission, Gresst.Application.Services.IAuthorizationService authzService, CancellationToken ct) =>
+        authz.MapGet("check", async ([FromQuery] string optionId, [FromQuery] PermissionFlags permission, IAuthorizationService authzService, CancellationToken ct) =>
             {
                 var hasPermission = await authzService.CurrentUserHasPermissionAsync(optionId, permission, ct);
                 return Results.Ok(new { hasPermission });

@@ -3,10 +3,9 @@ namespace Gresst.Application.DTOs;
 public class FacilityDto
 {
     public string Id { get; set; } = string.Empty;
-    public string Code { get; set; } = string.Empty;
     public string Name { get; set; } = string.Empty;
     public string? Description { get; set; }
-    public string FacilityType { get; set; } = string.Empty;
+    public FacilityType Type { get; set; }
     public string? Address { get; set; }
     public decimal? Latitude { get; set; }
     public decimal? Longitude { get; set; }

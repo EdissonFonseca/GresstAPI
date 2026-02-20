@@ -1,6 +1,6 @@
 using Gresst.Application.Constants;
 using Gresst.Application.DTOs;
-using Gresst.Application.Services;
+using Gresst.Application.Services.Interfaces;
 using Gresst.Domain.Interfaces;
 using Gresst.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;

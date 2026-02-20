@@ -15,7 +15,6 @@
   <ItemGroup>
     <Compile Remove="DTOs\BalanceDto.cs" />
     <Compile Remove="DTOs\CustomerDto.cs" />
-    <Compile Remove="DTOs\FacilityDto.cs" />
     <Compile Remove="DTOs\ManagementDto.cs" />
     <Compile Remove="DTOs\MaterialDto.cs" />
     <Compile Remove="DTOs\MobileTransportWasteDto.cs" />
@@ -43,11 +42,8 @@
     <Compile Remove="DTOs\WasteDto.cs" />
     <Compile Remove="Services\BalanceService.cs" />
     <Compile Remove="Services\CustomerService.cs" />
-    <Compile Remove="Services\FacilityService.cs" />
     <Compile Remove="Services\IBalanceService.cs" />
     <Compile Remove="Services\ICustomerService.cs" />
-    <Compile Remove="Services\IDataSegmentationService.cs" />
-    <Compile Remove="Services\IFacilityService.cs" />
     <Compile Remove="Services\IManagementService.cs" />
     <Compile Remove="Services\IMaterialService.cs" />
     <Compile Remove="Services\IOrderService.cs" />

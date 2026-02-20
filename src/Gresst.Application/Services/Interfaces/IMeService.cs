@@ -1,6 +1,6 @@
 using Gresst.Application.DTOs;
 
-namespace Gresst.Application.Services;
+namespace Gresst.Application.Services.Interfaces;
 
 /// <summary>
 /// Service for the current user's full context (user, account, person).

@@ -2,7 +2,7 @@ using Gresst.Application.DTOs;
 using Gresst.Domain.Entities;
 using System.Linq.Expressions;
 
-namespace Gresst.Application.Services;
+namespace Gresst.Application.Services.Interfaces;
 
 public interface IPartyService
 {

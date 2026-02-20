@@ -1,5 +1,5 @@
 using Gresst.Domain.Entities;
-using Gresst.Infrastructure.Common;
+using Gresst.Domain.Interfaces;
 using Gresst.Infrastructure.Data.Entities;
 
 namespace Gresst.Infrastructure.Mappers;
@@ -9,6 +9,13 @@ namespace Gresst.Infrastructure.Mappers;
 /// </summary>
 public class FacilityMapper : MapperBase<Facility, Deposito>
 {
+    private readonly ICurrentUserService _currentUserService;
+
+    public FacilityMapper(ICurrentUserService currentUserService)
+    {
+        _currentUserService = currentUserService;
+    }
+
     /// <summary>
     /// BD → Domain: Deposito → Facility
     /// </summary>
@@ -20,45 +27,24 @@ public class FacilityMapper : MapperBase<Facility, Deposito>
         return new Facility
         {
             // IDs - Domain uses string for BaseEntity.Id/AccountId
-            Id = IdConversion.ToStringFromLong(dbEntity.IdDeposito),
-            AccountId = dbEntity.IdCuenta.HasValue ? IdConversion.ToStringFromLong(dbEntity.IdCuenta.Value) : string.Empty,
+            Id = dbEntity.IdDeposito.ToString(),
             
             // Basic Info
-            Code = dbEntity.IdDeposito.ToString(),
             Name = dbEntity.Nombre ?? string.Empty,
             Description = dbEntity.Notas,
-            FacilityType = DetermineFacilityType(dbEntity),
+            //Type = DetermineFacilityType(dbEntity),
             
             // Location
             Address = dbEntity.Direccion,
-            Latitude = dbEntity.Ubicacion.GetLatitude(),
-            Longitude = dbEntity.Ubicacion.GetLongitude(),
-            
-            // Owner - DB IdPersona is string
-            PersonId = dbEntity.IdPersona ?? string.Empty,
-            
-            // Capabilities - Mapeo directo de booleanos
-            CanCollect = dbEntity.Acopio,
-            CanStore = dbEntity.Almacenamiento,
-            CanDispose = dbEntity.Disposicion,
-            CanDeliver = dbEntity.Entrega,
-            CanReceive = dbEntity.Recepcion,
-            CanTreat = dbEntity.Tratamiento,
+            //Latitude = dbEntity.Ubicacion.GetLatitude(),
+            //Longitude = dbEntity.Ubicacion.GetLongitude(),
             
             // Capacity
             MaxCapacity = dbEntity.Peso,
             CapacityUnit = "kg",
             CurrentCapacity = dbEntity.Cantidad,
             
-            // Virtual and Parent
-            IsVirtual = false, // Deposito doesn't have IsVirtual field, default to false
-            ParentFacilityId = dbEntity.IdSuperior.HasValue 
-                ? IdConversion.ToStringFromLong(dbEntity.IdSuperior.Value) 
-                : null,
-            // Map ParentFacility navigation if loaded (for eager loading)
-            ParentFacility = dbEntity.IdSuperiorNavigation != null 
-                ? MapParentFacility(dbEntity.IdSuperiorNavigation) 
-                : null,
+            ParentId = dbEntity.IdSuperior.HasValue ? dbEntity.IdSuperior.Value.ToString() : null,
             
             // Audit fields
             CreatedAt = dbEntity.FechaCreacion,
@@ -78,11 +64,8 @@ public class FacilityMapper : MapperBase<Facility, Deposito>
         
         return new Facility
         {
-            Id = IdConversion.ToStringFromLong(parentDbEntity.IdDeposito),
+            Id = parentDbEntity.IdDeposito.ToString(),
             Name = parentDbEntity.Nombre ?? string.Empty,
-            Code = parentDbEntity.IdDeposito.ToString(),
-            // Only map essential fields to avoid deep recursion
-            // Other fields will be null/default
         };
     }
 
@@ -94,40 +77,33 @@ public class FacilityMapper : MapperBase<Facility, Deposito>
         if (domainEntity == null) 
             throw new ArgumentNullException(nameof(domainEntity));
 
+        var accountId = _currentUserService.GetCurrentAccountId();
+
         return new Deposito
         {
             // IDs - Domain Id/AccountId are string, BD uses long
-            IdDeposito = IdConversion.ToLongFromString(domainEntity.Id),
-            IdCuenta = string.IsNullOrEmpty(domainEntity.AccountId) ? null : IdConversion.ToLongFromString(domainEntity.AccountId),
+            IdDeposito = long.TryParse(domainEntity.Id, out var idDeposito) ? idDeposito : 0,
+            IdCuenta = long.TryParse(accountId, out var idCuenta) ? idCuenta : 0,
             
             // Basic Info
             Nombre = domainEntity.Name,
             Notas = domainEntity.Description,
-            Referencia = domainEntity.Code,
             
             // Location
             Direccion = domainEntity.Address,
-            Ubicacion = NetTopologySuiteExtensions.CreatePoint(domainEntity.Latitude, domainEntity.Longitude),
+            //Ubicacion = NetTopologySuiteExtensions.CreatePoint(domainEntity.Latitude, domainEntity.Longitude),
             
             // Owner - DB IdPersona is string
-            IdPersona = string.IsNullOrEmpty(domainEntity.PersonId) ? null : domainEntity.PersonId,
-            
-            // Capabilities
-            Acopio = domainEntity.CanCollect,
-            Almacenamiento = domainEntity.CanStore,
-            Disposicion = domainEntity.CanDispose,
-            Entrega = domainEntity.CanDeliver,
-            Recepcion = domainEntity.CanReceive,
-            Tratamiento = domainEntity.CanTreat,
+            //IdPersona = string.IsNullOrEmpty(domainEntity.PersonId) ? null : domainEntity.PersonId,
             
             // Capacity
             Peso = domainEntity.MaxCapacity,
             Cantidad = domainEntity.CurrentCapacity,
             
             // Parent Facility - Domain ParentFacilityId is string
-            IdSuperior = !string.IsNullOrEmpty(domainEntity.ParentFacilityId) 
-                ? IdConversion.ToLongFromString(domainEntity.ParentFacilityId) 
-                : null,
+            //IdSuperior = !string.IsNullOrEmpty(domainEntity.ParentId) 
+            //    ? domainEntity.ParentId.ToString() 
+            //    : null,
             
             // Audit
             FechaCreacion = domainEntity.CreatedAt,
@@ -153,24 +129,24 @@ public class FacilityMapper : MapperBase<Facility, Deposito>
         dbEntity.Nombre = domainEntity.Name;
         dbEntity.Notas = domainEntity.Description;
         dbEntity.Direccion = domainEntity.Address;
-        dbEntity.Ubicacion = NetTopologySuiteExtensions.CreatePoint(domainEntity.Latitude, domainEntity.Longitude);
+        //dbEntity.Ubicacion = NetTopologySuiteExtensions.CreatePoint(domainEntity.Latitude, domainEntity.Longitude);
         
-        // Capabilities
-        dbEntity.Acopio = domainEntity.CanCollect;
-        dbEntity.Almacenamiento = domainEntity.CanStore;
-        dbEntity.Disposicion = domainEntity.CanDispose;
-        dbEntity.Entrega = domainEntity.CanDeliver;
-        dbEntity.Recepcion = domainEntity.CanReceive;
-        dbEntity.Tratamiento = domainEntity.CanTreat;
+        //// Capabilities
+        //dbEntity.Acopio = domainEntity.CanCollect;
+        //dbEntity.Almacenamiento = domainEntity.CanStore;
+        //dbEntity.Disposicion = domainEntity.CanDispose;
+        //dbEntity.Entrega = domainEntity.CanDeliver;
+        //dbEntity.Recepcion = domainEntity.CanReceive;
+        //dbEntity.Tratamiento = domainEntity.CanTreat;
         
-        // Capacity
-        dbEntity.Peso = domainEntity.MaxCapacity;
-        dbEntity.Cantidad = domainEntity.CurrentCapacity;
+        //// Capacity
+        //dbEntity.Peso = domainEntity.MaxCapacity;
+        //dbEntity.Cantidad = domainEntity.CurrentCapacity;
         
-        // Parent Facility - Domain ParentFacilityId is string
-        dbEntity.IdSuperior = !string.IsNullOrEmpty(domainEntity.ParentFacilityId) 
-            ? IdConversion.ToLongFromString(domainEntity.ParentFacilityId) 
-            : null;
+        //// Parent Facility - Domain ParentFacilityId is string
+        //dbEntity.IdSuperior = !string.IsNullOrEmpty(domainEntity.ParentFacilityId) 
+        //    ? IdConversion.ToLongFromString(domainEntity.ParentFacilityId) 
+        //    : null;
         
         // Note: IsVirtual is not stored in Deposito table, it's a domain concept
         // Virtual facilities should be identified by a specific FacilityType or naming convention

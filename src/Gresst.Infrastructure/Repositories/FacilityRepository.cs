@@ -1,6 +1,5 @@
 using Gresst.Domain.Entities;
 using Gresst.Domain.Interfaces;
-using Gresst.Infrastructure.Common;
 using Gresst.Infrastructure.Data;
 using Gresst.Infrastructure.Mappers;
 using Microsoft.EntityFrameworkCore;
@@ -11,7 +10,7 @@ namespace Gresst.Infrastructure.Repositories;
 /// <summary>
 /// Repository for Facility with automatic mapping to/from Deposito
 /// </summary>
-public class FacilityRepository : IRepository<Facility>
+public class FacilityRepository : IPartyRepository<Facility>
 {
     private readonly InfrastructureDbContext _context;
     private readonly FacilityMapper _mapper;
@@ -64,10 +63,12 @@ public class FacilityRepository : IRepository<Facility>
     public async Task<Facility> AddAsync(Facility entity, CancellationToken cancellationToken = default)
     {
         var dbEntity = _mapper.ToDatabase(entity);
-        
+        var userId = _currentUserService.GetCurrentUserId();
+        var userIdLong = string.IsNullOrEmpty(userId) ? 0L : long.Parse(userId);
+
         // Set audit fields
         dbEntity.FechaCreacion = DateTime.UtcNow;
-        dbEntity.IdUsuarioCreacion = GetCurrentUserIdAsLong();
+        dbEntity.IdUsuarioCreacion = userIdLong;
         dbEntity.IdCuenta = string.IsNullOrEmpty(_currentUserService.GetCurrentAccountId()) ? null : long.Parse(_currentUserService.GetCurrentAccountId());
         
         await _context.Depositos.AddAsync(dbEntity, cancellationToken);
@@ -81,7 +82,9 @@ public class FacilityRepository : IRepository<Facility>
     {
         var idLong = string.IsNullOrEmpty(entity.Id) ? 0L : long.Parse(entity.Id);
         var dbEntity = _context.Depositos.Find(idLong);
-        
+        var userId = _currentUserService.GetCurrentUserId();
+        var userIdLong = string.IsNullOrEmpty(userId) ? 0L : long.Parse(userId);
+
         if (dbEntity == null)
             throw new KeyNotFoundException($"Facility with ID {entity.Id} not found");
 
@@ -89,7 +92,7 @@ public class FacilityRepository : IRepository<Facility>
         
         // Update audit fields
         dbEntity.FechaUltimaModificacion = DateTime.UtcNow;
-        dbEntity.IdUsuarioUltimaModificacion = GetCurrentUserIdAsLong();
+        dbEntity.IdUsuarioUltimaModificacion = userIdLong;
         
         _context.Depositos.Update(dbEntity);
         return Task.CompletedTask;
@@ -99,14 +102,16 @@ public class FacilityRepository : IRepository<Facility>
     {
         var idLong = string.IsNullOrEmpty(entity.Id) ? 0L : long.Parse(entity.Id);
         var dbEntity = _context.Depositos.Find(idLong);
-        
+        var userId = _currentUserService.GetCurrentUserId();
+        var userIdLong = string.IsNullOrEmpty(userId) ? 0L : long.Parse(userId);
+
         if (dbEntity == null)
             throw new KeyNotFoundException($"Facility with ID {entity.Id} not found");
 
         // Soft delete
         dbEntity.Activo = false;
         dbEntity.FechaUltimaModificacion = DateTime.UtcNow;
-        dbEntity.IdUsuarioUltimaModificacion = GetCurrentUserIdAsLong();
+        dbEntity.IdUsuarioUltimaModificacion = userIdLong;
         
         _context.Depositos.Update(dbEntity);
         return Task.CompletedTask;
@@ -128,10 +133,39 @@ public class FacilityRepository : IRepository<Facility>
         return all.Count(predicate.Compile());
     }
 
-    private long GetCurrentUserIdAsLong()
+    Task<IEnumerable<Facility>> IPartyRepository<Facility>.GetAllAsync(string? partyId, CancellationToken cancellationToken)
     {
-        var userId = _currentUserService.GetCurrentUserId();
-        return IdConversion.ToLongFromString(userId);
+        throw new NotImplementedException();
+    }
+
+    Task<IEnumerable<Facility>> IPartyRepository<Facility>.FindAsync(Expression<Func<Facility, bool>> predicate, string? partyId, CancellationToken cancellationToken)
+    {
+        throw new NotImplementedException();
+    }
+
+    Task<(IEnumerable<Facility> Items, string? Next)> IPartyRepository<Facility>.FindPagedAsync(Expression<Func<Facility, bool>> predicate, string? partyId, int limit, string? next, CancellationToken cancellationToken)
+    {
+        throw new NotImplementedException();
+    }
+
+    Task<int> IPartyRepository<Facility>.CountAsync(Expression<Func<Facility, bool>>? predicate, string? partyId, CancellationToken cancellationToken)
+    {
+        throw new NotImplementedException();
+    }
+
+    Task<Facility> IPartyRepository<Facility>.AddAsync(Facility entity, string? partyId, CancellationToken cancellationToken)
+    {
+        throw new NotImplementedException();
+    }
+
+    Task IPartyRepository<Facility>.UpdateAsync(Facility entity, string? partyId, CancellationToken cancellationToken)
+    {
+        throw new NotImplementedException();
+    }
+
+    Task IPartyRepository<Facility>.DeleteAsync(Facility entity, string? partyId, CancellationToken cancellationToken)
+    {
+        throw new NotImplementedException();
     }
 }
 

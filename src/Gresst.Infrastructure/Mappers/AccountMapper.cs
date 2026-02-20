@@ -22,7 +22,6 @@ public class AccountMapper : MapperBase<Account, Cuentum>
         {
             // IDs - Domain uses string for BaseEntity.Id/AccountId
             Id = dbEntity.IdCuenta.ToString(),
-            AccountId = dbEntity.IdCuenta.ToString(),
             
             // Basic Info
             Name = dbEntity.Nombre,

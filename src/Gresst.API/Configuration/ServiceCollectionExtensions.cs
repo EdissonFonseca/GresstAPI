@@ -1,6 +1,7 @@
 using Asp.Versioning;
 using Gresst.API.Services;
 using Gresst.Application.Services;
+using Gresst.Application.Services.Interfaces;
 using Gresst.Domain.Entities;
 using Gresst.Domain.Identity;
 using Gresst.Domain.Interfaces;

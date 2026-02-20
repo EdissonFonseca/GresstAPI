@@ -1,5 +1,6 @@
 using Gresst.Application.Queries;
 using Gresst.Application.Services;
+using Gresst.Application.Services.Interfaces;
 using Gresst.Domain.Entities;
 using System.Linq.Expressions;
 

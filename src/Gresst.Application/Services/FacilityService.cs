@@ -1,5 +1,7 @@
 using Gresst.Application.DTOs;
+using Gresst.Application.Services.Interfaces;
 using Gresst.Domain.Entities;
+using Gresst.Domain.Identity;
 using Gresst.Domain.Interfaces;
 
 namespace Gresst.Application.Services;
@@ -12,7 +14,7 @@ public class FacilityService : IFacilityService
 {
     private readonly IRepository<Facility> _facilityRepository;
     private readonly IDataSegmentationService _segmentationService;
-    private readonly IAccountRepository _accountRepository;
+    private readonly IRepository<Account> _accountRepository;
     private readonly IUnitOfWork _unitOfWork;
     private readonly ICurrentUserService _currentUserService;
 
@@ -23,7 +25,7 @@ public class FacilityService : IFacilityService
     public FacilityService(
         IRepository<Facility> facilityRepository,
         IDataSegmentationService segmentationService,
-        IAccountRepository accountRepository,
+        IRepository<Account> accountRepository,
         IUnitOfWork unitOfWork,
         ICurrentUserService currentUserService)
     {
@@ -93,7 +95,7 @@ public class FacilityService : IFacilityService
         var userFacilityIds = await _segmentationService.GetUserFacilityIdsAsync(cancellationToken);
 
         var facilities = await _facilityRepository.FindAsync(
-            f => f.AccountId == accountId && userFacilityIds.Contains(f.Id),
+            f => userFacilityIds.Contains(f.Id),
             cancellationToken);
 
         return facilities.Select(MapToDto).ToList();
@@ -106,9 +108,9 @@ public class FacilityService : IFacilityService
     {
         var accountId = _currentUserService.GetCurrentAccountId();
         var account = await _accountRepository.GetByIdAsync(accountId, cancellationToken);
-        if (account == null || string.IsNullOrEmpty(account.PersonId))
+        if (account == null || string.IsNullOrEmpty(account.PartyId))
             throw new InvalidOperationException("Account or Account Person not found");
-        return account.PersonId;
+        return account.PartyId;
     }
 
     /// <summary>
@@ -173,25 +175,23 @@ public class FacilityService : IFacilityService
         var facility = new Facility
         {
             Id = string.Empty,
-            Code = dto.Code,
             Name = dto.Name,
             Description = dto.Description,
-            FacilityType = dto.FacilityType,
+            //Type = dto.Type,
             Address = dto.Address,
-            Latitude = dto.Latitude,
-            Longitude = dto.Longitude,
-            PersonId = personId,
-            CanCollect = dto.CanCollect,
-            CanStore = dto.CanStore,
-            CanDispose = dto.CanDispose,
-            CanTreat = dto.CanTreat,
-            CanReceive = dto.CanReceive,
-            CanDeliver = dto.CanDeliver,
+            //Latitude = dto.Latitude,
+            //Longitude = dto.Longitude,
+            //PersonId = personId,
+            //CanCollect = dto.CanCollect,
+            //CanStore = dto.CanStore,
+            //CanDispose = dto.CanDispose,
+            //CanTreat = dto.CanTreat,
+            //CanReceive = dto.CanReceive,
+            //CanDeliver = dto.CanDeliver,
             MaxCapacity = dto.MaxCapacity,
             CapacityUnit = dto.CapacityUnit,
             CurrentCapacity = 0,
-            ParentFacilityId = dto.ParentFacilityId,
-            IsVirtual = dto.IsVirtual,
+            ParentId = dto.ParentFacilityId,
             CreatedAt = DateTime.UtcNow,
             IsActive = true
         };
@@ -204,17 +204,16 @@ public class FacilityService : IFacilityService
 
     public async Task<IEnumerable<FacilityDto>> GetByPersonAsync(string personId, CancellationToken cancellationToken = default)
     {
-        var facilities = await _facilityRepository.FindAsync(
-            f => f.PersonId == personId, 
-            cancellationToken);
-        
-        return facilities.Select(MapToDto).ToList();
+        //var facilities = await _facilityRepository.FindAsync(personId, cancellationToken);
+
+        //return facilities.Select(MapToDto).ToList();
+        return null;
     }
 
-    public async Task<IEnumerable<FacilityDto>> GetByTypeAsync(string facilityType, CancellationToken cancellationToken = default)
+    public async Task<IEnumerable<FacilityDto>> GetByTypeAsync(FacilityType facilityType, CancellationToken cancellationToken = default)
     {
         var facilities = await _facilityRepository.FindAsync(
-            f => f.FacilityType == facilityType, 
+            f => f.Type == facilityType, 
             cancellationToken);
         
         return facilities.Select(MapToDto).ToList();
@@ -239,24 +238,6 @@ public class FacilityService : IFacilityService
             facility.Description = dto.Description;
         if (dto.Address != null)
             facility.Address = dto.Address;
-        if (dto.Latitude.HasValue)
-            facility.Latitude = dto.Latitude;
-        if (dto.Longitude.HasValue)
-            facility.Longitude = dto.Longitude;
-        
-        // Capabilities
-        if (dto.CanCollect.HasValue)
-            facility.CanCollect = dto.CanCollect.Value;
-        if (dto.CanStore.HasValue)
-            facility.CanStore = dto.CanStore.Value;
-        if (dto.CanDispose.HasValue)
-            facility.CanDispose = dto.CanDispose.Value;
-        if (dto.CanTreat.HasValue)
-            facility.CanTreat = dto.CanTreat.Value;
-        if (dto.CanReceive.HasValue)
-            facility.CanReceive = dto.CanReceive.Value;
-        if (dto.CanDeliver.HasValue)
-            facility.CanDeliver = dto.CanDeliver.Value;
         
         // Capacity
         if (dto.MaxCapacity.HasValue)
@@ -265,18 +246,6 @@ public class FacilityService : IFacilityService
             facility.CurrentCapacity = dto.CurrentCapacity;
         
         // Hierarchical structure
-        if (dto.ParentFacilityId != null)
-        {
-            // If null or empty is provided, clear the parent (set to null)
-            if (string.IsNullOrEmpty(dto.ParentFacilityId))
-                facility.ParentFacilityId = null;
-            else
-                facility.ParentFacilityId = dto.ParentFacilityId;
-        }
-        
-        if (dto.IsVirtual.HasValue)
-            facility.IsVirtual = dto.IsVirtual.Value;
-
         facility.UpdatedAt = DateTime.UtcNow;
 
         await _facilityRepository.UpdateAsync(facility, cancellationToken);
@@ -307,31 +276,20 @@ public class FacilityService : IFacilityService
     {
         return new FacilityDto
         {
-            Id = facility.Id,
-            Code = facility.Code,
             Name = facility.Name,
             Description = facility.Description,
-            FacilityType = facility.FacilityType,
             Address = facility.Address,
-            Latitude = facility.Latitude,
-            Longitude = facility.Longitude,
-            PersonId = facility.PersonId,
-            PersonName = facility.Person?.Name,
-            CanCollect = facility.CanCollect,
-            CanStore = facility.CanStore,
-            CanDispose = facility.CanDispose,
-            CanTreat = facility.CanTreat,
-            CanReceive = facility.CanReceive,
-            CanDeliver = facility.CanDeliver,
             MaxCapacity = facility.MaxCapacity,
             CapacityUnit = facility.CapacityUnit,
             CurrentCapacity = facility.CurrentCapacity,
-            ParentFacilityId = facility.ParentFacilityId,
-            ParentFacilityName = facility.ParentFacility?.Name,
-            IsVirtual = facility.IsVirtual,
             CreatedAt = facility.CreatedAt,
             UpdatedAt = facility.UpdatedAt,
             IsActive = facility.IsActive
         };
+    }
+
+    Task<IEnumerable<FacilityDto>> IFacilityService.GetByTypeAsync(string facilityType, CancellationToken cancellationToken)
+    {
+        throw new NotImplementedException();
     }
 }

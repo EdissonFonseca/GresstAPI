@@ -63,7 +63,7 @@ public class GreesstDbContext : DbContext
             if (typeof(BaseEntity).IsAssignableFrom(entityType.ClrType))
             {
                 var parameter = Expression.Parameter(entityType.ClrType, "e");
-                var accountIdProperty = Expression.Property(parameter, nameof(BaseEntity.AccountId));
+                var accountIdProperty = Expression.Property(parameter, nameof(BaseEntity.Id));
                 
                 // Create lambda: e => e.AccountId == currentAccountId
                 if (_currentUserService != null)
@@ -90,8 +90,7 @@ public class GreesstDbContext : DbContext
             switch (entry.State)
             {
                 case EntityState.Added:
-                    entry.Entity.Id = Guid.NewGuid().ToString();
-                    entry.Entity.AccountId = currentAccountId;
+                    entry.Entity.Id = currentAccountId.ToString();
                     entry.Entity.CreatedAt = DateTime.UtcNow;
                     entry.Entity.CreatedBy = currentUsername;
                     entry.Entity.IsActive = true;

@@ -1,4 +1,4 @@
-namespace Gresst.Application.Services;
+namespace Gresst.Application.Services.Interfaces;
 
 /// <summary>
 /// Service to check if current user has access to specific resources

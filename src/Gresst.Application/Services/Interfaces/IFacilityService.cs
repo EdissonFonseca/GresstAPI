@@ -1,6 +1,6 @@
 using Gresst.Application.DTOs;
 
-namespace Gresst.Application.Services;
+namespace Gresst.Application.Services.Interfaces;
 
 public interface IFacilityService
 {

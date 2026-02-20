@@ -1,6 +1,6 @@
 using Gresst.Application.Constants;
 using Gresst.Application.DTOs;
-using Gresst.Application.Services;
+using Gresst.Application.Services.Interfaces;
 using Gresst.Application.Validation;
 using Microsoft.AspNetCore.Mvc;
 

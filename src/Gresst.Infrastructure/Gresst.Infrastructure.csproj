@@ -17,7 +17,6 @@
 
   <ItemGroup>
     <Compile Remove="Mappers\FacilityContactMapper.cs" />
-    <Compile Remove="Mappers\FacilityMapper.cs" />
     <Compile Remove="Mappers\FacilityMaterialMapper.cs" />
     <Compile Remove="Mappers\FacilityWasteClassMapper.cs" />
     <Compile Remove="Mappers\ManagementMapper.cs" />
@@ -44,7 +43,6 @@
     <Compile Remove="Mappers\WasteMapper.cs" />
     <Compile Remove="Mappers\WasteMapper.example.cs" />
     <Compile Remove="Repositories\FacilityMaterialRepository.cs" />
-    <Compile Remove="Repositories\FacilityRepository.cs" />
     <Compile Remove="Repositories\ManagementRepository.cs" />
     <Compile Remove="Repositories\MaterialRepository.cs" />
     <Compile Remove="Repositories\PackagingRepository.cs" />

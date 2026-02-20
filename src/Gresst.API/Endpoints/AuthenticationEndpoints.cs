@@ -1,5 +1,6 @@
 using Gresst.Application.DTOs;
 using Gresst.Application.Services;
+using Gresst.Application.Services.Interfaces;
 using Gresst.Application.Validation;
 using Gresst.Infrastructure.Authentication;
 using Gresst.Infrastructure.Authentication.Models;

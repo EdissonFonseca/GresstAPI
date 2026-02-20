@@ -1,4 +1,5 @@
 using Gresst.Domain.Entities;
+using Gresst.Domain.Interfaces;
 using Gresst.Infrastructure.Data.Entities;
 
 namespace Gresst.Infrastructure.Mappers;
@@ -94,10 +95,13 @@ public class PersonaDb
 public class PartyMapper : MapperBase<Party, PersonaDb>
 {
 
-    
-    /// <summary>
-         /// BD → Domain: PersonaDb → Person
-         /// </summary>
+    private readonly ICurrentUserService _currentUserService;
+
+    public PartyMapper(ICurrentUserService currentUserService)
+    {
+        _currentUserService = currentUserService;
+    }
+
     public override Party ToDomain(PersonaDb dbEntity)
     {
         if (dbEntity == null) 
@@ -109,7 +113,6 @@ public class PartyMapper : MapperBase<Party, PersonaDb>
             {
                 // IDs
                 Id = dbEntity.IdPersona ?? string.Empty,
-                AccountId = dbEntity.IdCuenta?.ToString() ?? string.Empty,
 
                 // Basic Info
                 Name = dbEntity.Nombre ?? string.Empty,
@@ -153,11 +156,15 @@ public class PartyMapper : MapperBase<Party, PersonaDb>
         if (domainEntity == null) 
             throw new ArgumentNullException(nameof(domainEntity));
 
+        var accountId = _currentUserService.GetCurrentUserId();
+        var accountIdLong = string.IsNullOrEmpty(accountId) ? 0L : long.Parse(accountId);
+
         return new PersonaDb
         {
             // IDs
             IdPersona = domainEntity.Id,
-            IdCuenta = string.IsNullOrEmpty(domainEntity.AccountId) ? null : long.Parse(domainEntity.AccountId),
+            IdCuenta = accountIdLong,
+
             
             // Basic Info
             Nombre = domainEntity.Name,

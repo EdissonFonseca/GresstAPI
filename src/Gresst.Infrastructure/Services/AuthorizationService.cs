@@ -1,5 +1,5 @@
 using Gresst.Application.DTOs;
-using Gresst.Application.Services;
+using Gresst.Application.Services.Interfaces;
 using Gresst.Domain.Interfaces;
 using Gresst.Infrastructure.Data;
 using Gresst.Infrastructure.Data.Entities;
