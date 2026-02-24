@@ -32,61 +32,63 @@ public class PartyService : IPartyService
     // Local helper to combine expressions without depending on API layer
 
 
-    private PartyDto MapToDto(Party party)
+    private PartyRelatedDto MapToDto(Party party)
     {
-        // Mapeo básico desde Domain Material al DTO
-        // Los campos adicionales (ServicePrice, PurchasePrice, etc.) se pueden agregar
-        // al Domain Material en el futuro o mapear directamente desde el Repository
-        return new PartyDto
+        var relations = party.Relations
+                         .Select(r => r.ToString().ToLowerInvariant())
+                         .ToList();
+
+        return new PartyRelatedDto
         {
             Id = party.Id,
             Name = party.Name,
+            PersonType = party.PersonType,
+            DocumentType = party.DocumentType,
+            DocumentNumber = party.DocumentNumber,
+            CheckDigit = party.CheckDigit,
             Email = party.Email,
             Phone = party.Phone,
             Phone2 = party.Phone2,
             Address = party.Address,
-            DocumentNumber = party.DocumentNumber,
-            LocationId = party.LocationId,
-            IsActive = party.IsActive
+            Location = party.Location,
+            LocalityId = party.LocalityId,
+            SignatureUrl = party.SignatureUrl,
+            IsActive = party.IsActive,
+            Relations = relations
         };
     }
 
-    public async Task<IEnumerable<PartyDto>> GetAllAsync(string? partyId = null, CancellationToken cancellationToken = default)
+    public async Task<IEnumerable<PartyRelatedDto>> GetAllAsync(string? partyId = null, CancellationToken cancellationToken = default)
     {
         var accountId = _currentUserService.GetCurrentAccountId();
         var account = await _accountRepository.GetByIdAsync(accountId, cancellationToken);
         if (account == null || string.IsNullOrEmpty(account.PartyId))
-            return Enumerable.Empty<PartyDto>();
+            return Enumerable.Empty<PartyRelatedDto>();
 
         var parties = await _partyRepository.GetAllAsync(partyId, cancellationToken);
         return parties.Select(MapToDto);
     }
 
-    public async Task<IEnumerable<PartyDto>> FindAsync(Expression<Func<Party, bool>> predicate, string? partyId = null, CancellationToken cancellationToken = default)
+    public async Task<IEnumerable<PartyRelatedDto>> FindAsync(Expression<Func<Party, bool>> predicate, string? partyId = null, CancellationToken cancellationToken = default)
     {
         var accountId = _currentUserService.GetCurrentAccountId();
         var account = await _accountRepository.GetByIdAsync(accountId, cancellationToken);
         if (account == null || string.IsNullOrEmpty(account.PartyId))
-            return Enumerable.Empty<PartyDto>();
+            return Enumerable.Empty<PartyRelatedDto>();
 
         var parties = await _partyRepository.FindAsync(predicate, partyId, cancellationToken);
         return parties.Select(MapToDto);
     }
 
-    public async Task<(IEnumerable<PartyDto> Items, string? Next)> FindPagedAsync(Expression<Func<Party, bool>>? predicate = null, string? partyId = null, int limit = 50, string? next = null, CancellationToken cancellationToken = default)
+    public async Task<(IEnumerable<PartyRelatedDto> Items, string? Next)> FindPagedAsync(Expression<Func<Party, bool>>? predicate = null, string? partyId = null, int limit = 50, string? next = null, CancellationToken cancellationToken = default)
     {
-        var accountId = _currentUserService.GetCurrentAccountId();
-        var account = await _accountRepository.GetByIdAsync(accountId, cancellationToken);
-        if (account == null || string.IsNullOrEmpty(account.PartyId))
-            return (Enumerable.Empty<PartyDto>(), null);
-
         var take = Math.Clamp(limit, 1, 200);
         var pred = predicate ?? (p => true);
         (IEnumerable<Party> items, string? nextCursor) = await _partyRepository.FindPagedAsync(pred, partyId, take, next, cancellationToken);
         return (items.Select(MapToDto), nextCursor);
     }
 
-    public async Task<PartyDto?> GetByIdAsync(string id, CancellationToken cancellationToken = default)
+    public async Task<PartyRelatedDto?> GetByIdAsync(string id, CancellationToken cancellationToken = default)
     {
         var accountId = _currentUserService.GetCurrentAccountId();
         var account = await _accountRepository.GetByIdAsync(accountId, cancellationToken);
@@ -98,5 +100,31 @@ public class PartyService : IPartyService
         return contact != null ? MapToDto(contact) : null;
     }
 
+    public async Task<PartyRelatedDto?> CreateAsync(CreatePartyDto partyDto, PartyRelationType relation, string? partyId = null,  CancellationToken cancellationToken = default)
+    {   
+        var roles = new List<PartyRelationType> { relation };
+
+        var party = new Party
+        {
+            Name = partyDto.Name,
+            PersonType = partyDto.PersonType,
+            DocumentNumber = partyDto.DocumentNumber,
+            CheckDigit = partyDto.CheckDigit,
+            DocumentType = partyDto.DocumentType,
+            Address = partyDto.Address,
+            Email = partyDto.Email,
+            Phone = partyDto.Phone,
+            Phone2 = partyDto.Phone2,
+            Location = partyDto.Location,
+            SignatureUrl = partyDto.SignatureUrl,
+            LocalityId = partyDto.LocalityId,
+            Relations = roles
+        };
+
+        await _partyRepository.AddAsync(party, partyId, cancellationToken);
+        await _unitOfWork.SaveChangesAsync(cancellationToken);
+
+        return MapToDto(party);
+    }
 }
 

@@ -1,16 +1,14 @@
 using Gresst.Domain.Entities;
 using Gresst.Domain.Interfaces;
 using Gresst.Infrastructure.Data.Entities;
+using NetTopologySuite.Geometries;
 
 namespace Gresst.Infrastructure.Mappers;
 
 public class PersonaDb
 {
     public string IdPersona { get; set; } = String.Empty;
-    public string? IdCategoria { get; set; }
-    public long? IdCuenta { get; set; }
     public string? IdTipoIdentificacion { get; set; }
-    public string? IdRol { get; set; }
     public string? IdTipoPersona { get; set; }
     public string? Identificacion { get; set; }
     public int? DigitoVerificacion { get; set; }
@@ -19,26 +17,17 @@ public class PersonaDb
     public string? Telefono { get; set; }
     public string? Telefono2 { get; set; }
     public string? Correo { get; set; }
-    public string? Roles { get; set; }
+    public List<string>? Relaciones { get; set; }
+    public string? IdRelacion { get; set; }
     public bool Activo { get; set; }
-    public string? Licencia { get; set; }
-    public string? Cargo { get; set; }
-    public string? Pagina { get; set; }
     public string? Firma { get; set; }
     public string? IdLocalizacion { get; set; }
-    public string? DatosAdicionales { get; set; }
-    public long? IdUsuarioCreacion { get; set; }
-    public DateTime FechaCreacion { get; set; }
-    public long? IdUsuarioUltimaModificacion { get; set; }
-    public DateTime? FechaUltimaModificacion { get; set; }
+    public Geometry? Ubicacion { get; set; }
 
     public static PersonaDb FromPersona(Persona p) => new()
     {
         IdPersona = p.IdPersona,
-        IdCategoria = p.IdCategoria,
-        IdCuenta = p.IdCuenta,
         IdTipoIdentificacion = p.IdTipoIdentificacion,
-        IdRol = p.IdRol,
         IdTipoPersona = p.IdTipoPersona,
         Identificacion = p.Identificacion,
         DigitoVerificacion = p.DigitoVerificacion,
@@ -48,25 +37,14 @@ public class PersonaDb
         Telefono2 = p.Telefono2,
         Correo = p.Correo,
         Activo = p.Activo,
-        Licencia = p.Licencia,
-        Cargo = p.Cargo,
-        Pagina = p.Pagina,
         Firma = p.Firma,
         IdLocalizacion = p.IdLocalizacion,
-        DatosAdicionales = p.DatosAdicionales,
-        IdUsuarioCreacion = p.IdUsuarioCreacion,
-        FechaCreacion = p.FechaCreacion,
-        IdUsuarioUltimaModificacion = p.IdUsuarioUltimaModificacion,
-        FechaUltimaModificacion = p.FechaUltimaModificacion,
+        Ubicacion = p.UbicacionMapa,
     };
-
     public Persona ToPersona() => new()
     {
         IdPersona = IdPersona,
-        IdCategoria = IdCategoria,
-        IdCuenta = IdCuenta,
         IdTipoIdentificacion = IdTipoIdentificacion,
-        IdRol = IdRol,
         IdTipoPersona = IdTipoPersona,
         Identificacion = Identificacion,
         DigitoVerificacion = DigitoVerificacion,
@@ -76,25 +54,15 @@ public class PersonaDb
         Telefono2 = Telefono2,
         Correo = Correo,
         Activo = Activo,
-        Licencia = Licencia,
-        Cargo = Cargo,
-        Pagina = Pagina,
         Firma = Firma,
         IdLocalizacion = IdLocalizacion,
-        DatosAdicionales = DatosAdicionales,
-        IdUsuarioCreacion = IdUsuarioCreacion ?? 0,
-        FechaCreacion = FechaCreacion,
-        IdUsuarioUltimaModificacion = IdUsuarioUltimaModificacion,
-        FechaUltimaModificacion = FechaUltimaModificacion,
+        UbicacionMapa = Ubicacion,
     };
+
 }
 
-/// <summary>
-/// Mapper: Person (Domain/Inglés) ↔ Persona (BD/Español)
-/// </summary>
 public class PartyMapper : MapperBase<Party, PersonaDb>
 {
-
     private readonly ICurrentUserService _currentUserService;
 
     public PartyMapper(ICurrentUserService currentUserService)
@@ -111,34 +79,23 @@ public class PartyMapper : MapperBase<Party, PersonaDb>
         {
             return new Party
             {
-                // IDs
                 Id = dbEntity.IdPersona ?? string.Empty,
-
-                // Basic Info
                 Name = dbEntity.Nombre ?? string.Empty,
                 DocumentNumber = dbEntity.Identificacion,
+                DocumentType = TypeMapper.ToDocumentType(dbEntity.IdTipoIdentificacion ?? ""), 
+                PersonType = TypeMapper.ToPersonType(dbEntity.IdTipoPersona ?? ""),
+                CheckDigit = dbEntity.DigitoVerificacion,
+                Address = dbEntity.Direccion,
                 Email = dbEntity.Correo,
                 Phone = dbEntity.Telefono,
-                Address = dbEntity.Direccion,
-
-                Roles = (dbEntity.Roles ?? dbEntity.IdRol ?? string.Empty)
-                    .Split(',', StringSplitOptions.RemoveEmptyEntries)
-                    .Select(rol => rol.Trim() switch
-                    {
-                        "CL" => PartyRelationType.Customer,
-                        "EM" => PartyRelationType.Employee,
-                        "PR" => PartyRelationType.Supplier,
-                        _ => PartyRelationType.Unknown, 
-                    })
+                SignatureUrl = dbEntity.Firma,
+                LocalityId = dbEntity.IdLocalizacion,
+                Location = dbEntity.Ubicacion != null ? new Point(dbEntity.Ubicacion.Coordinate) : null,
+                IsActive = dbEntity.Activo,
+                Relations = (dbEntity.Relaciones ?? new List<string> { dbEntity.IdRelacion ?? string.Empty })
+                    .Select(rol => TypeMapper.ToPartyRelationType(rol.Trim()))
                     .Distinct()
                     .ToList(),
-                // Audit
-                CreatedAt = dbEntity.FechaCreacion,
-                UpdatedAt = dbEntity.FechaUltimaModificacion,
-                CreatedBy = dbEntity.IdUsuarioCreacion.ToString(),
-                UpdatedBy = dbEntity.IdUsuarioUltimaModificacion?.ToString(),
-                IsActive = dbEntity.Activo
-
             };
         }
         catch (Exception ex)
@@ -156,64 +113,47 @@ public class PartyMapper : MapperBase<Party, PersonaDb>
         if (domainEntity == null) 
             throw new ArgumentNullException(nameof(domainEntity));
 
-        var accountId = _currentUserService.GetCurrentUserId();
-        var accountIdLong = string.IsNullOrEmpty(accountId) ? 0L : long.Parse(accountId);
-
         return new PersonaDb
         {
             // IDs
             IdPersona = domainEntity.Id,
-            IdCuenta = accountIdLong,
-
-            
-            // Basic Info
             Nombre = domainEntity.Name,
             Identificacion = domainEntity.DocumentNumber,
+            DigitoVerificacion = domainEntity.CheckDigit,
+            IdTipoIdentificacion = domainEntity.DocumentType.HasValue ? TypeMapper.ToTipoIdentificacion(domainEntity.DocumentType.Value) : null,
+            IdTipoPersona = domainEntity.PersonType.HasValue ? TypeMapper.ToTipoPersona(domainEntity.PersonType.Value) : null,
+            Direccion = domainEntity.Address,
             Correo = domainEntity.Email,
             Telefono = domainEntity.Phone,
-            Direccion = domainEntity.Address,
-
-            // Defaults for required fields
-            Roles = string.Join(",", domainEntity.Roles.Select(rol => rol switch
-            {
-                PartyRelationType.Customer => "CL",
-                PartyRelationType.Employee => "EM",
-                PartyRelationType.Supplier => "PR",
-                _ => "UK"
-            })),
-            
-            // Status
             Activo = domainEntity.IsActive,
-            
-            // Audit
-            FechaCreacion = domainEntity.CreatedAt,
-            IdUsuarioCreacion = !string.IsNullOrEmpty(domainEntity.CreatedBy) 
-                ? long.Parse(domainEntity.CreatedBy) 
-                : 0,
-            FechaUltimaModificacion = domainEntity.UpdatedAt,
-            IdUsuarioUltimaModificacion = !string.IsNullOrEmpty(domainEntity.UpdatedBy) 
-                ? long.Parse(domainEntity.UpdatedBy) 
-                : null
+            Firma = domainEntity.SignatureUrl,
+            Ubicacion = domainEntity.Location != null ? new Point(domainEntity.Location.X, domainEntity.Location.Y) : null,
+            IdLocalizacion = domainEntity.LocalityId,
+            Relaciones = domainEntity.Relations
+                .Select(r => TypeMapper.ToTipoRelacion(r))
+                .ToList()
         };
     }
 
     public override void UpdateDatabase(Party domainEntity, PersonaDb dbEntity)
     {
         if (domainEntity == null || dbEntity == null) return;
-
-        // Update modifiable fields
+        
         dbEntity.Nombre = domainEntity.Name;
         dbEntity.Identificacion = domainEntity.DocumentNumber;
+        dbEntity.DigitoVerificacion = domainEntity.CheckDigit;
+        dbEntity.IdLocalizacion = domainEntity.LocalityId;
         dbEntity.Correo = domainEntity.Email;
         dbEntity.Telefono = domainEntity.Phone;
         dbEntity.Direccion = domainEntity.Address;
+        dbEntity.Firma = domainEntity.SignatureUrl;
         dbEntity.Activo = domainEntity.IsActive;
-        
-        // Audit
-        dbEntity.FechaUltimaModificacion = domainEntity.UpdatedAt;
-        dbEntity.IdUsuarioUltimaModificacion = !string.IsNullOrEmpty(domainEntity.UpdatedBy) 
-            ? long.Parse(domainEntity.UpdatedBy) 
-            : null;
+        dbEntity.Ubicacion = domainEntity.Location != null ? new Point(domainEntity.Location.X, domainEntity.Location.Y) : null;
+        dbEntity.IdTipoIdentificacion = domainEntity.DocumentType.HasValue ? TypeMapper.ToTipoIdentificacion(domainEntity.DocumentType.Value) : null;
+        dbEntity.IdTipoPersona = domainEntity.PersonType.HasValue ? TypeMapper.ToTipoPersona(domainEntity.PersonType.Value) : null;
+        dbEntity.Relaciones = domainEntity.Relations
+            .Select(r => TypeMapper.ToTipoRelacion(r))
+            .ToList();
     }
 
 }

@@ -6,13 +6,12 @@ using System.Linq.Expressions;
 
 namespace Gresst.API.Endpoints;
 
-public static class CustomerEndpoints
+public static class EmployeesEndpoints
 {
     public static RouteGroupBuilder Map(this RouteGroupBuilder group)
     {
-        var parties = group.MapGroup("/customers")
-            .RequireAuthorization()
-            .WithTags("Customer");
+        var parties = group.MapGroup("/employees")
+            .WithTags("Employee");
 
         parties.MapGet("", async (
             IPartyService partyService,
@@ -25,7 +24,7 @@ public static class CustomerEndpoints
         {
             Expression<Func<Party, bool>>? predicate = null;
 
-            predicate = (predicate ?? (p => true)).AndAlso(p => p.Relations.Contains(PartyRelationType.Customer));
+            predicate = (predicate ?? (p => true)).AndAlso(p => p.Relations.Contains(PartyRelationType.Employee));
             if (isActive.HasValue)
                 predicate = (predicate ?? (p => true)).AndAlso(p => p.IsActive == isActive.Value);
             if (!string.IsNullOrEmpty(search))
@@ -38,7 +37,7 @@ public static class CustomerEndpoints
             var baseItems = items.Cast<PartyDTO>().ToList();
 
             return Results.Ok(new { Items = baseItems, Next = nextCursor, Limit = take });
-        }).WithName("GetCustomers");
+        }).WithName("GetEmployees");
 
         return group;
     }

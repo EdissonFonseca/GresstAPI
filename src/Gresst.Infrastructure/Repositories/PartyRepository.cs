@@ -1,4 +1,3 @@
-using Gresst.Domain.Common;
 using Gresst.Domain.Entities;
 using Gresst.Domain.Interfaces;
 using Gresst.Infrastructure.Data;
@@ -7,7 +6,6 @@ using Microsoft.EntityFrameworkCore;
 using System.Globalization;
 using System.Linq.Expressions;
 using System.Text;
-using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 
 namespace Gresst.Infrastructure.Repositories;
 
@@ -54,10 +52,8 @@ public class PartyRepository : IPartyRepository<Party>
                 (pc, p) => new PersonaDb
                 {
                     IdPersona = pc.IdContacto,
-                    IdCategoria = p.IdCategoria,
-                    IdCuenta = pc.IdCuenta,
                     IdTipoIdentificacion = p.IdTipoIdentificacion,
-                    IdRol = pc.IdRelacion,
+                    IdRelacion = pc.IdRelacion,
                     IdTipoPersona = p.IdTipoPersona,
                     Identificacion = p.Identificacion,
                     DigitoVerificacion = p.DigitoVerificacion,
@@ -67,17 +63,8 @@ public class PartyRepository : IPartyRepository<Party>
                     Telefono2 = pc.Telefono2 ?? p.Telefono2,
                     Correo = pc.Correo ?? p.Correo,
                     Activo = pc.Activo,
-                    Licencia = p.Licencia,
-                    Cargo = pc.Cargo ?? p.Cargo,
-                    Pagina = pc.Pagina ?? p.Pagina,
                     Firma = pc.Firma ?? p.Firma,
                     IdLocalizacion = pc.IdLocalizacion ?? p.IdLocalizacion,
-                    DatosAdicionales = pc.DatosAdicionales ?? p.DatosAdicionales,
-                    IdUsuarioCreacion = pc.IdUsuarioCreacion,
-                    FechaCreacion = pc.FechaCreacion,
-                    IdUsuarioUltimaModificacion = pc.IdUsuarioUltimaModificacion,
-                    FechaUltimaModificacion = pc.FechaUltimaModificacion,
-                    Roles = null
                 });
 
         var query2 = _context.PersonaContactos
@@ -89,10 +76,8 @@ public class PartyRepository : IPartyRepository<Party>
                 (pc, p) => new PersonaDb
                 {
                     IdPersona = pc.IdPersona,
-                    IdCategoria = p.IdCategoria,
-                    IdCuenta = pc.IdCuenta,
                     IdTipoIdentificacion = p.IdTipoIdentificacion,
-                    IdRol = "PR",
+                    IdRelacion = "PR",
                     IdTipoPersona = p.IdTipoPersona,
                     Identificacion = p.Identificacion,
                     DigitoVerificacion = p.DigitoVerificacion,
@@ -102,36 +87,44 @@ public class PartyRepository : IPartyRepository<Party>
                     Telefono2 = pc.Telefono2 ?? p.Telefono2,
                     Correo = pc.Correo ?? p.Correo,
                     Activo = pc.Activo,
-                    Licencia = p.Licencia,
-                    Cargo = pc.Cargo ?? p.Cargo,
-                    Pagina = pc.Pagina ?? p.Pagina,
                     Firma = pc.Firma ?? p.Firma,
                     IdLocalizacion = pc.IdLocalizacion ?? p.IdLocalizacion,
-                    DatosAdicionales = pc.DatosAdicionales ?? p.DatosAdicionales,
-                    IdUsuarioCreacion = pc.IdUsuarioCreacion,
-                    FechaCreacion = pc.FechaCreacion,
-                    IdUsuarioUltimaModificacion = pc.IdUsuarioUltimaModificacion,
-                    FechaUltimaModificacion = pc.FechaUltimaModificacion,
-                    Roles = null
                 });
 
-        var dbEntities = await query1.Union(query2).ToListAsync(cancellationToken);
+        var dbEntities = await query1.Concat(query2).ToListAsync(cancellationToken);
 
         var merged = dbEntities
             .GroupBy(p => p.IdPersona)
             .Select(g =>
             {
-                var first = g.First();
-                first.Roles = string.Join(",", g
-                    .Select(p => p.IdRol)
-                    .Where(r => !string.IsNullOrEmpty(r))
-                    .Distinct());
-                return first;
+                return new PersonaDb
+                {
+                    IdPersona            = g.Key,
+                    IdTipoIdentificacion = g.First().IdTipoIdentificacion,
+                    IdTipoPersona        = g.First().IdTipoPersona,
+                    Identificacion       = g.First().Identificacion,
+                    DigitoVerificacion   = g.First().DigitoVerificacion,
+                    Nombre               = g.Select(p => p.Nombre).FirstOrDefault(v => !string.IsNullOrEmpty(v)),
+                    Direccion            = g.Select(p => p.Direccion).FirstOrDefault(v => !string.IsNullOrEmpty(v)),
+                    Telefono             = g.Select(p => p.Telefono).FirstOrDefault(v => !string.IsNullOrEmpty(v)),
+                    Telefono2            = g.Select(p => p.Telefono2).FirstOrDefault(v => !string.IsNullOrEmpty(v)),
+                    Correo               = g.Select(p => p.Correo).FirstOrDefault(v => !string.IsNullOrEmpty(v)),
+                    Firma                = g.Select(p => p.Firma).FirstOrDefault(v => !string.IsNullOrEmpty(v)),
+                    IdLocalizacion       = g.Select(p => p.IdLocalizacion).FirstOrDefault(v => v != null),
+                    Activo               = g.Any(p => p.Activo),
+                    Relaciones = g
+                        .Select(p => p.IdRelacion)
+                        .Where(r => r != null)
+                        .Select(r => r!)
+                        .Distinct()
+                        .ToList(),
+                };
             })
             .ToList();
 
         return merged.Select(_mapper.ToDomain).ToList();
     }
+
     public async Task<Party?> GetByIdAsync(string id, CancellationToken cancellationToken = default)
     {
         var dbEntity = await _context.Personas.FindAsync(new object[] { id }, cancellationToken);
@@ -190,17 +183,19 @@ public class PartyRepository : IPartyRepository<Party>
         var dbEntity = _mapper.ToDatabase(entity);
         
         // Set audit fields
-        dbEntity.FechaCreacion = DateTime.UtcNow;
-        dbEntity.IdUsuarioCreacion = long.TryParse(_currentUserService.GetCurrentUserId(), out var value) ? value : 0;
-        dbEntity.IdCuenta = long.TryParse(_currentUserService.GetCurrentAccountId(), out var value2) ? value2 : 0;
         
         // Generate IdPersona if empty
         if (string.IsNullOrEmpty(dbEntity.IdPersona))
         {
             dbEntity.IdPersona = Guid.NewGuid().ToString("N")[..40];
         }
-        
-        await _context.Personas.AddAsync(dbEntity.ToPersona(), cancellationToken);
+
+        var persona = dbEntity.ToPersona();
+        persona.FechaCreacion = DateTime.UtcNow;
+        persona.IdUsuarioCreacion = long.TryParse(_currentUserService.GetCurrentUserId(), out var value) ? value : 0;
+        persona.IdCuenta = long.TryParse(_currentUserService.GetCurrentAccountId(), out var value2) ? value2 : 0;
+
+        await _context.Personas.AddAsync(persona, cancellationToken);
         
         entity.Id = dbEntity.IdPersona;
         return entity;

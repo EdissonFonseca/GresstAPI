@@ -11,7 +11,8 @@ public static class PartyEndpoints
     public static RouteGroupBuilder Map(this RouteGroupBuilder group)
     {
         var parties = group.MapGroup("/parties")
-            .WithTags("Party");
+            .WithTags("Party")
+            .RequireAuthorization();
 
         parties.MapGet("", async (
             IPartyService partyService,
@@ -36,6 +37,16 @@ public static class PartyEndpoints
 
             return Results.Ok(new { Items = items, Next = nextCursor, Limit = take });
         }).WithName("GetParties");
+
+        parties.MapGet("/me", async (
+            IPartyService partyService,
+            Gresst.Domain.Interfaces.ICurrentUserService currentUserService,
+            CancellationToken ct) =>
+        {
+            var personId = currentUserService.GetCurrentPersonId();
+            var result = await partyService.GetByIdAsync(personId, ct);
+            return Results.Ok(result);
+        }).WithName("GetMyParties");
 
         return group;
     }
