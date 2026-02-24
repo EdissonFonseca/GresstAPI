@@ -1,6 +1,6 @@
 namespace Gresst.Application.DTOs;
 
-public class WasteClassDto
+public class WasteTypeDto
 {
     public string Id { get; set; } = string.Empty;
     public string Code { get; set; } = string.Empty;

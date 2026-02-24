@@ -24,6 +24,7 @@ namespace Gresst.Application.DTOs
         public Point? Location { get; set; }
         public string? LocalityId { get; set; }
         public required bool IsActive { get; set; }
+        List<FacilityDto>? Facilities { get; set; }
     }
 
     public class CreatePartyDto

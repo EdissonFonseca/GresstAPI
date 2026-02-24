@@ -1,4 +1,5 @@
 using Gresst.API.Configuration;
+using Gresst.API.GraphQL;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -14,7 +15,10 @@ builder.Services.AddGresstRepositories();
 builder.Services.AddGresstApplicationServices();
 builder.AddGresstCors();
 builder.ConfigureGresstKestrel();
+// GraphQL
+builder.Services.AddGresstGraphQL();
 
 var app = builder.Build();
 app.UseGresstPipeline();
+app.MapGraphQL();
 app.Run();

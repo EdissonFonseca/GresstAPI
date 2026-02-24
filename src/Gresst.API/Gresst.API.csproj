@@ -33,6 +33,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="HotChocolate.AspNetCore" Version="14.0.1" />
+    <PackageReference Include="HotChocolate.Types" Version="14.0.1" />
+    <PackageReference Include="HotChocolate.Data" Version="14.0.1" />
+    <PackageReference Include="HotChocolate.AspNetCore.Authorization" Version="14.0.1" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="10.0.2" />
     <PackageReference Include="Asp.Versioning.Mvc" Version="8.1.1" />
     <PackageReference Include="Asp.Versioning.Mvc.ApiExplorer" Version="8.1.1" />

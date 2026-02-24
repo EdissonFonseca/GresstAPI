@@ -28,20 +28,20 @@ public static class ServiceCollectionExtensions
         {
             var configuredLogPath = context.Configuration["Logging:LogPath"];
             var logsPath = string.IsNullOrWhiteSpace(configuredLogPath)
-                ? Path.Combine(AppContext.BaseDirectory, "logs")
-                : Path.GetFullPath(configuredLogPath);
-            try { Directory.CreateDirectory(logsPath); }
+                ? System.IO.Path.Combine(AppContext.BaseDirectory, "logs")
+                : System.IO.Path.GetFullPath(configuredLogPath);
+            try { System.IO.Directory.CreateDirectory(logsPath); }
             catch
             {
-                logsPath = Path.Combine(AppContext.BaseDirectory, "logs");
-                try { Directory.CreateDirectory(logsPath); } catch { /* ignore */ }
+                logsPath = System.IO.Path.Combine(AppContext.BaseDirectory, "logs");
+                try { System.IO.Directory.CreateDirectory(logsPath); } catch { /* ignore */ }
             }
             loggerConfiguration
                 .MinimumLevel.Information()
                 .Enrich.FromLogContext()
                 .WriteTo.Console()
                 .WriteTo.File(
-                    Path.Combine(logsPath, "log-.txt"),
+                    System.IO.Path.Combine(logsPath, "log-.txt"),
                     rollingInterval: RollingInterval.Day,
                     retainedFileCountLimit: 31,
                     outputTemplate: "{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz} [{Level:u3}] {Message:lj}{NewLine}{Exception}");

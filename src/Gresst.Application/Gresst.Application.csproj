@@ -38,7 +38,6 @@
     <Compile Remove="DTOs\TreatmentDto.cs" />
     <Compile Remove="DTOs\UpdateRequestDto.cs" />
     <Compile Remove="DTOs\VehicleDto.cs" />
-    <Compile Remove="DTOs\WasteClassDto.cs" />
     <Compile Remove="DTOs\WasteDto.cs" />
     <Compile Remove="Services\BalanceService.cs" />
     <Compile Remove="Services\CustomerService.cs" />
