@@ -6,6 +6,7 @@ public class    FacilityDto
 {
     public required string Id { get; set; }
     public required string Name { get; set; }
+    public string? ParentId { get; set; }
     public string? LocalityId { get; set; }
     public Point? Location { get; set; }
     public List<FacilityType>? Types { get; set; }
@@ -14,7 +15,6 @@ public class    FacilityDto
     public string? Phone { get; set; }
     public string? Reference { get; set; }
     public bool IsActive { get; set; }
-    public List<FacilityDto> Facilities { get; set; } = new List<FacilityDto>();
     public List<WasteTypeDto> WasteTypes { get; set; } = new List<WasteTypeDto>();
 }
 

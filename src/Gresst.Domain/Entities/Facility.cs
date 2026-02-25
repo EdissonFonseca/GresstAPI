@@ -16,7 +16,6 @@ public class Facility : BaseEntity
     public string? Phone { get; set; }
     public string? Reference { get; set; }
     public List<FacilityType>? Types { get; set; }
-    public List<Facility> Facilities { get; set; } = new List<Facility>();    
     public List<WasteType> WasteTypes { get; set; } = new List<WasteType>();
     public List<Procedure> Procedures { get; set; } = new List<Procedure>();
     public List<Contact> Contacts { get; set; } = new List<Contact>();

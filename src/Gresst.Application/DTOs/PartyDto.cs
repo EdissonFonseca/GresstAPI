@@ -25,6 +25,7 @@ namespace Gresst.Application.DTOs
         public string? LocalityId { get; set; }
         public required bool IsActive { get; set; }
         public List<FacilityDto> Facilities { get; set; } = new List<FacilityDto>();
+        public List<WasteTypeDto> WasteTypes { get; set; } = new List<WasteTypeDto>();
     }
 
     public class CreatePartyDto

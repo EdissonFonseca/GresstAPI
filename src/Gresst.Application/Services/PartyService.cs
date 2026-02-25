@@ -68,24 +68,10 @@ public class PartyService : IPartyService
                 Reference = f.Reference,
                 IsActive = f.IsActive,
                 Types = f.Types,
-                Facilities = f.Facilities.Select(d => new FacilityDto
+                WasteTypes = f.WasteTypes.Select(w => new WasteTypeDto
                 {
-                    Id = d.Id,
-                    Name = d.Name,
-                    Address = d.Address,
-                    Location = d.Location,
-                    LocalityId = d.LocalityId,
-                    Phone = d.Phone,
-                    Email = d.Email,
-                    Reference = d.Reference,
-                    IsActive = d.IsActive,
-                    Types = d.Types,
-                    Facilities = new List<FacilityDto>(),
-                    WasteTypes = d.WasteTypes.Select(w => new WasteTypeDto
-                    {
-                        Id = w.Id,
-                        Name = w.Name,
-                    }).ToList()
+                    Id = w.Id,
+                    Name = w.Name,
                 }).ToList()
             }).ToList()
         };

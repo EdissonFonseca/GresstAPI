@@ -125,9 +125,7 @@ public class PartyRepository : IPartyRepository<Party>
 
         return merged.Select(_mapper.ToDomain).ToList();
     }
-    public async Task<IEnumerable<Party>> GetAllWithDetailsAsync(
-        string? partyId,
-        CancellationToken cancellationToken = default)
+    public async Task<IEnumerable<Party>> GetAllWithDetailsAsync(string? partyId, CancellationToken cancellationToken = default)
     {
         var accountId = _currentUserService.GetCurrentAccountId();
         var accountIdLong = string.IsNullOrEmpty(accountId)
@@ -144,9 +142,11 @@ public class PartyRepository : IPartyRepository<Party>
 
             foreach (var sede in sedes)
             {
+                // Agregar la sede directamente al party
                 var sedeDto = new Facility
                 {
                     Id = sede.IdUbicacion.ToString(),
+                    ParentId = null, // sede no tiene padre
                     LocalityId = sede.IdUbicacion.ToString(),
                     Name = sede.Nombre ?? string.Empty,
                     Address = sede.Direccion,
@@ -156,6 +156,8 @@ public class PartyRepository : IPartyRepository<Party>
                     Types = new List<FacilityType> { FacilityType.Adminstrative },
                     IsActive = sede.Activo
                 };
+
+                party.Facilities.Add(sedeDto); // ← sede al mismo nivel
 
                 var depositoIds = await _context.PersonaLocalizacionDepositos
                     .Where(p => p.IdPersona == party.Id
@@ -169,7 +171,6 @@ public class PartyRepository : IPartyRepository<Party>
 
                 foreach (var deposito in depositosRaw)
                 {
-                    // 1. Traer los materiales del depósito para esta persona
                     var materialesIds = await _context.PersonaMaterialDepositos
                         .Where(m => m.IdPersona == party.Id
                                  && m.IdCuenta == accountIdLong
@@ -189,7 +190,7 @@ public class PartyRepository : IPartyRepository<Party>
                     var depositoDto = new Facility
                     {
                         Id = deposito.IdDeposito.ToString(),
-                        ParentId = deposito.IdUbicacion.ToString(),
+                        ParentId = sede.IdUbicacion.ToString(), // ← apunta a la sede
                         LocalityId = deposito.IdDeposito.ToString(),
                         Location = deposito.Ubicacion as Point,
                         Name = deposito.Nombre ?? string.Empty,
@@ -199,12 +200,11 @@ public class PartyRepository : IPartyRepository<Party>
                         Reference = deposito.Referencia,
                         IsActive = deposito.Activo,
                         Types = TypeMapper.ToFacilityTypes(deposito),
-                        WasteTypes = wasteTypes  // ← materiales del depósito
+                        WasteTypes = wasteTypes
                     };
 
-                    sedeDto.Facilities.Add(depositoDto);
+                    party.Facilities.Add(depositoDto); // ← depósito al mismo nivel
                 }
-                party.Facilities.Add(sedeDto);
             }
         }
 
