@@ -1,5 +1,4 @@
 namespace Gresst.API.GraphQL;
-using HotChocolate.AspNetCore.Authorization;
 
 public static class SchemaExtensions
 {
