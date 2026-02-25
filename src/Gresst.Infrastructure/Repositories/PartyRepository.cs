@@ -36,6 +36,92 @@ public class PartyRepository : IPartyRepository<Party>
         _currentUserService = currentUserService;
     }
 
+    private async Task<List<long>> GetMaterialIdsPorDepositoRecursivoAsync(
+        string partyId,
+        long? accountIdLong,
+        long depositoId,
+        CancellationToken cancellationToken)
+    {
+        // Buscar materiales en este depósito
+        var materialesIds = await _context.PersonaMaterialDepositos
+            .Where(m => m.IdPersona == partyId
+                     && m.IdCuenta == accountIdLong
+                     && m.IdDeposito == depositoId)
+            .Select(m => m.IdMaterial)
+            .ToListAsync(cancellationToken);
+
+        if (materialesIds.Any())
+            return materialesIds;
+
+        // Si no encontró, buscar el depósito padre
+        var depositoPadreId = await _context.Depositos
+            .Where(d => d.IdDeposito == depositoId)
+            .Select(d => d.IdSuperior) // ajusta al nombre real del campo
+            .FirstOrDefaultAsync(cancellationToken);
+
+        // Si no tiene padre, terminar la recursión
+        if (depositoPadreId == null || depositoPadreId == 0)
+            return new List<long>();
+
+        // Subir al padre y repetir
+        return await GetMaterialIdsPorDepositoRecursivoAsync(
+            partyId,
+            accountIdLong,
+            depositoPadreId.Value,
+            cancellationToken);
+    }
+    private async Task<List<WasteType>> GetMaterialesResueltosAsync(string partyId, long depositoId, long ubicacionId, CancellationToken cancellationToken)
+    {
+        var accountId = _currentUserService.GetCurrentAccountId();
+        var accountIdLong = Convert.ToInt16(accountId);
+
+        // Level 1 — by facility (recursive by parent)
+        var materialesIds = await GetMaterialIdsPorDepositoRecursivoAsync(partyId, accountIdLong, depositoId, cancellationToken);
+
+        //// Nivel 2 — por sede
+        //if (!materialesIds.Any())
+        //{
+        //    materialesIds = await _context.PersonaMaterialUbicaciones
+        //        .Where(m => m.IdPersona == partyId
+        //                 && m.IdCuenta == accountIdLong
+        //                 && m.IdUbicacion == ubicacionId)
+        //        .Select(m => m.IdMaterial)
+        //        .ToListAsync(cancellationToken);
+        //}
+
+        // Level 3 — party
+        if (!materialesIds.Any())
+        {
+            materialesIds = await _context.PersonaMaterials
+                .Where(m => m.IdPersona == partyId
+                         && m.IdCuenta == accountIdLong)
+                .Select(m => m.IdMaterial)
+                .ToListAsync(cancellationToken);
+        }
+
+        // Nivel 4 — por gestor
+        if (!materialesIds.Any())
+        {
+            var personId = _currentUserService.GetCurrentPersonId();
+            materialesIds = await _context.PersonaMaterials
+                .Where(m => m.IdPersona == personId
+                         && m.IdCuenta == accountIdLong)
+                .Select(m => m.IdMaterial)
+                .ToListAsync(cancellationToken);
+        }
+
+        if (!materialesIds.Any())
+            return new List<WasteType>();
+
+        return await _context.Materials
+            .Where(m => materialesIds.Contains(m.IdMaterial))
+            .Select(m => new WasteType
+            {
+                Id = m.IdMaterial.ToString(),
+                Name = m.Nombre ?? string.Empty,
+            })
+            .ToListAsync(cancellationToken);
+    }
     public async Task<IEnumerable<Party>> GetAllAsync(string? partyId, CancellationToken cancellationToken = default)
     {
         var accountId = _currentUserService.GetCurrentAccountId();
@@ -171,21 +257,11 @@ public class PartyRepository : IPartyRepository<Party>
 
                 foreach (var deposito in depositosRaw)
                 {
-                    var materialesIds = await _context.PersonaMaterialDepositos
-                        .Where(m => m.IdPersona == party.Id
-                                 && m.IdCuenta == accountIdLong
-                                 && m.IdDeposito == deposito.IdDeposito)
-                        .Select(m => m.IdMaterial)
-                        .ToListAsync(cancellationToken);
-
-                    var wasteTypes = await _context.Materials
-                        .Where(m => materialesIds.Contains(m.IdMaterial))
-                        .Select(m => new WasteType
-                        {
-                            Id = m.IdMaterial.ToString(),
-                            Name = m.Nombre ?? string.Empty,
-                        })
-                        .ToListAsync(cancellationToken);
+                    var wasteTypes = await GetMaterialesResueltosAsync(
+                        party.Id,
+                        deposito.IdDeposito,
+                        sede.IdUbicacion,
+                        cancellationToken);
 
                     var depositoDto = new Facility
                     {
