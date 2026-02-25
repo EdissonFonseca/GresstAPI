@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Gresst.Infrastructure.Data.Entities;
+using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Xml.Linq;
@@ -67,5 +68,18 @@ namespace Gresst.Infrastructure.Mappers
             PartyRelationType.Driver => TipoRelacion.Conductor,
             _ => throw new ArgumentOutOfRangeException(nameof(relationType), $"Unknown party relation type: {relationType}")
         };
+        public static List<FacilityType> ToFacilityTypes(Deposito d)
+        {
+            var types = new List<FacilityType>();
+
+            if (d.Recepcion == true) types.Add(FacilityType.Reception);
+            if (d.Entrega == true) types.Add(FacilityType.Transfer);
+            if (d.Acopio == true) types.Add(FacilityType.Storage);
+            if (d.Disposicion == true) types.Add(FacilityType.Disposal);
+            if (d.Tratamiento == true) types.Add(FacilityType.Processing);
+            if (d.Almacenamiento == true) types.Add(FacilityType.Containment);
+
+            return types;
+        }
     }
 }

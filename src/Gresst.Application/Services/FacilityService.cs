@@ -176,21 +176,7 @@ public class FacilityService : IFacilityService
         {
             Id = string.Empty,
             Name = dto.Name,
-            Description = dto.Description,
-            //Type = dto.Type,
             Address = dto.Address,
-            //Latitude = dto.Latitude,
-            //Longitude = dto.Longitude,
-            //PersonId = personId,
-            //CanCollect = dto.CanCollect,
-            //CanStore = dto.CanStore,
-            //CanDispose = dto.CanDispose,
-            //CanTreat = dto.CanTreat,
-            //CanReceive = dto.CanReceive,
-            //CanDeliver = dto.CanDeliver,
-            MaxCapacity = dto.MaxCapacity,
-            CapacityUnit = dto.CapacityUnit,
-            CurrentCapacity = 0,
             ParentId = dto.ParentFacilityId,
             CreatedAt = DateTime.UtcNow,
             IsActive = true
@@ -210,15 +196,6 @@ public class FacilityService : IFacilityService
         return null;
     }
 
-    public async Task<IEnumerable<FacilityDto>> GetByTypeAsync(FacilityType facilityType, CancellationToken cancellationToken = default)
-    {
-        var facilities = await _facilityRepository.FindAsync(
-            f => f.Type == facilityType, 
-            cancellationToken);
-        
-        return facilities.Select(MapToDto).ToList();
-    }
-
     public async Task<FacilityDto?> UpdateAsync(UpdateFacilityDto dto, CancellationToken cancellationToken = default)
     {
         // Verificar acceso del usuario
@@ -234,18 +211,8 @@ public class FacilityService : IFacilityService
         // Update only provided fields
         if (!string.IsNullOrEmpty(dto.Name))
             facility.Name = dto.Name;
-        if (dto.Description != null)
-            facility.Description = dto.Description;
         if (dto.Address != null)
             facility.Address = dto.Address;
-        
-        // Capacity
-        if (dto.MaxCapacity.HasValue)
-            facility.MaxCapacity = dto.MaxCapacity;
-        if (dto.CurrentCapacity.HasValue)
-            facility.CurrentCapacity = dto.CurrentCapacity;
-        
-        // Hierarchical structure
         facility.UpdatedAt = DateTime.UtcNow;
 
         await _facilityRepository.UpdateAsync(facility, cancellationToken);
@@ -276,14 +243,11 @@ public class FacilityService : IFacilityService
     {
         return new FacilityDto
         {
+            Id = facility.Id,
             Name = facility.Name,
-            Description = facility.Description,
             Address = facility.Address,
-            MaxCapacity = facility.MaxCapacity,
-            CapacityUnit = facility.CapacityUnit,
-            CurrentCapacity = facility.CurrentCapacity,
-            CreatedAt = facility.CreatedAt,
-            UpdatedAt = facility.UpdatedAt,
+            Phone = facility.Phone,
+            Email = facility.Email,
             IsActive = facility.IsActive
         };
     }

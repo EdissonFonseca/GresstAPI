@@ -1,5 +1,4 @@
-﻿using HotChocolate.Types;
-using Gresst.Application.DTOs;
+﻿using Gresst.Application.DTOs;
 
 namespace Gresst.API.GraphQL;
 

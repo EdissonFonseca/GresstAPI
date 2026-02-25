@@ -20,12 +20,12 @@ public class Party : BaseEntity
 
     public List<PartyRelationType> Relations { get; set; } = new List<PartyRelationType>();
     public PartyType Type { get; set; }
-    public ICollection<Contact> Contacts { get; set; } = new List<Contact>();
-    public ICollection<Facility> Facilities { get; set; } = new List<Facility>();
-    public ICollection<License> Licenses { get; set; } = new List<License>();
-    public ICollection<Packaging> Packaging { get; set; } = new List<Packaging>();
-    public ICollection<Procedure> Procedures { get; set; } = new List<Procedure>();
-    public ICollection<Vehicle> Vehicles { get; set; } = new List<Vehicle>();
-    public ICollection<WasteType> WasteTypes { get; set; } = new List<WasteType>();
-    public ICollection<Supply> Supplies { get; set; } = new List<Supply>();
+    public List<Contact> Contacts { get; set; } = new List<Contact>();
+    public List<Facility> Facilities { get; set; } = new List<Facility>();
+    public List<License> Licenses { get; set; } = new List<License>();
+    public List<Packaging> Packaging { get; set; } = new List<Packaging>();
+    public List<Procedure> Procedures { get; set; } = new List<Procedure>();
+    public List<Vehicle> Vehicles { get; set; } = new List<Vehicle>();
+    public List<WasteType> WasteTypes { get; set; } = new List<WasteType>();
+    public List<Supply> Supplies { get; set; } = new List<Supply>();
 }

@@ -196,8 +196,10 @@ public static class ServiceCollectionExtensions
     {
         services.AddScoped<IAccountRegistrationService, AccountRegistrationService>();
         services.AddScoped<IAuthorizationService, AuthorizationService>();
+        services.AddScoped<IDataSegmentationService, DataSegmentationService>();
         services.AddScoped<IMeService, MeService>();
         services.AddScoped<IPartyService, PartyService>();
+        services.AddScoped<IFacilityService, FacilityService>();
         services.AddScoped<IUserService, UserService>();
         return services;
     }

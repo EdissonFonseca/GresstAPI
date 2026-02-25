@@ -3,6 +3,7 @@ using Gresst.Domain.Interfaces;
 using Gresst.Infrastructure.Data;
 using Gresst.Infrastructure.Mappers;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using System.Linq.Expressions;
 
 namespace Gresst.Infrastructure.Repositories;
@@ -26,19 +27,7 @@ public class FacilityRepository : IPartyRepository<Facility>
         _currentUserService = currentUserService;
     }
 
-    public async Task<Facility?> GetByIdAsync(string id, CancellationToken cancellationToken = default)
-    {
-        if (string.IsNullOrEmpty(id) || !long.TryParse(id, out var idLong))
-            return null;
-        var dbEntity = await _context.Depositos
-            .Include(d => d.IdPersonaNavigation)
-            .Include(d => d.IdSuperiorNavigation) // Parent facility
-            .FirstOrDefaultAsync(d => d.IdDeposito == idLong, cancellationToken);
-        
-        return dbEntity != null ? _mapper.ToDomain(dbEntity) : null;
-    }
-
-    public async Task<IEnumerable<Facility>> GetAllAsync(CancellationToken cancellationToken = default)
+    public async Task<IEnumerable<Facility>> GetAllAsync(string? partyId, CancellationToken cancellationToken = default)
     {
         var accountId = _currentUserService.GetCurrentAccountId();
         var accountIdLong = string.IsNullOrEmpty(accountId) ? 0L : long.Parse(accountId);
@@ -51,16 +40,57 @@ public class FacilityRepository : IPartyRepository<Facility>
 
         return dbEntities.Select(_mapper.ToDomain).ToList();
     }
+    public async Task<IEnumerable<Facility>> GetAllWithDetailsAsync(string? partyId, CancellationToken cancellationToken = default)
+    {
+        var accountId = _currentUserService.GetCurrentAccountId();
+        var accountIdLong = string.IsNullOrEmpty(accountId) ? 0L : long.Parse(accountId);
 
-    public async Task<IEnumerable<Facility>> FindAsync(Expression<Func<Facility, bool>> predicate, CancellationToken cancellationToken = default)
+        var dbEntities = await _context.Depositos
+            .Where(d => d.Activo && d.IdCuenta == accountIdLong)
+            .Include(d => d.IdPersonaNavigation)
+            .Include(d => d.IdSuperiorNavigation) // Parent facility
+            .ToListAsync(cancellationToken);
+
+        return dbEntities.Select(_mapper.ToDomain).ToList();
+    }
+    public async Task<IEnumerable<Facility>> FindAsync(Expression<Func<Facility, bool>> predicate, string? partyId, CancellationToken cancellationToken = default)
     {
         // Para queries más complejas, necesitarías traducir el Expression
         // Por ahora, traemos todo y filtramos en memoria (menos eficiente pero funcional)
-        var all = await GetAllAsync(cancellationToken);
+        var all = await GetAllAsync(partyId, cancellationToken);
         return all.Where(predicate.Compile());
     }
+    Task<(IEnumerable<Facility> Items, string? Next)> IPartyRepository<Facility>.FindPagedAsync(Expression<Func<Facility, bool>> predicate, string? partyId, int limit, string? next, CancellationToken cancellationToken)
+    {
+        throw new NotImplementedException();
+    }
+    public async Task<Facility?> GetByIdAsync(string id, CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrEmpty(id) || !long.TryParse(id, out var idLong))
+            return null;
+        var dbEntity = await _context.Depositos
+            .Include(d => d.IdPersonaNavigation)
+            .Include(d => d.IdSuperiorNavigation) // Parent facility
+            .FirstOrDefaultAsync(d => d.IdDeposito == idLong, cancellationToken);
 
-    public async Task<Facility> AddAsync(Facility entity, CancellationToken cancellationToken = default)
+        return dbEntity != null ? _mapper.ToDomain(dbEntity) : null;
+    }
+    public async Task<int> CountAsync(Expression<Func<Facility, bool>>? predicate = null, string? partyId = null, CancellationToken cancellationToken = default)
+    {
+        var accountId = _currentUserService.GetCurrentAccountId();
+        var accountIdLong = string.IsNullOrEmpty(accountId) ? 0L : long.Parse(accountId);
+
+        if (predicate == null)
+        {
+            return await _context.Depositos
+                .Where(d => d.Activo && d.IdCuenta == accountIdLong)
+                .CountAsync(cancellationToken);
+        }
+
+        var all = await GetAllAsync(partyId, cancellationToken);
+        return all.Count(predicate.Compile());
+    }
+    public async Task<Facility> AddAsync(Facility entity, string? partyId, CancellationToken cancellationToken = default)
     {
         var dbEntity = _mapper.ToDatabase(entity);
         var userId = _currentUserService.GetCurrentUserId();
@@ -77,8 +107,7 @@ public class FacilityRepository : IPartyRepository<Facility>
         entity.Id = dbEntity.IdDeposito.ToString();
         return entity;
     }
-
-    public Task UpdateAsync(Facility entity, CancellationToken cancellationToken = default)
+    public Task UpdateAsync(Facility entity, string? partyId, CancellationToken cancellationToken = default)
     {
         var idLong = string.IsNullOrEmpty(entity.Id) ? 0L : long.Parse(entity.Id);
         var dbEntity = _context.Depositos.Find(idLong);
@@ -97,8 +126,7 @@ public class FacilityRepository : IPartyRepository<Facility>
         _context.Depositos.Update(dbEntity);
         return Task.CompletedTask;
     }
-
-    public Task DeleteAsync(Facility entity, CancellationToken cancellationToken = default)
+    public Task DeleteAsync(Facility entity, string? partyId, CancellationToken cancellationToken = default)
     {
         var idLong = string.IsNullOrEmpty(entity.Id) ? 0L : long.Parse(entity.Id);
         var dbEntity = _context.Depositos.Find(idLong);
@@ -117,55 +145,5 @@ public class FacilityRepository : IPartyRepository<Facility>
         return Task.CompletedTask;
     }
 
-    public async Task<int> CountAsync(Expression<Func<Facility, bool>>? predicate = null, CancellationToken cancellationToken = default)
-    {
-        var accountId = _currentUserService.GetCurrentAccountId();
-        var accountIdLong = string.IsNullOrEmpty(accountId) ? 0L : long.Parse(accountId);
-        
-        if (predicate == null)
-        {
-            return await _context.Depositos
-                .Where(d => d.Activo && d.IdCuenta == accountIdLong)
-                .CountAsync(cancellationToken);
-        }
-        
-        var all = await GetAllAsync(cancellationToken);
-        return all.Count(predicate.Compile());
-    }
-
-    Task<IEnumerable<Facility>> IPartyRepository<Facility>.GetAllAsync(string? partyId, CancellationToken cancellationToken)
-    {
-        throw new NotImplementedException();
-    }
-
-    Task<IEnumerable<Facility>> IPartyRepository<Facility>.FindAsync(Expression<Func<Facility, bool>> predicate, string? partyId, CancellationToken cancellationToken)
-    {
-        throw new NotImplementedException();
-    }
-
-    Task<(IEnumerable<Facility> Items, string? Next)> IPartyRepository<Facility>.FindPagedAsync(Expression<Func<Facility, bool>> predicate, string? partyId, int limit, string? next, CancellationToken cancellationToken)
-    {
-        throw new NotImplementedException();
-    }
-
-    Task<int> IPartyRepository<Facility>.CountAsync(Expression<Func<Facility, bool>>? predicate, string? partyId, CancellationToken cancellationToken)
-    {
-        throw new NotImplementedException();
-    }
-
-    Task<Facility> IPartyRepository<Facility>.AddAsync(Facility entity, string? partyId, CancellationToken cancellationToken)
-    {
-        throw new NotImplementedException();
-    }
-
-    Task IPartyRepository<Facility>.UpdateAsync(Facility entity, string? partyId, CancellationToken cancellationToken)
-    {
-        throw new NotImplementedException();
-    }
-
-    Task IPartyRepository<Facility>.DeleteAsync(Facility entity, string? partyId, CancellationToken cancellationToken)
-    {
-        throw new NotImplementedException();
-    }
 }
 

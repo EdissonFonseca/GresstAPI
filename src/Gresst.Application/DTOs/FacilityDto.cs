@@ -1,38 +1,21 @@
+using NetTopologySuite.Geometries;
+
 namespace Gresst.Application.DTOs;
 
-public class FacilityDto
+public class    FacilityDto
 {
-    public string Id { get; set; } = string.Empty;
-    public string Name { get; set; } = string.Empty;
-    public string? Description { get; set; }
-    public FacilityType Type { get; set; }
+    public required string Id { get; set; }
+    public required string Name { get; set; }
+    public string? LocalityId { get; set; }
+    public Point? Location { get; set; }
+    public List<FacilityType>? Types { get; set; }
     public string? Address { get; set; }
-    public decimal? Latitude { get; set; }
-    public decimal? Longitude { get; set; }
-    public string PersonId { get; set; } = string.Empty;
-    public string? PersonName { get; set; }
-    
-    // Capabilities
-    public bool CanCollect { get; set; }
-    public bool CanStore { get; set; }
-    public bool CanDispose { get; set; }
-    public bool CanTreat { get; set; }
-    public bool CanReceive { get; set; }
-    public bool CanDeliver { get; set; }
-    
-    // Capacity
-    public decimal? MaxCapacity { get; set; }
-    public string? CapacityUnit { get; set; }
-    public decimal? CurrentCapacity { get; set; }
-    
-    // Hierarchical structure
-    public string? ParentFacilityId { get; set; }
-    public string? ParentFacilityName { get; set; }
-    public bool IsVirtual { get; set; }
-    
-    public DateTime CreatedAt { get; set; }
-    public DateTime? UpdatedAt { get; set; }
+    public string? Email { get; set; }
+    public string? Phone { get; set; }
+    public string? Reference { get; set; }
     public bool IsActive { get; set; }
+    public List<FacilityDto> Facilities { get; set; } = new List<FacilityDto>();
+    public List<WasteTypeDto> WasteTypes { get; set; } = new List<WasteTypeDto>();
 }
 
 public class CreateFacilityDto

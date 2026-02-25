@@ -59,7 +59,6 @@
     <Compile Remove="Repositories\TreatmentRepository.cs" />
     <Compile Remove="Repositories\WasteClassRepository.cs" />
     <Compile Remove="Repositories\WasteRepository.cs" />
-    <Compile Remove="Services\DataSegmentationService.cs" />
     <Compile Remove="Services\RequestFilterDefaults.cs" />
     <Compile Remove="Services\WasteGenerationService.cs" />
   </ItemGroup>

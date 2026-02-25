@@ -4,6 +4,7 @@ using Gresst.Domain.Entities;
 using Gresst.Domain.Identity;
 using Gresst.Domain.Interfaces;
 using System.Linq.Expressions;
+using System.Net;
 
 namespace Gresst.Application.Services;
 
@@ -54,7 +55,39 @@ public class PartyService : IPartyService
             LocalityId = party.LocalityId,
             SignatureUrl = party.SignatureUrl,
             IsActive = party.IsActive,
-            Relations = relations
+            Relations = relations,
+            Facilities = party.Facilities.Select(f => new FacilityDto
+            {
+                Id = f.Id,
+                Name = f.Name,
+                Address = f.Address,
+                Location = f.Location,
+                LocalityId = f.LocalityId,
+                Phone = f.Phone,
+                Email = f.Email,
+                Reference = f.Reference,
+                IsActive = f.IsActive,
+                Types = f.Types,
+                Facilities = f.Facilities.Select(d => new FacilityDto
+                {
+                    Id = d.Id,
+                    Name = d.Name,
+                    Address = d.Address,
+                    Location = d.Location,
+                    LocalityId = d.LocalityId,
+                    Phone = d.Phone,
+                    Email = d.Email,
+                    Reference = d.Reference,
+                    IsActive = d.IsActive,
+                    Types = d.Types,
+                    Facilities = new List<FacilityDto>(),
+                    WasteTypes = d.WasteTypes.Select(w => new WasteTypeDto
+                    {
+                        Id = w.Id,
+                        Name = w.Name,
+                    }).ToList()
+                }).ToList()
+            }).ToList()
         };
     }
 
@@ -66,6 +99,11 @@ public class PartyService : IPartyService
             return Enumerable.Empty<PartyRelatedDto>();
 
         var parties = await _partyRepository.GetAllAsync(partyId, cancellationToken);
+        return parties.Select(MapToDto);
+    }
+    public async Task<IEnumerable<PartyRelatedDto>> GetAllWithDetailsAsync(string? partyId = null, CancellationToken cancellationToken = default)
+    {
+        var parties = await _partyRepository.GetAllWithDetailsAsync(partyId, cancellationToken);
         return parties.Select(MapToDto);
     }
 

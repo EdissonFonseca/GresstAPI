@@ -26,32 +26,14 @@ public class FacilityMapper : MapperBase<Facility, Deposito>
 
         return new Facility
         {
-            // IDs - Domain uses string for BaseEntity.Id/AccountId
             Id = dbEntity.IdDeposito.ToString(),
-            
-            // Basic Info
             Name = dbEntity.Nombre ?? string.Empty,
-            Description = dbEntity.Notas,
-            //Type = DetermineFacilityType(dbEntity),
-            
-            // Location
             Address = dbEntity.Direccion,
-            //Latitude = dbEntity.Ubicacion.GetLatitude(),
-            //Longitude = dbEntity.Ubicacion.GetLongitude(),
-            
-            // Capacity
-            MaxCapacity = dbEntity.Peso,
-            CapacityUnit = "kg",
-            CurrentCapacity = dbEntity.Cantidad,
-            
-            ParentId = dbEntity.IdSuperior.HasValue ? dbEntity.IdSuperior.Value.ToString() : null,
-            
-            // Audit fields
-            CreatedAt = dbEntity.FechaCreacion,
-            UpdatedAt = dbEntity.FechaUltimaModificacion,
-            CreatedBy = dbEntity.IdUsuarioCreacion.ToString(),
-            UpdatedBy = dbEntity.IdUsuarioUltimaModificacion?.ToString(),
-            IsActive = dbEntity.Activo
+            Phone = dbEntity.Telefono,
+            Email = dbEntity.Correo,
+            LocalityId = dbEntity.IdLocalizacion?.ToString(),  
+            IsActive = dbEntity.Activo,
+            ParentId = dbEntity.IdUbicacion?.ToString(),
         };
     }
 
@@ -81,39 +63,10 @@ public class FacilityMapper : MapperBase<Facility, Deposito>
 
         return new Deposito
         {
-            // IDs - Domain Id/AccountId are string, BD uses long
             IdDeposito = long.TryParse(domainEntity.Id, out var idDeposito) ? idDeposito : 0,
             IdCuenta = long.TryParse(accountId, out var idCuenta) ? idCuenta : 0,
-            
-            // Basic Info
             Nombre = domainEntity.Name,
-            Notas = domainEntity.Description,
-            
-            // Location
             Direccion = domainEntity.Address,
-            //Ubicacion = NetTopologySuiteExtensions.CreatePoint(domainEntity.Latitude, domainEntity.Longitude),
-            
-            // Owner - DB IdPersona is string
-            //IdPersona = string.IsNullOrEmpty(domainEntity.PersonId) ? null : domainEntity.PersonId,
-            
-            // Capacity
-            Peso = domainEntity.MaxCapacity,
-            Cantidad = domainEntity.CurrentCapacity,
-            
-            // Parent Facility - Domain ParentFacilityId is string
-            //IdSuperior = !string.IsNullOrEmpty(domainEntity.ParentId) 
-            //    ? domainEntity.ParentId.ToString() 
-            //    : null,
-            
-            // Audit
-            FechaCreacion = domainEntity.CreatedAt,
-            FechaUltimaModificacion = domainEntity.UpdatedAt,
-            IdUsuarioCreacion = !string.IsNullOrEmpty(domainEntity.CreatedBy) 
-                ? long.Parse(domainEntity.CreatedBy) 
-                : 0,
-            IdUsuarioUltimaModificacion = !string.IsNullOrEmpty(domainEntity.UpdatedBy) 
-                ? long.Parse(domainEntity.UpdatedBy) 
-                : null,
             Activo = domainEntity.IsActive
         };
     }
@@ -127,35 +80,7 @@ public class FacilityMapper : MapperBase<Facility, Deposito>
 
         // Solo actualizar campos modificables (no IDs, no fechas de creación)
         dbEntity.Nombre = domainEntity.Name;
-        dbEntity.Notas = domainEntity.Description;
         dbEntity.Direccion = domainEntity.Address;
-        //dbEntity.Ubicacion = NetTopologySuiteExtensions.CreatePoint(domainEntity.Latitude, domainEntity.Longitude);
-        
-        //// Capabilities
-        //dbEntity.Acopio = domainEntity.CanCollect;
-        //dbEntity.Almacenamiento = domainEntity.CanStore;
-        //dbEntity.Disposicion = domainEntity.CanDispose;
-        //dbEntity.Entrega = domainEntity.CanDeliver;
-        //dbEntity.Recepcion = domainEntity.CanReceive;
-        //dbEntity.Tratamiento = domainEntity.CanTreat;
-        
-        //// Capacity
-        //dbEntity.Peso = domainEntity.MaxCapacity;
-        //dbEntity.Cantidad = domainEntity.CurrentCapacity;
-        
-        //// Parent Facility - Domain ParentFacilityId is string
-        //dbEntity.IdSuperior = !string.IsNullOrEmpty(domainEntity.ParentFacilityId) 
-        //    ? IdConversion.ToLongFromString(domainEntity.ParentFacilityId) 
-        //    : null;
-        
-        // Note: IsVirtual is not stored in Deposito table, it's a domain concept
-        // Virtual facilities should be identified by a specific FacilityType or naming convention
-        
-        // Audit
-        dbEntity.FechaUltimaModificacion = domainEntity.UpdatedAt;
-        dbEntity.IdUsuarioUltimaModificacion = !string.IsNullOrEmpty(domainEntity.UpdatedBy) 
-            ? long.Parse(domainEntity.UpdatedBy) 
-            : null;
         dbEntity.Activo = domainEntity.IsActive;
     }
 
@@ -168,5 +93,5 @@ public class FacilityMapper : MapperBase<Facility, Deposito>
         if (dbEntity.Acopio && dbEntity.Entrega) return "TransferStation";
         return "Facility";
     }
-}
 
+}

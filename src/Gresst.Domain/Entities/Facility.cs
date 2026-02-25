@@ -1,4 +1,5 @@
 using Gresst.Domain.Common;
+using NetTopologySuite.Geometries;
 
 namespace Gresst.Domain.Entities;
 
@@ -7,21 +8,17 @@ namespace Gresst.Domain.Entities;
 /// </summary>
 public class Facility : BaseEntity
 {
-    public string? Description { get; set; }
-    public FacilityType? Type { get; set; }
-    public string? LocationId { get; set; }    
-    // Location
-    public string? Address { get; set; }
-    // Capacity
-    public decimal? MaxCapacity { get; set; }
-    public string? CapacityUnit { get; set; }
-    public decimal? CurrentCapacity { get; set; }
-    
     public string? ParentId { get; set; }
-    public ICollection<Facility> Nodes { get; set; } = new List<Facility>();    
-    public ICollection<License> Licenses { get; set; } = new List<License>();
-    public ICollection<WasteType> WasteTypes { get; set; } = new List<WasteType>();
-    public ICollection<Procedure> Procedures { get; set; } = new List<Procedure>();
-    public ICollection<Contact> Contacts { get; set; } = new List<Contact>();
+    public string? LocalityId { get; set; }
+    public Point? Location { get; set; }
+    public string? Address { get; set; }
+    public string? Email { get; set; }
+    public string? Phone { get; set; }
+    public string? Reference { get; set; }
+    public List<FacilityType>? Types { get; set; }
+    public List<Facility> Facilities { get; set; } = new List<Facility>();    
+    public List<WasteType> WasteTypes { get; set; } = new List<WasteType>();
+    public List<Procedure> Procedures { get; set; } = new List<Procedure>();
+    public List<Contact> Contacts { get; set; } = new List<Contact>();
 }
 

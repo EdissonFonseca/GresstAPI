@@ -3,6 +3,7 @@ using Gresst.Domain.Interfaces;
 using Gresst.Infrastructure.Data;
 using Gresst.Infrastructure.Mappers;
 using Microsoft.EntityFrameworkCore;
+using NetTopologySuite.Geometries;
 using System.Globalization;
 using System.Linq.Expressions;
 using System.Text;
@@ -124,7 +125,91 @@ public class PartyRepository : IPartyRepository<Party>
 
         return merged.Select(_mapper.ToDomain).ToList();
     }
+    public async Task<IEnumerable<Party>> GetAllWithDetailsAsync(
+        string? partyId,
+        CancellationToken cancellationToken = default)
+    {
+        var accountId = _currentUserService.GetCurrentAccountId();
+        var accountIdLong = string.IsNullOrEmpty(accountId)
+            ? (long?)null
+            : long.Parse(accountId);
 
+        var all = await GetAllAsync(partyId, cancellationToken);
+
+        foreach (var party in all)
+        {
+            var sedes = await _context.PersonaLocalizacions
+                .Where(p => p.IdCuenta == accountIdLong && p.IdPersona == party.Id)
+                .ToListAsync(cancellationToken);
+
+            foreach (var sede in sedes)
+            {
+                var sedeDto = new Facility
+                {
+                    Id = sede.IdUbicacion.ToString(),
+                    LocalityId = sede.IdUbicacion.ToString(),
+                    Name = sede.Nombre ?? string.Empty,
+                    Address = sede.Direccion,
+                    Phone = sede.Telefono,
+                    Email = sede.Correo,
+                    Reference = sede.Referencia,
+                    Types = new List<FacilityType> { FacilityType.Adminstrative },
+                    IsActive = sede.Activo
+                };
+
+                var depositoIds = await _context.PersonaLocalizacionDepositos
+                    .Where(p => p.IdPersona == party.Id
+                             && p.IdUbicacion == sede.IdUbicacion)
+                    .Select(p => p.IdDeposito)
+                    .ToListAsync(cancellationToken);
+
+                var depositosRaw = await _context.Depositos
+                    .Where(d => depositoIds.Contains(d.IdDeposito))
+                    .ToListAsync(cancellationToken);
+
+                foreach (var deposito in depositosRaw)
+                {
+                    // 1. Traer los materiales del depósito para esta persona
+                    var materialesIds = await _context.PersonaMaterialDepositos
+                        .Where(m => m.IdPersona == party.Id
+                                 && m.IdCuenta == accountIdLong
+                                 && m.IdDeposito == deposito.IdDeposito)
+                        .Select(m => m.IdMaterial)
+                        .ToListAsync(cancellationToken);
+
+                    var wasteTypes = await _context.Materials
+                        .Where(m => materialesIds.Contains(m.IdMaterial))
+                        .Select(m => new WasteType
+                        {
+                            Id = m.IdMaterial.ToString(),
+                            Name = m.Nombre ?? string.Empty,
+                        })
+                        .ToListAsync(cancellationToken);
+
+                    var depositoDto = new Facility
+                    {
+                        Id = deposito.IdDeposito.ToString(),
+                        ParentId = deposito.IdUbicacion.ToString(),
+                        LocalityId = deposito.IdDeposito.ToString(),
+                        Location = deposito.Ubicacion as Point,
+                        Name = deposito.Nombre ?? string.Empty,
+                        Address = deposito.Direccion,
+                        Phone = deposito.Telefono,
+                        Email = deposito.Correo,
+                        Reference = deposito.Referencia,
+                        IsActive = deposito.Activo,
+                        Types = TypeMapper.ToFacilityTypes(deposito),
+                        WasteTypes = wasteTypes  // ← materiales del depósito
+                    };
+
+                    sedeDto.Facilities.Add(depositoDto);
+                }
+                party.Facilities.Add(sedeDto);
+            }
+        }
+
+        return all;
+    }
     public async Task<Party?> GetByIdAsync(string id, CancellationToken cancellationToken = default)
     {
         var dbEntity = await _context.Personas.FindAsync(new object[] { id }, cancellationToken);
@@ -161,7 +246,6 @@ public class PartyRepository : IPartyRepository<Party>
 
         return (items, nextCursor);
     }
-
     public async Task<int> CountAsync(Expression<Func<Party, bool>>? predicate = null, string? parentId = null, CancellationToken cancellationToken = default)
     {
         var accountId = _currentUserService.GetCurrentAccountId();
@@ -177,7 +261,6 @@ public class PartyRepository : IPartyRepository<Party>
         var all = await GetAllAsync(parentId, cancellationToken);
         return all.Count(predicate.Compile());
     }
-
     public async Task<Party> AddAsync(Party entity, string? partyId, CancellationToken cancellationToken = default)
     {
         var dbEntity = _mapper.ToDatabase(entity);
