@@ -70,7 +70,7 @@ public class PartyRepository : IPartyRepository<Party>
             depositoPadreId.Value,
             cancellationToken);
     }
-    private async Task<List<WasteType>> GetMaterialesResueltosAsync(string partyId, long depositoId, long ubicacionId, CancellationToken cancellationToken)
+    private async Task<List<Waste>> GetMaterialesResueltosAsync(string partyId, long depositoId, long ubicacionId, CancellationToken cancellationToken)
     {
         var accountId = _currentUserService.GetCurrentAccountId();
         var accountIdLong = Convert.ToInt16(accountId);
@@ -111,11 +111,11 @@ public class PartyRepository : IPartyRepository<Party>
         }
 
         if (!materialesIds.Any())
-            return new List<WasteType>();
+            return new List<Waste>();
 
         return await _context.Materials
             .Where(m => materialesIds.Contains(m.IdMaterial))
-            .Select(m => new WasteType
+            .Select(m => new Waste
             {
                 Id = m.IdMaterial.ToString(),
                 Name = m.Nombre ?? string.Empty,

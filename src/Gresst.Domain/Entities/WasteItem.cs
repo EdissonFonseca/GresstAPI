@@ -9,6 +9,7 @@ namespace Gresst.Domain.Entities;
 /// </summary>
 public class WasteItem : BaseEntity
 {
+    public string WasteId { get; set; } // Id of the waste type (e.g. UN code) that this item belongs to
     public string? Description { get; set; }
     public string? WasteBatchId { get; set; }
     public string? WasteTypeId { get; set; }
@@ -24,6 +25,11 @@ public class WasteItem : BaseEntity
     public decimal? CurrentVolume { get; set; }
     public decimal? CurrentCount { get; set; }
     public ICollection<WasteItemEvent> Events { get; set; } = new List<WasteItemEvent>();
+
+    public WasteItem(string wasteId)
+    {
+        WasteId = wasteId;
+    }
     public void Apply(WasteItemEvent wasteEvent)
     {
         CurrentStatus = wasteEvent.ToStatus;

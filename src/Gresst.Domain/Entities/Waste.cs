@@ -1,39 +1,28 @@
-﻿using Gresst.Domain.Entities;
+using Gresst.Domain.Common;
 
-public class Waste : AggregateRoot
+namespace Gresst.Domain.Entities;
+
+/// <summary>
+/// Waste is the definition of a type of waste, with its properties and compatible procedures. It is used to classify waste items and determine how they should be handled.
+/// </summary>
+public class Waste : BaseEntity
 {
-    public string Id { get; private set; }
-    public WasteType WasteType { get; init; }
-    public decimal Quantity { get; private set; }
-    public WasteStatus Status { get; private set; }
-    public string CurrentOwnerId { get; private set; }
-    public string CurrentLocationId { get; private set; }
-
-    private readonly List<WasteOperation> _operations = new();
-    public IReadOnlyCollection<WasteOperation> Operations => _operations;
-    public void ApplyOperation(WasteOperation operation)
-    {
-        // domain rules here
-        _operations.Add(operation);
-    }
-
-    private Waste() { 
-        Id = Guid.NewGuid().ToString();
-        CurrentLocationId = Guid.NewGuid().ToString();
-        CurrentOwnerId = Guid.NewGuid().ToString();
-        WasteType = new WasteType();
-    }
-    
-    public Waste(WasteType wasteType, decimal quantity)
-    {
-        if (quantity <= 0)
-            throw new ArgumentException("Quantity must be greater than zero");
-
-        Id = Guid.NewGuid().ToString();
-        CurrentLocationId = Guid.NewGuid().ToString();
-        CurrentOwnerId = Guid.NewGuid().ToString();
-        WasteType = wasteType ?? throw new ArgumentNullException(nameof(wasteType));
-        Quantity = quantity;
-        Status = WasteStatus.Generated;
-    }
+    public string? Description { get; set; }
+    public string? UNCode { get; set; }    
+    public string? LERCode { get; set; }
+    public string? YCode { get; set; }
+    public string? ACode { get; set; }
+    public string? ProprietaryCode { get; set; }
+    public decimal? KgPerItem { get; set; }
+    public decimal? M3PerItem { get; set; }
+    public decimal? KgPerM3 { get; set; }
+    public MeasurementType BaseMeasurementType { get; set; }
+    public decimal? PurchasePrice { get; set; }     
+    public decimal? SalePrice { get; set; }
+    public decimal? CollectionPrice { get; set; }
+    public decimal? TreatmentPrice { get; set; }
+    public decimal? StoragePrice { get; set; }
+    public decimal? TransportPrice { get; set; }
+    public WasteClassification? WasteClassification { get; set; }
+    public ICollection<Procedure> CompatibleProcedures { get; set; } = new List<Procedure>();
 }

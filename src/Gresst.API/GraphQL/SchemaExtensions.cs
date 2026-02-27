@@ -8,12 +8,10 @@ public static class SchemaExtensions
     {
         services
             .AddGraphQLServer()
-            .AddQueryType<PartiesQuery>()
             .AddTypeExtension<TransportQuery>()
             .AddMutationType<RouteProcessMutations>()
             .AddSubscriptionType<RouteProcessSubscriptions>()
             .AddType<FacilityType>()
-            .AddType<PartyRelatedType>()
             .AddInMemorySubscriptions()
             .AddAuthorization()
             .ModifyRequestOptions(o => o.IncludeExceptionDetails = true);

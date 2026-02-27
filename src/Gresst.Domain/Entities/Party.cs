@@ -26,6 +26,6 @@ public class Party : BaseEntity
     public List<Packaging> Packaging { get; set; } = new List<Packaging>();
     public List<Procedure> Procedures { get; set; } = new List<Procedure>();
     public List<Vehicle> Vehicles { get; set; } = new List<Vehicle>();
-    public List<WasteType> WasteTypes { get; set; } = new List<WasteType>();
+    public List<Waste> WasteTypes { get; set; } = new List<Waste>();
     public List<Supply> Supplies { get; set; } = new List<Supply>();
 }
