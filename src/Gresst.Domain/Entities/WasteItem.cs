@@ -1,6 +1,5 @@
-using System.ComponentModel;
 using Gresst.Domain.Common;
-using Gresst.Domain.Enums;
+using Gresst.Domain.Events;
 
 namespace Gresst.Domain.Entities;
 
@@ -11,14 +10,11 @@ public class WasteItem : BaseEntity
 {
     public string WasteId { get; set; } // Id of the waste type (e.g. UN code) that this item belongs to
     public string? Description { get; set; }
-    public string? WasteBatchId { get; set; }
-    public string? WasteTypeId { get; set; }
     public string? ParentId { get; set; }
-    public string? FacilityId { get; set; }
     public string? GeneratorId { get; set; }
-    public string? OwnerId { get; set; }
+    public string? HolderId { get; set; }
     public string? PackagingId { get; set; }  
-    public WasteItemStatus CurrentStatus { get; set; } = WasteItemStatus.Declared;
+    public WasteItemStatus CurrentStatus { get; set; } = WasteItemStatus.Draft;
     public string? CurrentFacilityId { get; set; }
     public string? CurrentVehicleId { get; set; }
     public decimal? CurrentWeight { get; set; }
@@ -33,8 +29,8 @@ public class WasteItem : BaseEntity
     public void Apply(WasteItemEvent wasteEvent)
     {
         CurrentStatus = wasteEvent.ToStatus;
-        if (wasteEvent.ToPartyId != null)    OwnerId    = wasteEvent.ToPartyId;
-        if (wasteEvent.ToFacilityId != null) FacilityId = wasteEvent.ToFacilityId;
+        if (wasteEvent.ToPartyId != null)    HolderId    = wasteEvent.ToPartyId;
+        if (wasteEvent.ToFacilityId != null) CurrentFacilityId = wasteEvent.ToFacilityId;
         Events.Add(wasteEvent);
     }
 }

@@ -1,5 +1,6 @@
 using Gresst.Domain.Common;
 using Gresst.Domain.Entities;
+using Gresst.Domain.Interfaces;
 using Gresst.Domain.RouteProcesses;
 using Gresst.Domain.RouteProcesses.Events;
 using MediatR;

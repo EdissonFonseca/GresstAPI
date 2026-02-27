@@ -1,4 +1,5 @@
 using Gresst.Domain.Entities;
+using Gresst.Domain.Interfaces;
 using Gresst.Infrastructure.Data;
 using Gresst.Infrastructure.Data.Entities;
 using Microsoft.EntityFrameworkCore;
