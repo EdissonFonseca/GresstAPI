@@ -49,6 +49,7 @@ public record ResidueRelocationTriggeredEvent(
     Guid StopId,
     string LocationId,
     Guid VehicleId,
+    IReadOnlyCollection<string> WasteItemIds,
     DateTime OccurredOn
 ) : IDomainEvent;
 
@@ -61,6 +62,7 @@ public record ResidueTransferTriggeredEvent(
     Guid StopId,
     Guid FromPartyId,
     Guid ToPartyId,
+    IReadOnlyCollection<string> WasteItemIds,
     DateTime OccurredOn
 ) : IDomainEvent;
 
@@ -72,5 +74,6 @@ public record ResidueStorageTriggeredEvent(
     Guid RouteProcessId,
     Guid StopId,
     string LocationId,
+    IReadOnlyCollection<string> WasteItemIds,
     DateTime OccurredOn
 ) : IDomainEvent;

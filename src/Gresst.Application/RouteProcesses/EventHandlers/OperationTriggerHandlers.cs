@@ -47,7 +47,12 @@ public class ResidueRelocationTriggeredHandler
             toLocationId = notification.LocationId;
         }
 
-        var data = new RelocationData(fromLocationId, toLocationId, notification.VehicleId);
+        var data = new RelocationData(
+            fromLocationId,
+            toLocationId,
+            notification.VehicleId,
+            notification.WasteItemIds);
+
         var operation = new WasteOperation(
             OperationType.Relocation,
             data,
@@ -72,7 +77,11 @@ public class ResidueTransferTriggeredHandler
 
     public async Task Handle(ResidueTransferTriggeredEvent notification, CancellationToken ct)
     {
-        var data = new TransferData(notification.FromPartyId, notification.ToPartyId);
+        var data = new TransferData(
+            notification.FromPartyId,
+            notification.ToPartyId,
+            notification.WasteItemIds);
+
         var operation = new WasteOperation(
             OperationType.Transfer,
             data,
@@ -97,7 +106,10 @@ public class ResidueStorageTriggeredHandler
 
     public async Task Handle(ResidueStorageTriggeredEvent notification, CancellationToken ct)
     {
-        var data = new StorageData(notification.LocationId);
+        var data = new StorageData(
+            notification.LocationId,
+            notification.WasteItemIds);
+
         var operation = new WasteOperation(
             OperationType.Storage,
             data,

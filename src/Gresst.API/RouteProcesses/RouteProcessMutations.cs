@@ -84,7 +84,8 @@ public class RouteProcessMutations
         var command = new CompleteRouteStopCommand(
             input.RouteProcessId,
             input.StopId,
-            input.Notes);
+            input.Notes,
+            input.WasteItemIds ?? new List<string>());
 
         var result = await sender.Send(command, ct);
         return result.IsSuccess

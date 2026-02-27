@@ -23,7 +23,7 @@ public class CompleteRouteStopCommandHandler : IRequestHandler<CompleteRouteStop
 
         try
         {
-            route.CompleteStop(request.StopId, request.Notes);
+            route.CompleteStop(request.StopId, request.Notes, request.WasteItemIds);
             await _repository.UpdateAsync(route, ct);
 
             foreach (var evt in route.DomainEvents)

@@ -91,7 +91,10 @@ public class RouteProcess : AggregateRoot
     /// Completes a stop and dispatches the corresponding domain events
     /// based on the operation type at that stop.
     /// </summary>
-    public void CompleteStop(Guid stopId, string? notes = null)
+    public void CompleteStop(
+        Guid stopId,
+        string? notes = null,
+        IReadOnlyList<string>? wasteItemIds = null)
     {
         EnsureStatus(RouteStatus.InProgress, "Route must be in progress to complete a stop.");
 
@@ -102,6 +105,8 @@ public class RouteProcess : AggregateRoot
             throw new RouteProcessDomainException($"Stop {stopId} is already completed.");
 
         stop.Complete(notes);
+
+        var itemIds = (wasteItemIds ?? Array.Empty<string>()).ToArray();
 
         // Dispatch operation-specific domain events.
         // Downstream handlers will create the actual Operations (Relocation, Transfer, etc.)
@@ -114,6 +119,7 @@ public class RouteProcess : AggregateRoot
                     StopId: stop.Id,
                     LocationId: stop.LocationId,
                     VehicleId: VehicleId,
+                    WasteItemIds: itemIds,
                     OccurredOn: stop.CompletedAt!.Value));
                 break;
 
@@ -124,6 +130,7 @@ public class RouteProcess : AggregateRoot
                     StopId: stop.Id,
                     LocationId: stop.LocationId,
                     VehicleId: VehicleId,
+                    WasteItemIds: itemIds,
                     OccurredOn: stop.CompletedAt!.Value));
                 AddDomainEvent(new ResidueTransferTriggeredEvent(
                     RouteProcessId: Id,
@@ -131,6 +138,7 @@ public class RouteProcess : AggregateRoot
                     FromPartyId: DriverId,
                     ToPartyId: stop.ResponsiblePartyId
                         ?? throw new RouteProcessDomainException("Delivery stop requires a ResponsiblePartyId (receiver)."),
+                    WasteItemIds: itemIds,
                     OccurredOn: stop.CompletedAt!.Value));
                 break;
 
@@ -140,6 +148,7 @@ public class RouteProcess : AggregateRoot
                     RouteProcessId: Id,
                     StopId: stop.Id,
                     LocationId: stop.LocationId,
+                    WasteItemIds: itemIds,
                     OccurredOn: stop.CompletedAt!.Value));
                 break;
 
@@ -151,6 +160,7 @@ public class RouteProcess : AggregateRoot
                     FromPartyId: DriverId,
                     ToPartyId: stop.ResponsiblePartyId
                         ?? throw new RouteProcessDomainException("CustodyTransfer stop requires a ResponsiblePartyId."),
+                    WasteItemIds: itemIds,
                     OccurredOn: stop.CompletedAt!.Value));
                 break;
         }
