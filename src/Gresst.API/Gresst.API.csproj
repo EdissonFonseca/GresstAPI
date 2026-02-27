@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk.Web">
+<Project Sdk="Microsoft.NET.Sdk.Web">
 
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
@@ -6,6 +6,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>
 
+  <!-- Excluded for VS: not used by any active Endpoint or GraphQL (MapEndpoints only maps: Auth, Authorization, Account, Customer, Employees, Me, Party, Supplier, User + GraphQL) -->
   <ItemGroup>
     <Compile Remove="Endpoints\CollectionsEndpoints.cs" />
     <Compile Remove="Endpoints\FacilityEndpoints.cs" />

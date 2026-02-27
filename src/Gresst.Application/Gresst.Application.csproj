@@ -12,6 +12,11 @@
     <None Remove="WasteManagement\**" />
   </ItemGroup>
 
+  <!-- Excluded for VS: not used by any active Endpoint or GraphQL -->
+  <ItemGroup>
+    <Compile Remove="Services\TransferWasteCommand.cs" />
+    <Compile Remove="Services\TransferWasteHandler.cs" />
+  </ItemGroup>
   <ItemGroup>
     <Compile Remove="DTOs\BalanceDto.cs" />
     <Compile Remove="DTOs\CustomerDto.cs" />

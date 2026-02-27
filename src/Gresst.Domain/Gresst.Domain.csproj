@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
@@ -8,6 +8,7 @@
     <UserSecretsId>ba2a1d5d-117e-44e1-9910-f815218edf86</UserSecretsId>
   </PropertyGroup>
 
+  <!-- Excluded for VS: enums/entities not used by active Endpoints/GraphQL or not matching current model (Party, Facility, Identity, RouteProcesses, Operations, residue model) -->
   <ItemGroup>
     <Compile Remove="Common\GuidLongConverter.cs" />
     <Compile Remove="Common\GuidStringConverter.cs" />
@@ -15,9 +16,31 @@
     <Compile Remove="Common\WasteStateGroups.cs" />
     <Compile Remove="Entities\Person.cs" />
     <Compile Remove="Interfaces\IPersonContactRepository.cs" />
+    <Compile Remove="Entities\Certificate.cs" />
+    <Compile Remove="Entities\CertificateEvent.cs" />
+    <Compile Remove="Entities\DisposalProcess.cs" />
+    <Compile Remove="Entities\IncidentProcess.cs" />
+    <Compile Remove="Entities\Order.cs" />
+    <Compile Remove="Entities\OrderEvent.cs" />
+    <Compile Remove="Entities\Request.cs" />
+    <Compile Remove="Entities\RequestEvent.cs" />
+    <Compile Remove="Entities\TreatmentProcess.cs" />
+    <Compile Remove="Entities\TransformationData.cs" />
+    <Compile Remove="Entities\TransformationFormula.cs" />
+    <Compile Remove="Entities\TransformationInput.cs" />
+    <Compile Remove="Entities\TransformationOutput.cs" />
+    <Compile Remove="Entities\Route.cs" />
+    <Compile Remove="Enums\CertificateStatus.cs" />
+    <Compile Remove="Enums\DisposalType.cs" />
+    <Compile Remove="Enums\IncidentSeverity.cs" />
+    <Compile Remove="Enums\IncidentType.cs" />
+    <Compile Remove="Enums\OrderStatus.cs" />
+    <Compile Remove="Enums\OrderType.cs" />
+    <Compile Remove="Enums\RequestStatus.cs" />
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="MediatR.Contracts" Version="2.0.1" />
     <PackageReference Include="Microsoft.Extensions.Configuration.UserSecrets" Version="10.0.3" />
     <PackageReference Include="NetTopologySuite" Version="2.6.0" />
   </ItemGroup>

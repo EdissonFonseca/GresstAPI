@@ -1,3 +1,5 @@
+using Gresst.GraphQL.RouteProcesses;
+
 namespace Gresst.API.GraphQL;
 
 public static class SchemaExtensions
@@ -7,9 +9,13 @@ public static class SchemaExtensions
         services
             .AddGraphQLServer()
             .AddQueryType<PartiesQuery>()
+            .AddTypeExtension<TransportQuery>()
+            .AddMutationType<RouteProcessMutations>()
+            .AddSubscriptionType<RouteProcessSubscriptions>()
             .AddType<FacilityType>()
             .AddType<PartyRelatedType>()
-            .AddAuthorization()  // ← agregar esto
+            .AddInMemorySubscriptions()
+            .AddAuthorization()
             .ModifyRequestOptions(o => o.IncludeExceptionDetails = true);
 
         return services;

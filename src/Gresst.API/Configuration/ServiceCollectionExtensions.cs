@@ -1,10 +1,13 @@
 using Asp.Versioning;
 using Gresst.API.Services;
+using Gresst.Application.RouteProcesses.Commands.CreateRouteProcess;
 using Gresst.Application.Services;
 using Gresst.Application.Services.Interfaces;
+using MediatR;
 using Gresst.Domain.Entities;
 using Gresst.Domain.Identity;
 using Gresst.Domain.Interfaces;
+using Gresst.Domain.RouteProcesses;
 using Gresst.Infrastructure.Authentication;
 using Gresst.Infrastructure.Data;
 using Gresst.Infrastructure.Mappers;
@@ -164,10 +167,11 @@ public static class ServiceCollectionExtensions
 
     public static IServiceCollection AddGresstDatabase(this IHostApplicationBuilder builder)
     {
+        var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
         builder.Services.AddDbContext<InfrastructureDbContext>(options =>
-            options.UseSqlServer(
-                builder.Configuration.GetConnectionString("DefaultConnection"),
-                sql => sql.UseNetTopologySuite()));
+            options.UseSqlServer(connectionString, sql => sql.UseNetTopologySuite()));
+        builder.Services.AddDbContext<RouteProcessDbContext>(options =>
+            options.UseSqlServer(connectionString));
         builder.Services.AddHealthChecks();
         return builder.Services;
     }
@@ -188,12 +192,15 @@ public static class ServiceCollectionExtensions
         services.AddScoped(typeof(IRepository<>), typeof(GenericInfraRepository<>));
         services.AddScoped<IRepository<Account>, AccountRepository>();
         services.AddScoped<IPartyRepository<Party>, PartyRepository>();
+        services.AddScoped<IRouteProcessRepository, RouteProcessRepository>();
+        services.AddScoped<IWasteOperationRepository, WasteOperationRepository>();
         services.AddScoped<IUnitOfWork, UnitOfWork>();
         return services;
     }
 
     public static IServiceCollection AddGresstApplicationServices(this IServiceCollection services)
     {
+        services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(CreateRouteProcessCommand).Assembly));
         services.AddScoped<IAccountRegistrationService, AccountRegistrationService>();
         services.AddScoped<IAuthorizationService, AuthorizationService>();
         services.AddScoped<IDataSegmentationService, DataSegmentationService>();

@@ -1,4 +1,7 @@
+using Gresst.Domain.Common;
 using Gresst.Domain.Enums;
+
+namespace Gresst.Domain.Entities;
 
 public class WasteItemEvent : DomainEvent
 {
